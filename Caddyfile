@@ -1,0 +1,49 @@
+# Caddyfile de ejemplo — reverse proxy con HTTPS automático (Let's Encrypt).
+#
+# Ubicación habitual en el VPS: /etc/caddy/Caddyfile
+# Después de editarlo:  sudo systemctl reload caddy
+#
+# Requisitos previos:
+#   - El dominio tiene que apuntar (registro A / AAAA) a la IP del VPS.
+#   - Los puertos 80 y 443 tienen que estar abiertos.
+# Con eso, Caddy pide y renueva el certificado solo. No hay que configurar
+# nada de TLS a mano.
+
+midominio.com {
+	# La app de Next escucha en localhost:3000 (ver PORT en .env y PM2).
+	# Nunca se expone directo a internet.
+	reverse_proxy 127.0.0.1:3000 {
+		# Estos headers son los que lee src/lib/request-ip.ts para saber la IP
+		# real del cliente. Sin ellos, todos los escaneos quedarían con el
+		# mismo ip_hash (el del proxy).
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+
+	encode zstd gzip
+
+	header {
+		# El panel no debería aparecer en buscadores.
+		X-Robots-Tag "noindex, nofollow"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# HSTS: activalo recién cuando estés seguro de que el dominio se va a
+		# servir siempre por HTTPS.
+		# Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/pulseras.log {
+			roll_size 20mb
+			roll_keep 10
+		}
+		format json
+	}
+}
+
+# Si además querés que el dominio con www redirija al principal:
+# www.midominio.com {
+# 	redir https://midominio.com{uri} permanent
+# }

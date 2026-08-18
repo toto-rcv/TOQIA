@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-ex-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    font-feature-settings: "cv11", "ss01";
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Los números de métricas y timestamps van en mono y tabulares para que las
+     columnas no bailen al actualizarse. */
+  .num {
+    @apply font-mono tabular-nums;
+  }
+}
+
+@layer components {
+  /* ── executive-dashboard-ui ────────────────────────────────────────────────
+     Superficie base del panel. Una tarjeta es un rectángulo con un borde de
+     1px casi invisible, sin sombra: la separación la da el cambio de fondo. */
+  .ex-card {
+    @apply rounded-card border border-ex-border bg-ex-surface;
+  }
+
+  .ex-card-flush {
+    @apply border-b border-ex-border-subtle last:border-b-0;
+  }
+
+  /* Etiqueta de métrica: chica, apagada, SIEMPRE debajo del número. */
+  .ex-label {
+    @apply text-label font-medium text-ex-text-muted;
+  }
+
+  .ex-metric {
+    @apply font-mono text-metric font-medium tabular-nums text-ex-text;
+  }
+
+  .ex-input {
+    @apply w-full rounded-control border border-ex-border bg-ex-black px-3 py-2
+           text-sm text-ex-text placeholder:text-ex-text-disabled
+           focus:border-ex-blue focus:outline-none focus:ring-1 focus:ring-ex-blue/40
+           disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .ex-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-control px-3 py-2
+           text-sm font-medium transition-[background-color,border-color,transform]
+           duration-150 active:scale-[0.98]
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .ex-btn-primary {
+    @apply ex-btn bg-ex-blue-deep text-white hover:bg-ex-blue;
+  }
+
+  .ex-btn-ghost {
+    @apply ex-btn border border-ex-border bg-transparent text-ex-text-secondary
+           hover:border-ex-blue/40 hover:text-ex-text;
+  }
+
+  .ex-btn-danger {
+    @apply ex-btn border border-ex-danger/30 bg-transparent text-ex-danger
+           hover:bg-ex-danger/10;
+  }
+
+  /* ── minimalist-ui ─────────────────────────────────────────────────────────
+     Solo para /pulsera/*: las páginas que ve el cliente del restaurante. */
+  .mn-page {
+    @apply min-h-dvh bg-mn-canvas text-mn-ink;
+    /* Ruido al 3% para que el fondo no sea un plano muerto. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  .mn-card {
+    @apply border border-mn-border bg-mn-card;
+  }
+
+  .mn-title {
+    @apply font-serif tracking-tight text-mn-ink;
+    line-height: 1.15;
+  }
+
+  .mn-body {
+    @apply text-mn-ink-soft;
+    line-height: 1.6;
+  }
+}
+
+/* Respetar la preferencia de sistema: nada se mueve si el usuario pidió
+   movimiento reducido. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Scrollbar discreta dentro del panel oscuro. */
+.ex-scope ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.ex-scope ::-webkit-scrollbar-track {
+  background: #0b1018;
+}
+.ex-scope ::-webkit-scrollbar-thumb {
+  background: #1d2734;
+  border-radius: 6px;
+}
+.ex-scope ::-webkit-scrollbar-thumb:hover {
+  background: #2a3646;
+}

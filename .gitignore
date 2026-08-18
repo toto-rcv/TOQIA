@@ -1,0 +1,148 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Dependencias
+# ─────────────────────────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# El lockfile SÍ se sube: es lo que hace que el build del servidor instale
+# exactamente las mismas versiones que probaste en tu máquina.
+# (package-lock.json no está ignorado a propósito)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Build de Next.js
+# ─────────────────────────────────────────────────────────────────────────────
+.next/
+out/
+build/
+dist/
+next-env.d.ts
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Variables de entorno  ← lo más importante de este archivo
+# ─────────────────────────────────────────────────────────────────────────────
+# Nunca subir secretos. Un secreto que pasó por un repo se considera quemado,
+# aunque después lo borres: queda en el historial de commits.
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.produccion
+
+# La plantilla sin valores reales sí se sube: es la documentación de qué
+# variables hace falta configurar.
+!.env.example
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Base de datos
+# ─────────────────────────────────────────────────────────────────────────────
+# Dumps y backups: pueden pesar mucho y contienen datos de clientes.
+backups/
+*.sql.gz
+*.sql.gz.partial
+*.dump
+
+# Volumen de MySQL si algún día lo montás como carpeta local.
+mysql_data/
+docker/data/
+
+# OJO: la carpeta drizzle/ con las migraciones generadas SÍ se sube.
+# Son parte del código: describen cómo llegó la base a su estado actual.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Logs
+# ─────────────────────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pm2/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Cachés de herramientas
+# ─────────────────────────────────────────────────────────────────────────────
+*.tsbuildinfo
+.tsbuildinfo
+.eslintcache
+.cache/
+.turbo/
+.swc/
+coverage/
+.nyc_output/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Editores e IDE
+# ─────────────────────────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+.history/
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Sistema operativo
+# ─────────────────────────────────────────────────────────────────────────────
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Claves y certificados
+# ─────────────────────────────────────────────────────────────────────────────
+# Por si alguna vez generás certificados para probar HTTPS en local.
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+*.ppk
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Archivos sueltos del proyecto
+# ─────────────────────────────────────────────────────────────────────────────
+# Paquetes que armamos para mover el proyecto de un lado a otro.
+*.zip
+*.tar.gz
+*.7z
+*.rar
+
+# Deploy script generado en el servidor (ver DEPLOY-VPS-MANUAL.md).
+deploy.sh
+
+# Temporales varios
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig

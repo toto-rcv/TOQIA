@@ -1,0 +1,34 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: pulseras-mysql
+    restart: unless-stopped
+    command:
+      # InnoDB y utf8mb4 son requisito del proyecto. mysql:8 ya usa InnoDB por
+      # defecto, pero lo dejamos explícito para que no dependa de la imagen.
+      - --default-storage-engine=InnoDB
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      # El contenedor guarda todo en UTC. La app también escribe en UTC.
+      - --default-time-zone=+00:00
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-pulseras}
+      MYSQL_USER: ${MYSQL_USER:-pulseras}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-pulseras}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      # Sin esto, `docker compose up -d` devuelve antes de que MySQL acepte
+      # conexiones y el primer `db:push` falla.
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD:-rootpass}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+volumes:
+  mysql_data:
+    driver: local
