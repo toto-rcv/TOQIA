@@ -29,8 +29,7 @@ Sin servicios externos pagos. Todo corre en un VPS propio.
 
 ## Puesta en marcha local
 
-Necesitás **Node 20 o superior** y un **MySQL 8** corriendo en tu máquina.
-El paso 3 explica las dos formas de tenerlo.
+Necesitás **Node 20 o superior** y **Docker** (para MySQL).
 
 ### 1. Instalar dependencias
 
@@ -44,104 +43,31 @@ npm install
 cp .env.example .env
 ```
 
-Abrí el `.env` y generá los dos secretos.
-
-**Con Node** (funciona igual en Windows, macOS y Linux, y Node ya es requisito
-del proyecto):
+Abrí el `.env` y generá los dos secretos:
 
 ```bash
 # BETTER_AUTH_SECRET
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+openssl rand -base64 32
 
 # IP_HASH_SALT
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+openssl rand -hex 32
 ```
-
-**Con openssl**, si lo tenés a mano (macOS, Linux, o Git Bash en Windows):
-
-```bash
-openssl rand -base64 32   # BETTER_AUTH_SECRET
-openssl rand -hex 32      # IP_HASH_SALT
-```
-
-> En PowerShell, `openssl` no viene instalado por defecto en Windows. Usá la
-> versión con Node de arriba.
 
 Los demás valores por defecto ya coinciden con el `docker-compose.yml`.
 
 ### 3. Levantar MySQL
 
-> **Atajo:** si ya tenés MySQL instalado, corré `setup.ps1` y saltá a la
-> sección "Arrancar". El script crea la base y el usuario, deja el servidor en
-> UTC, genera el `.env` con secretos nuevos, instala dependencias, crea las
-> tablas y carga los datos de ejemplo:
->
-> ```powershell
-> powershell -ExecutionPolicy Bypass -File .\setup.ps1
-> ```
-
-Si preferís hacerlo a mano, elegí una de las dos opciones. Si no tenés Docker
-instalado, andá directo a la opción A.
-
-#### Opción A — MySQL instalado en Windows (sin Docker)
-
-1. Descargá el **MySQL Installer** desde
-   <https://dev.mysql.com/downloads/installer/> y corré el instalador.
-2. Elegí el tipo de instalación **Server only** (no hace falta nada más; si
-   querés una interfaz gráfica para mirar la base, agregá MySQL Workbench).
-3. En la configuración dejá el **puerto 3306** y poné una contraseña de `root`
-   que te acuerdes.
-4. Dejá marcado que MySQL arranque como servicio de Windows, así no tenés que
-   levantarlo a mano cada vez.
-
-> No uses `winget install Oracle.MySQL`: ese paquete instala el *instalador*,
-> no el servidor, y no completa la instalación de forma desatendida.
-
-**Creá la base, el usuario y poné el servidor en UTC.** Abrí el cliente de
-MySQL (buscá "MySQL Command Line Client" en el menú Inicio, o desde PowerShell
-con la ruta del `bin` de tu instalación):
-
-```powershell
-& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p
-```
-
-Y adentro del prompt de MySQL:
-
-```sql
-CREATE DATABASE pulseras
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-CREATE USER 'pulseras'@'localhost' IDENTIFIED BY 'pulseras';
-CREATE USER 'pulseras'@'127.0.0.1' IDENTIFIED BY 'pulseras';
-GRANT ALL PRIVILEGES ON pulseras.* TO 'pulseras'@'localhost';
-GRANT ALL PRIVILEGES ON pulseras.* TO 'pulseras'@'127.0.0.1';
-FLUSH PRIVILEGES;
-
-SET PERSIST time_zone = '+00:00';
-EXIT;
-```
-
-Se crean los dos usuarios porque MySQL trata `localhost` y `127.0.0.1` como
-hosts distintos según cómo resuelva la conexión.
-
-`SET PERSIST` es importante: la app guarda todo en UTC y varias columnas usan
-`CURRENT_TIMESTAMP` como valor por defecto, así que con el servidor en hora
-local esas fechas quedan corridas. A diferencia de `SET GLOBAL`, `PERSIST`
-sobrevive a los reinicios del servicio (lo escribe en `mysqld-auto.cnf`), así
-que no hace falta editar el `my.ini` a mano.
-
-Con eso, el `DATABASE_URL` que ya viene en `.env.example` funciona tal cual.
-
-#### Opción B — con Docker
-
-Si en algún momento instalás Docker Desktop, el `docker-compose.yml` del repo
-levanta MySQL 8 ya configurado (InnoDB, utf8mb4, UTC) con volumen persistente:
-
 ```bash
 docker compose up -d
-docker compose ps      # la columna de estado tiene que decir "healthy"
 ```
+
+La primera vez tarda unos segundos en inicializar. Podés verificar que está listo con:
+
+```bash
+docker compose ps
+```
+
+La columna de estado tiene que decir `healthy`.
 
 ### 4. Crear las tablas
 
@@ -351,17 +277,6 @@ crean con el seed o a mano contra la base.
 
 ---
 
-## Cómo se usa el panel
-
-Manual de cada pantalla, para qué sirve y en qué orden se usan:
-[funcionamiento-de-cada-pagina.md](./funcionamiento-de-cada-pagina.md).
-
-## Pulseras físicas
-
-Qué chips comprar, cómo grabarlos y cómo verificar el circuito completo:
-[PULSERAS.md](./PULSERAS.md).
-
 ## Producción
 
-- **Con Coolify** (Hostinger): [DEPLOY.md](./DEPLOY.md) — es el camino que usás vos.
-- **VPS pelado con PM2 + Caddy**: [DEPLOY-VPS-MANUAL.md](./DEPLOY-VPS-MANUAL.md).
+Ver [DEPLOY.md](./DEPLOY.md).

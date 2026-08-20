@@ -1,10 +1,15 @@
-import { and, desc, eq, gte, lte, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull, lte, sql, type SQL } from "drizzle-orm";
 
-import { bracelets, db, restaurants, scans } from "@/db";
+import { accounts, bracelets, db, locations, scans, waiters } from "@/db";
 
 export type ScanFilters = {
-  restaurantId?: number;
+  /** Siempre lo impone el servidor a partir de la sesión, nunca la URL. */
+  accountId?: number;
+  locationId?: number;
   braceletId?: number;
+  waiterId?: number;
+  /** Solo los escaneos que terminaron en la reseña. */
+  onlyConverted?: boolean;
   /** Inclusive, en UTC. */
   from?: Date;
   /** Inclusive, en UTC. */
@@ -14,32 +19,43 @@ export type ScanFilters = {
 export type ScanRow = {
   id: number;
   scannedAt: Date;
+  reviewClickedAt: Date | null;
   braceletCode: string;
   braceletLabel: string | null;
-  restaurantName: string;
+  locationName: string;
+  accountName: string;
+  waiterName: string | null;
   userAgent: string | null;
   ipHash: string | null;
 };
 
 function buildWhere(filters: ScanFilters): SQL | undefined {
-  const conditions: SQL[] = [];
+  const condiciones: SQL[] = [];
 
-  if (filters.restaurantId) {
-    conditions.push(eq(scans.restaurantId, filters.restaurantId));
-  }
-  if (filters.braceletId) {
-    conditions.push(eq(scans.braceletId, filters.braceletId));
-  }
-  if (filters.from) {
-    conditions.push(gte(scans.scannedAt, filters.from));
-  }
-  if (filters.to) {
-    conditions.push(lte(scans.scannedAt, filters.to));
-  }
+  if (filters.accountId) condiciones.push(eq(scans.accountId, filters.accountId));
+  if (filters.locationId) condiciones.push(eq(scans.locationId, filters.locationId));
+  if (filters.braceletId) condiciones.push(eq(scans.braceletId, filters.braceletId));
+  if (filters.waiterId) condiciones.push(eq(scans.waiterId, filters.waiterId));
+  if (filters.onlyConverted) condiciones.push(isNotNull(scans.reviewClickedAt));
+  if (filters.from) condiciones.push(gte(scans.scannedAt, filters.from));
+  if (filters.to) condiciones.push(lte(scans.scannedAt, filters.to));
 
-  if (conditions.length === 0) return undefined;
-  return and(...conditions);
+  if (condiciones.length === 0) return undefined;
+  return and(...condiciones);
 }
+
+const SELECCION = {
+  id: scans.id,
+  scannedAt: scans.scannedAt,
+  reviewClickedAt: scans.reviewClickedAt,
+  braceletCode: bracelets.code,
+  braceletLabel: bracelets.label,
+  locationName: locations.name,
+  accountName: accounts.name,
+  waiterName: waiters.name,
+  userAgent: scans.userAgent,
+  ipHash: scans.ipHash,
+};
 
 export async function listScans(
   filters: ScanFilters,
@@ -48,20 +64,14 @@ export async function listScans(
   const where = buildWhere(filters);
   const offset = (pagination.page - 1) * pagination.pageSize;
 
-  const [rows, totalRows] = await Promise.all([
+  const [filas, totales] = await Promise.all([
     db
-      .select({
-        id: scans.id,
-        scannedAt: scans.scannedAt,
-        braceletCode: bracelets.code,
-        braceletLabel: bracelets.label,
-        restaurantName: restaurants.name,
-        userAgent: scans.userAgent,
-        ipHash: scans.ipHash,
-      })
+      .select(SELECCION)
       .from(scans)
       .innerJoin(bracelets, eq(scans.braceletId, bracelets.id))
-      .innerJoin(restaurants, eq(scans.restaurantId, restaurants.id))
+      .innerJoin(locations, eq(scans.locationId, locations.id))
+      .innerJoin(accounts, eq(scans.accountId, accounts.id))
+      .leftJoin(waiters, eq(scans.waiterId, waiters.id))
       .where(where)
       .orderBy(desc(scans.scannedAt), desc(scans.id))
       .limit(pagination.pageSize)
@@ -72,32 +82,31 @@ export async function listScans(
       .where(where),
   ]);
 
-  return { rows, total: totalRows[0]?.total ?? 0 };
+  return {
+    rows: filas.map((fila) => ({ ...fila, waiterName: fila.waiterName ?? null })),
+    total: totales[0]?.total ?? 0,
+  };
 }
 
 /**
- * Misma consulta que listScans pero sin paginar, para el export CSV.
- * Tiene un tope duro para que nadie se lleve puesto el servidor pidiendo
- * un CSV de millones de filas.
+ * Misma consulta sin paginar, para el export CSV.
+ * Tiene un tope duro para que nadie se lleve puesto el servidor pidiendo un
+ * CSV de millones de filas.
  */
 export async function listScansForExport(
   filters: ScanFilters,
   limit = 50_000
 ): Promise<ScanRow[]> {
-  return db
-    .select({
-      id: scans.id,
-      scannedAt: scans.scannedAt,
-      braceletCode: bracelets.code,
-      braceletLabel: bracelets.label,
-      restaurantName: restaurants.name,
-      userAgent: scans.userAgent,
-      ipHash: scans.ipHash,
-    })
+  const filas = await db
+    .select(SELECCION)
     .from(scans)
     .innerJoin(bracelets, eq(scans.braceletId, bracelets.id))
-    .innerJoin(restaurants, eq(scans.restaurantId, restaurants.id))
+    .innerJoin(locations, eq(scans.locationId, locations.id))
+    .innerJoin(accounts, eq(scans.accountId, accounts.id))
+    .leftJoin(waiters, eq(scans.waiterId, waiters.id))
     .where(buildWhere(filters))
     .orderBy(desc(scans.scannedAt), desc(scans.id))
     .limit(limit);
+
+  return filas.map((fila) => ({ ...fila, waiterName: fila.waiterName ?? null }));
 }

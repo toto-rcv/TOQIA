@@ -14,6 +14,11 @@ export const Input = React.forwardRef<
       "placeholder:text-ex-text-disabled",
       "focus:border-ex-blue focus:outline-none focus:ring-1 focus:ring-ex-blue/40",
       "disabled:cursor-not-allowed disabled:opacity-40",
+      // Los inputs de fecha traen un ícono de calendario negro que sobre fondo
+      // oscuro es invisible: se invierte para que se vea.
+      "[&::-webkit-calendar-picker-indicator]:cursor-pointer",
+      "[&::-webkit-calendar-picker-indicator]:opacity-60",
+      "[&::-webkit-calendar-picker-indicator]:invert",
       className
     )}
     {...props}
@@ -44,30 +49,29 @@ export const Label = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <label
     ref={ref}
-    className={cn(
-      "block text-label font-medium text-ex-text-secondary",
-      className
-    )}
+    className={cn("block text-label font-medium text-ex-text-secondary", className)}
     {...props}
   />
 ));
 Label.displayName = "Label";
 
-/** Select nativo estilado: menos JS y mejor comportamiento en celular. */
+/**
+ * Select nativo estilado.
+ *
+ * Menos JavaScript y mejor comportamiento en celular que un desplegable
+ * propio. El estilo vive en `.ex-select` dentro de globals.css: la flecha es
+ * un SVG embebido que, escrito como clase arbitraria de Tailwind, se rompía
+ * por los espacios del `viewBox` y dejaba el control sin fondo — blanco sobre
+ * blanco. En CSS plano no hay ese problema.
+ *
+ * Ahí también se estilan los `<option>`, porque el desplegable que abre el
+ * sistema operativo no hereda el color del `<select>` y salía blanco.
+ */
 export const Select = React.forwardRef<
   HTMLSelectElement,
   React.SelectHTMLAttributes<HTMLSelectElement>
 >(({ className, children, ...props }, ref) => (
-  <select
-    ref={ref}
-    className={cn(
-      "h-9 w-full appearance-none rounded-control border border-ex-border bg-ex-black px-3 text-sm text-ex-text",
-      "focus:border-ex-blue focus:outline-none focus:ring-1 focus:ring-ex-blue/40",
-      "bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23647184%22 stroke-width=%222%22><path d=%22M6 9l6 6 6-6%22/></svg>')] bg-[length:14px] bg-[right_0.6rem_center] bg-no-repeat pr-8",
-      className
-    )}
-    {...props}
-  >
+  <select ref={ref} className={cn("ex-select", className)} {...props}>
     {children}
   </select>
 ));

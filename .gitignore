@@ -140,6 +140,9 @@ id_rsa.pub
 # Deploy script generado en el servidor (ver DEPLOY-VPS-MANUAL.md).
 deploy.sh
 
+# Export intermedio de la migración a la v2. Contiene hashes de contraseña.
+migracion-v1.json
+
 # Temporales varios
 tmp/
 temp/

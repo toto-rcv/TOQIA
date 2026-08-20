@@ -1,137 +1,174 @@
 import Link from "next/link";
 
 import { PageHeader } from "@/components/admin/page-header";
-import { ScansChart } from "@/components/admin/scans-chart";
+import { EvolutionChart } from "@/components/stats/evolution-chart";
+import { MetricTile } from "@/components/stats/metric-tile";
+import { RankingList } from "@/components/stats/ranking-list";
+import { StatsFilters } from "@/components/stats/stats-filters";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
-import { topBracelets } from "@/db/queries/bracelets";
-import { getDashboardTotals, getScansPerDay } from "@/db/queries/dashboard";
+import { listAccounts } from "@/db/queries/accounts";
+import {
+  getBraceletRanking,
+  getSeries,
+  getStatsSummary,
+  getTotalScans,
+  getWaiterRanking,
+} from "@/db/queries/stats";
+import { requireAdmin } from "@/lib/session";
+import { parseStatsParams, type StatsSearchParams } from "@/lib/stats-params";
+import { todayLocalKey } from "@/lib/time";
 import { formatNumber } from "@/lib/utils";
 
-export const metadata = { title: "Dashboard · Panel" };
+export const metadata = { title: "Dashboard · Toqia Admin" };
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  const [totals, perDay, ranking] = await Promise.all([
-    getDashboardTotals(),
-    getScansPerDay(30),
-    topBracelets(8),
-  ]);
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<StatsSearchParams>;
+}) {
+  await requireAdmin();
+  const params = parseStatsParams(await searchParams);
 
-  const maximoRanking = ranking[0]?.total ?? 0;
+  // Alcance global: el admin ve el sistema entero.
+  const scope = {};
+
+  const [total, summary, series, braceletRanking, waiterRanking, cuentas] =
+    await Promise.all([
+      getTotalScans(scope),
+      getStatsSummary(scope, params.period),
+      getSeries(scope, params.period, params.granularity),
+      getBraceletRanking(scope, params.period, 8),
+      getWaiterRanking(scope, params.period, 8),
+      listAccounts(),
+    ]);
+
+  const activas = cuentas.filter((cuenta) => cuenta.active).length;
+  const porVencer = cuentas.filter(
+    (cuenta) =>
+      cuenta.subscriptionExpiresAt &&
+      new Date(cuenta.subscriptionExpiresAt).getTime() < Date.now()
+  );
 
   return (
     <>
       <PageHeader
         title="Dashboard"
-        subtitle="Escaneos registrados. Las fechas se guardan en UTC y se muestran en tu hora local."
+        subtitle={`${params.period.label.toLowerCase()} · todo el sistema`}
       />
 
-      {/* Métricas primero: el número manda, la etiqueta va debajo y chica. */}
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricTile value={totals.today} label="Escaneos hoy" destacado />
-        <MetricTile value={totals.last7} label="Últimos 7 días" />
-        <MetricTile value={totals.last30} label="Últimos 30 días" />
-        <MetricTile value={totals.allTime} label="Histórico" />
+      <StatsFilters locations={[]} showLocation={false} maxDate={todayLocalKey()} />
+
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <MetricTile
+          value={summary.scans}
+          label="Escaneos del período"
+          variation={summary.variation.scans}
+          highlight
+        />
+        <MetricTile
+          value={summary.reviewClicks}
+          label="Fueron a reseña"
+          variation={summary.variation.reviewClicks}
+        />
+        <MetricTile
+          value={summary.conversionRate.toFixed(0)}
+          suffix="%"
+          label="Conversión"
+          hint={`Antes: ${summary.previous.conversionRate.toFixed(0)}%`}
+        />
+        <MetricTile value={total} label="Escaneos históricos" />
+        <MetricTile
+          value={activas}
+          label="Cuentas activas"
+          hint={`${cuentas.length} en total`}
+        />
       </div>
+
+      {porVencer.length > 0 ? (
+        <div className="mb-4 rounded-card border border-ex-warning/25 bg-ex-warning/10 px-4 py-3">
+          <p className="text-xs text-ex-warning">
+            {porVencer.length}{" "}
+            {porVencer.length === 1 ? "cuenta tiene" : "cuentas tienen"} la
+            suscripción vencida:{" "}
+            {porVencer.slice(0, 4).map((cuenta) => cuenta.name).join(", ")}
+            {porVencer.length > 4 ? "…" : ""}.{" "}
+            <Link href="/admin/cuentas" className="underline underline-offset-4">
+              Revisar
+            </Link>
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid gap-3 lg:grid-cols-[1fr_360px]">
         <Card>
           <CardHeader>
-            <CardTitle>Escaneos por día · últimos 30 días</CardTitle>
+            <CardTitle>Evolución</CardTitle>
           </CardHeader>
           <CardBody className="pt-5">
-            <ScansChart data={perDay} />
+            <EvolutionChart data={series} />
           </CardBody>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Pulseras más escaneadas</CardTitle>
+            <CardTitle>Cuentas por escaneos</CardTitle>
             <Link
-              href="/admin/bracelets"
-              className="font-mono text-[11px] uppercase tracking-[0.08em] text-ex-text-muted
-                         transition-colors hover:text-ex-blue-bright"
+              href="/admin/cuentas"
+              className="font-mono text-[11px] uppercase tracking-[0.08em] text-ex-text-muted transition-colors hover:text-ex-blue-bright"
             >
               Ver todas
             </Link>
           </CardHeader>
+          <RankingList
+            items={[...cuentas]
+              .sort((a, b) => b.scanCount - a.scanCount)
+              .slice(0, 8)
+              .map((cuenta) => ({
+                id: cuenta.id,
+                title: cuenta.name,
+                subtitle: cuenta.active ? null : "inactiva",
+                value: cuenta.scanCount,
+                detail: `${formatNumber(cuenta.locationCount)} locales · ${formatNumber(cuenta.braceletCount)} pulseras`,
+              }))}
+            emptyMessage="Todavía no hay cuentas cargadas."
+          />
+        </Card>
+      </div>
 
-          {ranking.length === 0 ? (
-            <CardBody>
-              <p className="py-8 text-center text-sm text-ex-text-muted">
-                Sin escaneos todavía.
-              </p>
-            </CardBody>
-          ) : (
-            <div>
-              {ranking.map((item) => (
-                <div
-                  key={item.braceletId}
-                  className="ex-card-flush flex items-center gap-3 px-5 py-2.5"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-mono text-xs font-medium text-ex-text">
-                        {item.code}
-                      </span>
-                      {item.label ? (
-                        <span className="truncate text-[11px] text-ex-text-muted">
-                          {item.label}
-                        </span>
-                      ) : null}
-                    </div>
-                    <p className="truncate text-[11px] text-ex-text-muted">
-                      {item.restaurantName}
-                    </p>
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Pulseras más escaneadas</CardTitle>
+          </CardHeader>
+          <RankingList
+            items={braceletRanking.map((fila) => ({
+              id: fila.braceletId,
+              title: fila.code,
+              subtitle: fila.locationName,
+              value: fila.scans,
+              detail: `${fila.reviewClicks} reseñas`,
+            }))}
+          />
+        </Card>
 
-                    {/* Barra de proporción: el mismo dato que el número, para
-                        poder comparar de un vistazo sin leer cada cifra. */}
-                    <div className="mt-1.5 h-[3px] w-full rounded-full bg-ex-border-subtle">
-                      <div
-                        className="h-full rounded-full bg-ex-blue"
-                        style={{
-                          width: `${maximoRanking > 0 ? (item.total / maximoRanking) * 100 : 0}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <span className="num shrink-0 text-sm text-ex-text">
-                    {formatNumber(item.total)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Camareros del sistema</CardTitle>
+          </CardHeader>
+          <RankingList
+            medals
+            items={waiterRanking.map((fila) => ({
+              id: fila.waiterId,
+              title: fila.name,
+              subtitle: fila.locationName,
+              value: fila.scans,
+              detail: `${fila.reviewClicks} reseñas · ${fila.conversionRate.toFixed(0)}%`,
+            }))}
+            emptyMessage="Ninguna pulsera tiene camarero asignado todavía."
+          />
         </Card>
       </div>
     </>
-  );
-}
-
-function MetricTile({
-  value,
-  label,
-  destacado = false,
-}: {
-  value: number;
-  label: string;
-  destacado?: boolean;
-}) {
-  return (
-    <Card>
-      <CardBody>
-        <p
-          className={
-            destacado
-              ? "font-mono text-metric-lg font-medium tabular-nums text-ex-blue-bright"
-              : "ex-metric"
-          }
-        >
-          {formatNumber(value)}
-        </p>
-        <p className="ex-label mt-1.5">{label}</p>
-      </CardBody>
-    </Card>
   );
 }

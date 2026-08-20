@@ -1,30 +1,40 @@
 import { redirect } from "next/navigation";
 
-import { getSession } from "@/lib/session";
+import { getSessionUser, homeForRole } from "@/lib/session";
 import { LoginForm } from "./login-form";
 
-export const metadata = {
-  title: "Ingresar · Pulseras NFC",
-};
-
+export const metadata = { title: "Ingresar · Toqia" };
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   // Si ya hay sesión no tiene sentido mostrar el formulario.
-  const session = await getSession();
-  if (session) redirect("/admin");
+  const user = await getSessionUser();
+  if (user) redirect(homeForRole(user.role));
+
+  const { error } = await searchParams;
 
   return (
     <main className="ex-scope flex min-h-dvh items-center justify-center bg-ex-black px-6 py-16">
       <div className="w-full max-w-sm animate-fade-up">
         <div className="mb-8">
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-ex-text-muted">
-            Pulseras NFC
+            Toqia
           </p>
           <h1 className="mt-2 text-xl font-medium tracking-tight text-ex-text">
-            Panel de administración
+            Ingresar
           </h1>
         </div>
+
+        {error === "sin-cuenta" ? (
+          <p className="mb-4 rounded-control border border-ex-warning/25 bg-ex-warning/10 px-3 py-2 text-xs text-ex-warning">
+            Tu usuario no tiene un restaurante asignado. Escribinos para que lo
+            configuremos.
+          </p>
+        ) : null}
 
         <div className="rounded-card border border-ex-border bg-ex-surface px-6 py-6">
           <LoginForm />

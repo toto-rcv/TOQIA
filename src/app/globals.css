@@ -45,6 +45,52 @@
     @apply font-mono text-metric font-medium tabular-nums text-ex-text;
   }
 
+  /* ── Select ───────────────────────────────────────────────────────────────
+     El desplegable nativo no hereda colores en Windows: sin estilar los
+     <option> el menú abre en blanco sobre blanco y no se lee nada. La flecha
+     va acá y no en una clase arbitraria de Tailwind porque el SVG tiene
+     espacios en el viewBox y eso rompe el parseo de la clase. */
+  .ex-select {
+    @apply h-9 w-full appearance-none rounded-control border border-ex-border
+           bg-ex-black py-0 pl-3 pr-8 text-sm text-ex-text
+           transition-colors duration-150
+           focus:border-ex-blue focus:outline-none focus:ring-1 focus:ring-ex-blue/40
+           disabled:cursor-not-allowed disabled:opacity-40;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23647184' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.55rem center;
+    background-size: 14px 14px;
+    cursor: pointer;
+  }
+
+  .ex-select:hover {
+    @apply border-ex-blue/40;
+  }
+
+  /* Sin esto, el menú que abre el sistema operativo sale con los colores por
+     defecto: fondo blanco y, como el <select> define texto claro, letras
+     blancas sobre blanco. */
+  .ex-select option,
+  .ex-select optgroup {
+    background-color: #101722;
+    color: #f3f7fc;
+  }
+
+  .ex-select option:disabled {
+    color: #647184;
+  }
+
+  /* La barra de navegación puede desbordar a lo ancho en pantallas chicas,
+     pero nunca a lo alto. Se le saca la barra de scroll para que el desborde
+     horizontal no dibuje nada encima de los enlaces. */
+  .ex-nav-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .ex-nav-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
   .ex-input {
     @apply w-full rounded-control border border-ex-border bg-ex-black px-3 py-2
            text-sm text-ex-text placeholder:text-ex-text-disabled
@@ -71,6 +117,57 @@
   .ex-btn-danger {
     @apply ex-btn border border-ex-danger/30 bg-transparent text-ex-danger
            hover:bg-ex-danger/10;
+  }
+
+  /* ── Landing pública (negro + dorado neón) ────────────────────────────────
+     Es la única pantalla que ve el cliente del restaurante. Pensada para
+     celular: un botón por fila, área de toque grande, nada que requiera
+     precisión con el dedo. */
+  .tq-page {
+    @apply min-h-dvh bg-tq-black text-tq-text;
+    /* Halo dorado muy tenue detrás del logo, para que el negro no sea plano. */
+    background-image: radial-gradient(
+      120% 60% at 50% 0%,
+      rgba(212, 175, 55, 0.13) 0%,
+      rgba(212, 175, 55, 0.04) 38%,
+      transparent 70%
+    );
+  }
+
+  /* Botón principal: el de dejar la reseña. Es el único con el borde dorado
+     encendido y glow; todo lo demás queda un escalón por debajo. */
+  .tq-btn-primary {
+    @apply flex min-h-[60px] w-full items-center justify-center gap-3 rounded-xl
+           border border-tq-gold bg-tq-surface px-5 py-4
+           text-base font-semibold tracking-wide text-tq-gold-bright
+           transition-transform duration-150 active:scale-[0.98];
+    box-shadow:
+      0 0 0 1px rgba(212, 175, 55, 0.25),
+      0 0 18px rgba(212, 175, 55, 0.28),
+      inset 0 0 14px rgba(212, 175, 55, 0.09);
+  }
+
+  /* Botones secundarios: mismo borde dorado pero apagado, sin glow. */
+  .tq-btn {
+    @apply flex min-h-[56px] w-full items-center gap-3 rounded-xl
+           border border-tq-gold/40 bg-tq-surface px-5 py-3.5
+           text-[15px] font-medium text-tq-text
+           transition-[transform,border-color,background-color] duration-150
+           active:scale-[0.98] hover:border-tq-gold/70 hover:bg-tq-elevated;
+  }
+
+  .tq-icon {
+    @apply size-5 shrink-0 text-tq-gold;
+  }
+
+  .tq-divider {
+    @apply h-px w-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(212, 175, 55, 0.4),
+      transparent
+    );
   }
 
   /* ── minimalist-ui ─────────────────────────────────────────────────────────

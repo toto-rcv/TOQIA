@@ -1,148 +1,136 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, eq, sql, type SQL } from "drizzle-orm";
 
-import { bracelets, db, restaurants, scans } from "@/db";
-import type { CachedBracelet } from "@/lib/redirect-cache";
-
-/**
- * Resuelve un código de pulsera a su destino y estado.
- * Es la única consulta que corre en el camino crítico del escaneo, así que
- * pide exactamente las cinco columnas que hacen falta y nada más.
- */
-export async function lookupBraceletByCode(
-  code: string
-): Promise<CachedBracelet | null> {
-  const rows = await db
-    .select({
-      braceletId: bracelets.id,
-      restaurantId: bracelets.restaurantId,
-      destinationUrl: bracelets.destinationUrl,
-      braceletActive: bracelets.active,
-      restaurantActive: restaurants.active,
-    })
-    .from(bracelets)
-    .innerJoin(restaurants, eq(bracelets.restaurantId, restaurants.id))
-    .where(eq(bracelets.code, code))
-    .limit(1);
-
-  return rows[0] ?? null;
-}
+import { accounts, bracelets, db, locations, scans, waiters } from "@/db";
 
 export type BraceletListItem = {
   id: number;
   code: string;
   label: string | null;
-  destinationUrl: string;
+  overrideUrl: string | null;
   active: boolean;
-  restaurantId: number;
-  restaurantName: string;
-  restaurantActive: boolean;
+  locationId: number;
+  locationName: string;
+  locationActive: boolean;
+  accountId: number;
+  accountName: string;
+  accountActive: boolean;
+  waiterId: number | null;
+  waiterName: string | null;
   scanCount: number;
+  reviewClicks: number;
   lastScanAt: Date | null;
   createdAt: Date;
 };
 
 /**
- * Listado de pulseras con conteo de escaneos y último escaneo.
+ * Listado de pulseras con sus agregados.
  *
- * Los agregados van por subconsulta en vez de LEFT JOIN + GROUP BY porque el
- * GROUP BY obligaría a agrupar por todas las columnas de bracelets y MySQL
+ * Los conteos van por subconsulta y no por LEFT JOIN + GROUP BY: agrupar
+ * obligaría a incluir todas las columnas de bracelets en el GROUP BY y MySQL
  * terminaría materializando una temporal más grande de lo necesario.
  */
 export async function listBracelets(options: {
-  restaurantId?: number;
+  accountId?: number;
+  locationId?: number;
+  waiterId?: number;
 }): Promise<BraceletListItem[]> {
-  const scanCount = sql<number>`(
-    SELECT COUNT(*) FROM ${scans} WHERE ${scans.braceletId} = ${bracelets.id}
-  )`.mapWith(Number);
-
-  const lastScanAt = sql<Date | null>`(
-    SELECT MAX(${scans.scannedAt}) FROM ${scans} WHERE ${scans.braceletId} = ${bracelets.id}
-  )`;
+  const condiciones: SQL[] = [];
+  if (options.accountId) condiciones.push(eq(locations.accountId, options.accountId));
+  if (options.locationId) condiciones.push(eq(bracelets.locationId, options.locationId));
+  if (options.waiterId) condiciones.push(eq(bracelets.waiterId, options.waiterId));
 
   const query = db
     .select({
       id: bracelets.id,
       code: bracelets.code,
       label: bracelets.label,
-      destinationUrl: bracelets.destinationUrl,
+      overrideUrl: bracelets.overrideUrl,
       active: bracelets.active,
-      restaurantId: bracelets.restaurantId,
-      restaurantName: restaurants.name,
-      restaurantActive: restaurants.active,
+      locationId: bracelets.locationId,
+      locationName: locations.name,
+      locationActive: locations.active,
+      accountId: locations.accountId,
+      accountName: accounts.name,
+      accountActive: accounts.active,
+      waiterId: bracelets.waiterId,
+      waiterName: waiters.name,
       createdAt: bracelets.createdAt,
-      scanCount,
-      lastScanAt,
+      scanCount: sql<number>`(
+        SELECT COUNT(*) FROM ${scans} WHERE ${scans.braceletId} = ${bracelets.id}
+      )`.mapWith(Number),
+      reviewClicks: sql<number>`(
+        SELECT COUNT(${scans.reviewClickedAt}) FROM ${scans}
+        WHERE ${scans.braceletId} = ${bracelets.id}
+      )`.mapWith(Number),
+      lastScanAt: sql<Date | null>`(
+        SELECT MAX(${scans.scannedAt}) FROM ${scans}
+        WHERE ${scans.braceletId} = ${bracelets.id}
+      )`,
     })
     .from(bracelets)
-    .innerJoin(restaurants, eq(bracelets.restaurantId, restaurants.id))
-    .orderBy(restaurants.name, bracelets.code);
+    .innerJoin(locations, eq(bracelets.locationId, locations.id))
+    .innerJoin(accounts, eq(locations.accountId, accounts.id))
+    .leftJoin(waiters, eq(bracelets.waiterId, waiters.id))
+    .orderBy(accounts.name, locations.name, bracelets.code);
 
-  const rows = options.restaurantId
-    ? await query.where(eq(bracelets.restaurantId, options.restaurantId))
-    : await query;
+  const filas =
+    condiciones.length > 0 ? await query.where(and(...condiciones)) : await query;
 
-  return rows.map((row) => ({
-    ...row,
-    lastScanAt: row.lastScanAt ? new Date(row.lastScanAt) : null,
+  return filas.map((fila) => ({
+    ...fila,
+    waiterName: fila.waiterName ?? null,
+    lastScanAt: fila.lastScanAt ? new Date(fila.lastScanAt) : null,
   }));
 }
 
 export async function getBraceletById(id: number) {
-  const rows = await db.select().from(bracelets).where(eq(bracelets.id, id)).limit(1);
-  return rows[0] ?? null;
+  const filas = await db.select().from(bracelets).where(eq(bracelets.id, id)).limit(1);
+  return filas[0] ?? null;
 }
 
 export async function getBraceletByCode(code: string) {
-  const rows = await db
+  const filas = await db
     .select()
     .from(bracelets)
     .where(eq(bracelets.code, code))
     .limit(1);
-  return rows[0] ?? null;
+  return filas[0] ?? null;
 }
 
 /**
- * Devuelve los códigos ya usados que coincidan con un prefijo.
- * Lo usa el alta masiva para saltear los que ya existen en vez de reventar
- * con un error de clave duplicada a mitad del lote.
+ * Trae una pulsera verificando que pertenezca a la cuenta indicada.
+ * La usan las acciones del panel del restaurante, que no pueden confiar en un
+ * id que llegó por formulario.
+ */
+export async function getBraceletForAccount(id: number, accountId: number) {
+  const filas = await db
+    .select({
+      id: bracelets.id,
+      code: bracelets.code,
+      locationId: bracelets.locationId,
+      waiterId: bracelets.waiterId,
+      label: bracelets.label,
+      active: bracelets.active,
+    })
+    .from(bracelets)
+    .innerJoin(locations, eq(bracelets.locationId, locations.id))
+    .where(and(eq(bracelets.id, id), eq(locations.accountId, accountId)))
+    .limit(1);
+  return filas[0] ?? null;
+}
+
+/**
+ * Códigos ya usados dentro de una lista.
+ * El alta masiva la usa para saltear los existentes en vez de reventar con un
+ * error de clave duplicada a mitad del lote.
  */
 export async function findExistingCodes(codes: string[]): Promise<Set<string>> {
   if (codes.length === 0) return new Set();
 
-  const rows = await db
+  const filas = await db
     .select({ code: bracelets.code })
     .from(bracelets)
     .where(sql`${bracelets.code} IN ${codes}`);
 
-  return new Set(rows.map((row) => row.code));
-}
-
-/** Ranking de pulseras más escaneadas, para el dashboard. */
-export async function topBracelets(limit = 8) {
-  const rows = await db
-    .select({
-      braceletId: scans.braceletId,
-      code: bracelets.code,
-      label: bracelets.label,
-      restaurantName: restaurants.name,
-      total: sql<number>`COUNT(*)`.mapWith(Number),
-    })
-    .from(scans)
-    .innerJoin(bracelets, eq(scans.braceletId, bracelets.id))
-    .innerJoin(restaurants, eq(bracelets.restaurantId, restaurants.id))
-    .groupBy(scans.braceletId, bracelets.code, bracelets.label, restaurants.name)
-    .orderBy(desc(sql`COUNT(*)`))
-    .limit(limit);
-
-  return rows;
-}
-
-/** Pulseras activas de un restaurante activo: lo que se usa para validar altas. */
-export async function countActiveBracelets(restaurantId: number): Promise<number> {
-  const rows = await db
-    .select({ total: sql<number>`COUNT(*)`.mapWith(Number) })
-    .from(bracelets)
-    .where(and(eq(bracelets.restaurantId, restaurantId), eq(bracelets.active, true)));
-
-  return rows[0]?.total ?? 0;
+  return new Set(filas.map((fila) => fila.code));
 }

@@ -29,11 +29,24 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/admin");
+      // La raíz redirige según el rol, así el formulario no necesita saber
+      // a dónde va cada tipo de usuario.
+      router.push("/");
       router.refresh();
     } catch (cause) {
+      // Un "Failed to fetch" no es una contraseña mal puesta: es que el pedido
+      // ni siquiera llegó. Casi siempre el servidor se cayó o se está
+      // reiniciando. Decirlo así ahorra buscar el problema donde no está.
       console.error("[login] fallo el intento de ingreso", cause);
-      setError("No se pudo conectar con el servidor. Probá de nuevo.");
+      const esFalloDeRed =
+        cause instanceof TypeError ||
+        (cause instanceof Error && /fetch/i.test(cause.message));
+
+      setError(
+        esFalloDeRed
+          ? "No se pudo contactar al servidor. Revisá que esté corriendo y probá de nuevo."
+          : "Ocurrió un error inesperado al ingresar. Probá de nuevo."
+      );
     } finally {
       setPending(false);
     }

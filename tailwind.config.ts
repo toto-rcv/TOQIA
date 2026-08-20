@@ -1,4 +1,7 @@
 import type { Config } from "tailwindcss";
+// Import ESM en vez de require(): según cómo Node cargue este archivo, el
+// require no está definido y Tailwind revienta al leer la configuración.
+import tailwindcssAnimate from "tailwindcss-animate";
 
 /**
  * Dos sistemas de diseño conviven en esta app y no se mezclan:
@@ -39,6 +42,20 @@ const config: Config = {
           warning: "#FBBF24",
           danger: "#F87171",
           neutral: "#94A3B8",
+        },
+        // ── landing pública del restaurante ──────────────────────────────
+        // Negro con acentos dorado neón. Es la pantalla que ve el cliente del
+        // restaurante en el celular, y la única que lleva la marca del local.
+        tq: {
+          black: "#050505", // fondo
+          surface: "#0C0C0C", // tarjetas y botones
+          elevated: "#141414", // hover
+          border: "#241F10", // borde apagado, para lo secundario
+          gold: "#D4AF37", // dorado base
+          "gold-bright": "#F0D97A", // texto sobre negro, más legible
+          "gold-dim": "#8A7328",
+          text: "#F5F1E6",
+          "text-muted": "#9A937F",
         },
         // ── minimalist-ui ────────────────────────────────────────────────
         mn: {
@@ -90,7 +107,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindcssAnimate],
 };
 
 export default config;

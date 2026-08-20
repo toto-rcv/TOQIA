@@ -1,290 +1,280 @@
 # Funcionamiento de cada página
 
-Manual de uso del panel. Está escrito en el orden en que se usan las pantallas,
-que no es el orden del menú.
+Manual de uso de Toqia. Hay **tres paneles distintos** según quién entra, más
+la página pública que ve el cliente del restaurante.
+
+| Rol | Entra a | Ve |
+|---|---|---|
+| **Admin** (vos) | `/admin` | Todo el sistema |
+| **Distribuidor** | `/distribuidor` | Solo las cuentas que le asignaste |
+| **Restaurante** | `/panel` | Solo su cuenta |
+
+Todos usan el mismo `/login`. Después de ingresar, cada uno cae en su sección
+automáticamente.
 
 ---
 
 ## Índice
 
-- [Ingresar](#ingresar--login)
-- [Restaurantes](#restaurantes--adminrestaurants)
-- [Pulseras](#pulseras--adminbracelets)
-- [Escaneos](#escaneos--adminscans)
-- [Dashboard](#dashboard--admin)
-- [Las páginas que ve el cliente](#las-páginas-que-ve-el-cliente--pulsera)
-- [El flujo completo](#el-flujo-completo)
+- [Cómo se relacionan las cosas](#cómo-se-relacionan-las-cosas)
+- [La página que ve el cliente](#la-página-que-ve-el-cliente--rcodigo)
+- [Panel del restaurante](#panel-del-restaurante--panel)
+- [Panel de administración](#panel-de-administración--admin)
+- [Panel del distribuidor](#panel-del-distribuidor--distribuidor)
+- [El flujo completo de alta](#el-flujo-completo-de-alta)
 - [Preguntas frecuentes](#preguntas-frecuentes)
 
 ---
 
-## Ingresar — `/login`
-
-Email y contraseña. **No hay registro público**: no existe pantalla de "crear
-cuenta" y el endpoint está deshabilitado del lado del servidor. Los usuarios se
-crean con el script de seed o directamente contra la base.
-
-Si te equivocás, el mensaje siempre dice "Email o contraseña incorrectos", sin
-aclarar cuál de los dos falló. Es a propósito: distinguirlos le diría a un
-atacante qué emails existen en el sistema.
-
-La sesión dura 7 días. Cualquier ruta de `/admin` sin sesión te manda acá.
-
----
-
-## Restaurantes — `/admin/restaurants`
-
-Es lo primero que cargás. Una pulsera no puede existir sin un restaurante dueño.
-
-### Qué muestra la tabla
-
-| Columna | Qué es |
-|---|---|
-| **Nombre** | Clic para entrar al detalle |
-| **Slug** | Identificador interno. No lo ve el cliente en ningún lado |
-| **Pulseras** | Cuántas tiene cargadas |
-| **Escaneos** | Total histórico del restaurante |
-| **Alta** | Cuándo se creó |
-| **Estado** | Activo / inactivo |
-
-### Crear uno
-
-Botón **Nuevo restaurante**. Escribís el nombre y el slug se arma solo:
+## Cómo se relacionan las cosas
 
 ```
-"La Parrilla del Centro"  →  la-parrilla-del-centro
+Cuenta            ← el cliente, lo que se factura
+ └── Local        ← cada sucursal, con su propia página pública
+      ├── Camarero
+      └── Pulsera ← opcionalmente asignada a un camarero
+           └── Escaneo → ¿tocó el botón de Google?
 ```
 
-Si lo editás a mano, deja de seguir al nombre. El slug solo admite minúsculas,
-números y guiones, y no se puede repetir.
+Una cuenta puede tener varios locales. Un local tiene sus camareros y sus
+pulseras. Cada pulsera puede estar asignada a un camarero, y cada escaneo queda
+atribuido al camarero que tenía esa pulsera **en ese momento**.
 
-### Editar y desactivar
-
-El ícono de engranaje edita nombre y slug. El de encendido activa o desactiva.
-
-> **Desactivar un restaurante corta la redirección de TODAS sus pulseras**, sin
-> importar que cada pulsera esté activa individualmente. Sirve para cuando un
-> cliente deja de pagar o el local cierra por refacción: apagás uno y se apagan
-> las cuarenta pulseras de golpe. Los clientes que escaneen van a ver la página
-> "Esta pulsera no está activa".
-
-### Detalle del restaurante — `/admin/restaurants/[id]`
-
-Hacés clic en el nombre y entrás. Vas a ver:
-
-- Cuatro métricas: escaneos totales, pulseras, activas, inactivas
-- La lista de sus pulseras con destino, URL del chip, escaneos y último escaneo
-
-Esta vista es **de solo lectura**. Para editar destinos se va a Pulseras. El
-botón *Ver en pulseras* te lleva directo, ya filtrado por este restaurante.
+Esa cadena es lo que permite responder: *restaurante → local → camarero →
+pulsera → escaneo → fecha/hora → si terminó en reseña*.
 
 ---
 
-## Pulseras — `/admin/bracelets`
+## La página que ve el cliente — `/r/CODIGO`
 
-**Es la pantalla central del sistema.** Acá vas a pasar el 90% del tiempo.
+Cuando alguien apoya el celular en una pulsera se abre esta página. Fondo
+negro, bordes dorados, el logo del local arriba de todo. Está pensada para
+celular: una columna, un botón por fila.
 
-Cada fila es una pulsera física que existe en el mundo real.
+**Qué muestra:**
 
-### Qué muestra la tabla
+- El logo del local (o su inicial, si todavía no cargaron uno)
+- El nombre y la frase que hayan configurado
+- **Dejar reseña en Google** — el botón principal, el único con el dorado
+  encendido
+- Debajo, solo los botones que el restaurante haya cargado: menú, Instagram,
+  WhatsApp, cómo llegar, sitio web
+- La dirección al pie
 
-| Columna | Qué es |
+**Lo importante:** al tocar el botón de Google se registra ese clic antes de
+irse. De ahí sale la **tasa de conversión** que ve el restaurante. Si el
+JavaScript falla, el link funciona igual — la métrica es secundaria, que el
+cliente llegue a la reseña no lo es.
+
+### Cuando algo no está bien
+
+| Situación | Qué ve el cliente |
 |---|---|
-| **Código** | El que va grabado en el chip (`B001`). Único en todo el sistema |
-| **Etiqueta** | Texto libre tuyo: "Mesa 4", "Barra", "Caja". Interno |
-| **Restaurante** | Clic para ir al detalle del restaurante |
-| **Destino** | A dónde manda la pulsera. **Se edita acá mismo** |
-| **URL del chip** | Lo que grabás en el tag, con botón de copiar |
-| **Escaneos** | Cuántas veces se escaneó |
-| **Último** | Cuándo fue el último escaneo |
-
-### Los avisos al lado del código
-
-- **`off`** → la pulsera está desactivada
-- **`rest. off`** → la pulsera está bien, pero **su restaurante** está apagado
-
-Son cosas distintas y se arreglan en lugares distintos, por eso son dos avisos
-separados. En los dos casos el cliente que escanea ve la misma página.
-
-### Cambiar el destino — la función central
-
-Clic en el **lápiz** de la columna Destino → pegás la URL nueva → **Enter**.
-**Esc** cancela.
-
-Se aplica al instante. No hay que tocar la pulsera física, ni regrabar el chip,
-ni avisarle a nadie. Esta es la razón de ser de todo el sistema: la pulsera
-nunca apunta directo a Google, apunta al servidor, y el servidor decide en ese
-momento a dónde mandarla.
-
-Solo se aceptan URLs `http` o `https`. Si pegás cualquier otra cosa, te lo
-rechaza con un mensaje.
-
-**Cuándo lo vas a usar:**
-
-- El restaurante se mudó y le cambió el link de Google
-- Querés mandar a una encuesta propia durante una semana y después volver
-- La pulsera de la caja va a un link distinto que las de las mesas
-
-### Copiar la URL para grabar
-
-Botón de copiar de la columna **URL del chip**. **Usalo siempre.** Escribir el
-código a mano en la app de NFC es la forma más fácil de grabar veinte pulseras
-inservibles.
-
-### Nueva pulsera
-
-Alta de a una: código, restaurante, etiqueta opcional y destino. Si el código ya
-existe, te avisa.
-
-### Alta masiva
-
-Lo que usás cuando llega un lote de tags.
-
-Elegís restaurante, **prefijo**, **desde** qué número, **cuántas** y cuántos
-**dígitos**. Te muestra el rango antes de crear nada:
-
-```
-B001 → B020
-```
-
-Todas nacen con el mismo destino inicial. Después las diferenciás una por una si
-hace falta.
-
-**Si algún código del rango ya existía, lo saltea y te dice cuáles.** Eso te deja
-ampliar una tanda sin tener que acordarte dónde quedaste: pedís B001 a B040, ya
-tenías hasta B020, y crea solo los veinte nuevos.
-
-Límite: 500 pulseras por lote.
-
-### El filtro por restaurante
-
-Vive en la URL, así que podés guardarte el link de "las pulseras del restaurante
-X" en favoritos o mandárselo a alguien.
-
----
-
-## Escaneos — `/admin/scans`
-
-El registro crudo. Cada fila es una persona que apoyó el celular en una pulsera.
-
-### Filtros
-
-Restaurante, pulsera, desde y hasta. El selector de pulseras **se limita solo a
-las del restaurante que elegiste**, así no tenés que buscar entre doscientos
-códigos. Los filtros también van en la URL.
-
-Botón **Limpiar** para volver a ver todo.
-
-### Qué muestra
-
-| Columna | Qué es |
-|---|---|
-| **Fecha y hora** | En tu hora local |
-| **Pulsera** | Código |
-| **Etiqueta** | La que le pusiste |
-| **Restaurante** | A quién pertenece |
-| **User agent** | Qué celular y navegador era |
-| **IP (hash)** | Los primeros caracteres del hash |
-
-**Las IPs nunca se guardan en claro.** Se guarda `SHA-256(salt + IP)`. Eso te
-deja ver si diez escaneos vinieron del mismo teléfono, sin almacenar un dato
-personal que no necesitás.
-
-Paginado de 50 en 50.
-
-### Exportar CSV
-
-Baja **exactamente lo que estás viendo**, con los filtros aplicados. Abre bien en
-Excel con los acentos, e incluye la fecha en UTC y en hora local en columnas
-separadas.
-
----
-
-## Dashboard — `/admin`
-
-Es la pantalla de "cómo viene la cosa", no la de trabajar.
-
-**Arriba, cuatro números:** hoy, últimos 7 días, últimos 30, histórico. El de hoy
-va destacado en azul.
-
-**Abajo a la izquierda, el gráfico** de escaneos por día de los últimos 30 días.
-Pasás el mouse por una barra y te dice el día y la cantidad exacta.
-
-**Abajo a la derecha, el ranking** de las 8 pulseras más escaneadas, con una
-barra de proporción para comparar de un vistazo sin leer cada número.
-
-**Para qué sirve en la práctica:**
-
-- Responder rápido "¿esto está funcionando?"
-- Detectar que una pulsera dejó de registrar escaneos — casi siempre significa
-  que se rompió, se la llevaron, o quedó guardada en un cajón
-- Ver si el fin de semana mueve más que los días de semana y ajustar dónde
-  poner las pulseras
-
-> **Ojo con "hoy":** cuenta el día en **UTC**, no en hora argentina. En la
-> práctica, a partir de las 21:00 los escaneos empiezan a contar como del día
-> siguiente. Para un restaurante que factura de noche esto molesta. Es un cambio
-> chico de corregir.
-
----
-
-## Las páginas que ve el cliente — `/pulsera/*`
-
-Son las únicas pantallas del sistema que ve alguien que no sos vos, y las ve
-parado con el celular en la mano. Nunca muestran un error técnico: dicen qué
-pasó y a quién avisar.
-
-| Cuándo aparece | Qué dice |
-|---|---|
-| El código no existe en la base | "Pulsera no reconocida" |
+| El código no existe | "Pulsera no reconocida" |
 | La pulsera está desactivada | "Esta pulsera no está activa" |
-| El restaurante está desactivado | "Esta pulsera no está activa" |
-| El destino está vacío o es inválido | "Destino no configurado" |
+| El local está desactivado | "Esta pulsera no está activa" |
+| La cuenta está de baja o cancelada | "Esta pulsera no está activa" |
 
-Si un cliente te muestra una de estas pantallas, el código que aparece abajo te
-dice exactamente qué pulsera revisar.
-
-**En el 99% de los casos nadie ve estas páginas**: la redirección a Google es
-instantánea y el cliente ni se entera de que pasó por un servidor tuyo.
+Nunca ve un error técnico. Y abajo aparece el código, así te dice exactamente
+qué pulsera revisar.
 
 ---
 
-## El flujo completo
+## Panel del restaurante — `/panel`
 
-1. **Creás el restaurante** en `/admin/restaurants`
-2. **Alta masiva de pulseras** en `/admin/bracelets`, con el link de reseña de
-   Google como destino inicial
-3. **Copiás cada URL del chip** y grabás los tags (ver
-   [PULSERAS.md](./PULSERAS.md))
-4. **Escaneás una** para verificar → tiene que aparecer en `/admin/scans`
-5. **Repartís las pulseras** en el local
-6. Cuando haga falta cambiar a dónde van, **editás el destino** desde
-   `/admin/bracelets`. Nunca más tocás el chip.
+### Estadísticas — `/panel`
+
+Es la pantalla que le sirve al dueño para saber si esto funciona y para armar
+el concurso mensual entre camareros.
+
+**Arriba, cuatro números:** escaneos del período, cuántos fueron a dejar
+reseña, la tasa de conversión y el histórico. Los dos primeros muestran la
+variación **contra el período anterior** del mismo largo.
+
+**Los filtros de arriba** cambian el período (7 días, 30, 90, un año), la
+granularidad del gráfico (día, semana, mes) y el local, si tienen más de uno.
+Todo queda en la URL, así que el link se puede guardar o compartir.
+
+**El gráfico** muestra dos barras por período: escaneos y reseñas. Están una al
+lado de la otra y no apiladas a propósito — las reseñas son un subconjunto de
+los escaneos, apilarlas contaría a la misma gente dos veces.
+
+**Ranking de camareros:** quién generó más escaneos, con su tasa de conversión.
+Solo entran las pulseras que tienen camarero asignado. Este es el número para
+el premio del mes.
+
+**Pulseras más escaneadas** y, si tienen varios locales, **comparación entre
+locales**.
+
+### Pulseras — `/panel/pulseras`
+
+Lista de sus pulseras con la URL del chip y el botón de copiar.
+
+**Lo que se hace acá es asignar cada pulsera a un camarero**, desde el
+desplegable de la propia fila. Es la operación de todos los días cuando
+arranca un turno.
+
+Reasignar una pulsera **no reescribe el pasado**: los escaneos viejos siguen
+contando para el camarero que la tenía antes. Si no fuera así, cambiar una
+pulsera a mitad de mes arruinaría el ranking.
+
+El alta y baja de pulseras la hace el equipo de Toqia, no el restaurante.
+
+### Camareros — `/panel/camareros`
+
+Alta, edición y activación de camareros. Desactivar a alguien **no borra sus
+escaneos**: el historial se conserva y sigue apareciendo en los rankings de los
+períodos en que trabajó.
+
+### Escaneos — `/panel/escaneos`
+
+El detalle crudo, uno por fila. Se filtra por local, pulsera, camarero, rango
+de fechas y "solo con reseña". La columna de reseña marca con un tilde los que
+terminaron en Google.
+
+**Exportar CSV** baja exactamente lo que se está viendo, con los filtros
+puestos. Incluye la fecha en UTC y en hora local, el camarero y si dejó reseña.
+
+Las IPs nunca se guardan en claro: se guarda un hash. Alcanza para distinguir
+si diez escaneos vinieron del mismo teléfono, sin almacenar el dato personal.
+
+### Mi página — `/panel/configuracion`
+
+Acá el restaurante edita **lo que ve el cliente**: nombre visible, frase, logo,
+enlace de Google Reviews, Instagram, WhatsApp, menú, sitio web, dirección y
+enlace de Maps.
+
+Los campos vacíos simplemente no muestran su botón. El único que importa de
+verdad es el de Google: sin él, la página pierde su razón de ser.
+
+**Ver cómo queda** abre la página tal cual la ve un cliente, sin registrar
+ningún escaneo.
+
+Si tienen varios locales, arriba hay un selector: cada local tiene su propia
+página.
+
+---
+
+## Panel de administración — `/admin`
+
+### Dashboard — `/admin`
+
+Lo mismo que ve un restaurante pero de todo el sistema, más el ranking de
+cuentas por escaneos y un aviso cuando hay suscripciones vencidas.
+
+### Cuentas — `/admin/cuentas`
+
+El alta de clientes. Cada cuenta tiene nombre, slug, **estado de suscripción**
+(prueba / activa / impaga / cancelada), precio, fecha de vencimiento y
+distribuidor asignado.
+
+Dos cosas cortan el servicio de una cuenta entera:
+
+- **Dar de baja** la cuenta con el botón de encendido
+- Poner la suscripción en **cancelada**
+
+Cualquiera de las dos deja todas sus pulseras mostrando "Esta pulsera no está
+activa", sin importar el estado de cada local o pulsera.
+
+> **La fecha de vencimiento no corta nada sola.** Solo pinta la fila de rojo y
+> avisa en el dashboard. El corte es siempre una decisión tuya, explícita. Se
+> hizo así a propósito: un cliente que se queda sin servicio porque venció una
+> fecha que nadie miró es una llamada enojada un viernes a la noche.
+
+### Locales — `/admin/locales`
+
+Los locales de cada cuenta. Se crean acá; el resto de los datos de la página
+pública los completa el propio restaurante.
+
+La columna **Reseñas** avisa si al local le falta cargar el enlace de Google —
+sin eso su página no muestra el botón principal.
+
+El ícono del ojo abre la página pública tal cual la ve un cliente.
+
+### Pulseras — `/admin/pulseras`
+
+Alta individual y **alta masiva** (prefijo + numeración correlativa, con
+preview del rango antes de crear nada). Asignación a local y a camarero, y la
+URL lista para grabar con botón de copiar.
+
+**Destino directo** es la excepción: si lo cargás, esa pulsera saltea la página
+del local y va derecho a donde vos digas. El escaneo se registra igual. Sirve
+para una campaña puntual o para una pulsera que tiene que ir a otro lado que el
+resto.
+
+### Camareros — `/admin/camareros`
+
+Vista global, de solo lectura. Los administra cada restaurante desde su panel.
+Sirve para diagnosticar sin tener que entrar con las credenciales del cliente.
+
+### Escaneos — `/admin/escaneos`
+
+Igual que el del restaurante pero de todo el sistema, con filtro por cuenta.
+
+### Usuarios — `/admin/usuarios`
+
+Los accesos. Se crea el usuario, se elige el rol y —si es de restaurante— la
+cuenta que va a ver. También se cambia la contraseña de cualquiera.
+
+**No hay registro público.** El endpoint está deshabilitado del lado del
+servidor: todos los accesos salen de acá.
+
+---
+
+## Panel del distribuidor — `/distribuidor`
+
+Por ahora es solo lectura: las cuentas que le asignaste, con sus locales,
+pulseras y escaneos. El módulo de ventas y comisiones llega en la etapa
+siguiente.
+
+---
+
+## El flujo completo de alta
+
+1. **Admin → Cuentas:** creás la cuenta del cliente y le ponés la suscripción.
+2. **Admin → Locales:** le agregás su local (o sus locales).
+3. **Admin → Usuarios:** creás el usuario del restaurante y le asignás la cuenta.
+4. **Admin → Pulseras:** alta masiva del lote, elegís el local.
+5. Copiás cada URL del chip y **grabás los tags** (ver [PULSERAS.md](./PULSERAS.md)).
+6. **El restaurante entra a `/panel/configuracion`** y carga su logo, su enlace
+   de Google y sus redes.
+7. **El restaurante carga sus camareros** y les asigna pulseras.
+8. Escaneás una para verificar que aparece en Escaneos.
 
 ---
 
 ## Preguntas frecuentes
 
-**¿Cuánto tarda en aplicarse un cambio de destino?**
-Al instante, si lo hacés desde el panel. El sistema guarda en memoria la
-relación código → destino para responder rápido, pero al editar desde el panel
-borra esa copia a mano. Si tocás la base de datos directamente por fuera del
-panel, puede tardar hasta 60 segundos.
+**¿Cuánto tarda en verse un cambio de la página del local?**
+Al instante si se hizo desde un panel: al guardar se limpia la copia en memoria
+de todas las pulseras de ese local. Si se toca la base directamente por fuera,
+puede tardar hasta 60 segundos.
 
-**¿Puedo tener dos pulseras con el mismo código?**
-No. El código es único en todo el sistema, no por restaurante. Por eso conviene
-usar prefijos distintos por local (`B` para uno, `S` para otro).
+**Si un cliente recarga la página, ¿cuenta dos escaneos?**
+No. Escaneos repetidos de la misma pulsera desde el mismo dispositivo dentro de
+30 segundos cuentan como uno solo.
 
-**¿Qué pasa si borro un restaurante?**
-Se borran también sus pulseras y todos sus escaneos, en cascada. Si solo querés
-frenarlo, **desactivalo** en vez de borrarlo: conservás el historial.
+**¿Por qué el ranking de camareros no coincide con el total de escaneos?**
+Porque solo entran los escaneos de pulseras que tenían camarero asignado. Las
+pulseras de mesa, sin dueño, quedan afuera del ranking a propósito: mezclarlas
+ensuciaría el número que se usa para premiar gente.
+
+**¿Qué pasa si borro una cuenta?**
+Se borran en cascada sus locales, camareros, pulseras y escaneos. Si solo
+querés frenarla, **dala de baja** en vez de borrarla: conservás el historial.
+
+**¿Un restaurante puede ver datos de otro?**
+No. El identificador de cuenta sale siempre de la sesión, nunca de la URL. Si
+alguien edita el número de local en la dirección, el sistema lo ignora y le
+muestra lo suyo.
 
 **¿Se pierden escaneos alguna vez?**
-Puede pasar, y es a propósito. La redirección se manda **primero** y el registro
-se escribe **después**. Si la base falla justo en ese momento, se pierde ese
-registro pero el cliente igual llega a Google. Preferimos perder un dato antes
-que dejar a alguien mirando una pantalla en blanco al lado de la caja.
+Puede pasar y es a propósito. Si la base falla justo en ese momento, se pierde
+el registro pero la página igual se muestra y el cliente llega a Google.
+Preferimos perder un dato antes que dejar a alguien mirando un error al lado de
+la caja.
 
-**¿Por qué la pulsera no apunta directo a Google?**
-Porque entonces cambiar el destino significaría regrabar cada chip a mano, uno
-por uno. Y no tendrías ningún dato de cuántas veces se usó.
+**¿Por qué la pulsera no lleva directo a Google?**
+Porque entonces cambiar el destino sería regrabar cada chip a mano, no
+tendrías ninguna estadística, y el cliente no vería la marca del local ni sus
+redes.

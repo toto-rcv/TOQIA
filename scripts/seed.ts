@@ -3,14 +3,15 @@
  *
  *   npm run db:seed
  *
- * Crea:
- *   - un usuario admin (credenciales en SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD)
- *   - dos restaurantes
- *   - cinco pulseras por restaurante, con destino de reseña de Google
- *   - ~200 escaneos repartidos en los últimos 30 días
+ * Crea un sistema completo para poder probar los tres roles:
+ *   - un admin y un distribuidor
+ *   - dos cuentas de cliente (una con dos locales, otra con uno)
+ *   - un usuario de restaurante por cuenta
+ *   - camareros y pulseras por local, algunas asignadas
+ *   - ~400 escaneos de los últimos 45 días, con clics a reseña
  *
- * Es idempotente: se puede correr varias veces. No duplica restaurantes ni
- * pulseras, y solo genera escaneos si todavía no hay ninguno.
+ * Es idempotente: se puede correr varias veces sin duplicar nada, y solo
+ * genera escaneos si la tabla está vacía.
  */
 import "dotenv/config";
 
@@ -18,52 +19,100 @@ import { randomUUID } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
 
 import { db, pool } from "../src/db";
-import { account, bracelets, restaurants, scans, user } from "../src/db/schema";
+import {
+  account as authAccount,
+  accounts,
+  bracelets,
+  locations,
+  scans,
+  user,
+  waiters,
+} from "../src/db/schema";
 import { auth } from "../src/lib/auth";
 import { hashIp } from "../src/lib/hash";
 
-const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? "admin@pulseras.local";
+const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? "admin@toqia.local";
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "admin1234";
 const ADMIN_NAME = process.env.SEED_ADMIN_NAME ?? "Administrador";
 
-const TOTAL_ESCANEOS = 200;
-const DIAS = 30;
+const TOTAL_ESCANEOS = 400;
+const DIAS = 45;
+/** Proporción de escaneos que terminan en la reseña de Google. */
+const TASA_CONVERSION = 0.38;
 
 /**
- * Destinos de reseña de Google.
- *
- * El formato `search.google.com/local/writereview?placeid=…` abre directamente
- * el cuadro de reseña. Los place IDs de acá son de ejemplo: reemplazalos por
- * los reales de cada local antes de grabar las pulseras de producción.
+ * Los place IDs son de ejemplo. Reemplazalos por los reales de cada local
+ * antes de grabar pulseras de producción.
  */
-const RESTAURANTES = [
+const REVIEW_URL_1 =
+  "https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4";
+const REVIEW_URL_2 =
+  "https://search.google.com/local/writereview?placeid=ChIJrTLr-GyuEmsRBfy61i59si0";
+
+const CUENTAS = [
   {
-    name: "La Parrilla del Centro",
-    slug: "la-parrilla-del-centro",
-    destino:
-      "https://search.google.com/local/writereview?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4",
-    pulseras: [
-      { code: "B001", label: "Mesa 1" },
-      { code: "B002", label: "Mesa 2" },
-      { code: "B003", label: "Mesa 3" },
-      { code: "B004", label: "Barra" },
-      { code: "B005", label: "Caja" },
+    name: "Grupo Gastronómico Norte",
+    slug: "grupo-gastronomico-norte",
+    usuario: { email: "norte@toqia.local", password: "norte1234", name: "Marina Ruiz" },
+    locales: [
+      {
+        name: "La Parrilla del Centro",
+        slug: "la-parrilla-del-centro",
+        displayName: "La Parrilla del Centro",
+        tagline: "Asado a la parrilla desde 1998",
+        googleReviewUrl: REVIEW_URL_1,
+        instagramUrl: "https://instagram.com/laparrilladelcentro",
+        whatsappPhone: "5491133334444",
+        menuUrl: "https://laparrilladelcentro.com.ar/menu",
+        websiteUrl: "https://laparrilladelcentro.com.ar",
+        address: "Av. Corrientes 1234, CABA",
+        prefijo: "B",
+        camareros: ["Diego Fernández", "Lucía Paz", "Martín Sosa"],
+      },
+      {
+        name: "La Parrilla Vicente López",
+        slug: "la-parrilla-vicente-lopez",
+        displayName: "La Parrilla · Vicente López",
+        tagline: "La misma parrilla, frente al río",
+        googleReviewUrl: REVIEW_URL_1,
+        instagramUrl: "https://instagram.com/laparrilladelcentro",
+        whatsappPhone: "5491144445555",
+        menuUrl: "https://laparrilladelcentro.com.ar/menu",
+        websiteUrl: "https://laparrilladelcentro.com.ar",
+        address: "Paseo de la Costa 500, Vicente López",
+        prefijo: "V",
+        camareros: ["Carla Méndez", "Nicolás Ferrari"],
+      },
     ],
   },
   {
-    name: "Sushi Nikkei Palermo",
-    slug: "sushi-nikkei-palermo",
-    destino:
-      "https://search.google.com/local/writereview?placeid=ChIJrTLr-GyuEmsRBfy61i59si0",
-    pulseras: [
-      { code: "S001", label: "Mesa 1" },
-      { code: "S002", label: "Mesa 2" },
-      { code: "S003", label: "Terraza" },
-      { code: "S004", label: "Barra de sushi" },
-      { code: "S005", label: "Delivery" },
+    name: "Nikkei Palermo",
+    slug: "nikkei-palermo",
+    usuario: { email: "nikkei@toqia.local", password: "nikkei1234", name: "Tomás Aoki" },
+    locales: [
+      {
+        name: "Sushi Nikkei Palermo",
+        slug: "sushi-nikkei-palermo",
+        displayName: "Nikkei",
+        tagline: "Cocina nikkei en Palermo Soho",
+        googleReviewUrl: REVIEW_URL_2,
+        instagramUrl: "https://instagram.com/nikkeipalermo",
+        whatsappPhone: "5491155556666",
+        menuUrl: "https://nikkeipalermo.com/carta",
+        websiteUrl: "https://nikkeipalermo.com",
+        address: "Gorriti 4800, CABA",
+        prefijo: "S",
+        camareros: ["Ana Torres", "Julián Vera"],
+      },
     ],
   },
 ];
+
+const DISTRIBUIDOR = {
+  email: "distribuidor@toqia.local",
+  password: "distri1234",
+  name: "Pablo Giménez",
+};
 
 const USER_AGENTS = [
   "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
@@ -77,106 +126,213 @@ function elegir<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-async function crearAdmin(): Promise<void> {
-  const existente = await db
+/**
+ * Crea un usuario con su credencial.
+ *
+ * Usa el hasher del propio Better Auth: si escribiéramos el hash a mano con
+ * otro algoritmo, el login fallaría sin decir por qué.
+ */
+async function crearUsuario(datos: {
+  email: string;
+  password: string;
+  name: string;
+  role: "admin" | "distributor" | "restaurant";
+  accountId?: number;
+}): Promise<string> {
+  const existentes = await db
     .select({ id: user.id })
     .from(user)
-    .where(eq(user.email, ADMIN_EMAIL))
+    .where(eq(user.email, datos.email))
     .limit(1);
 
-  if (existente.length > 0) {
-    console.log(`· Usuario admin ya existe: ${ADMIN_EMAIL}`);
-    return;
+  if (existentes[0]) {
+    console.log(`· Usuario ya existe: ${datos.email}`);
+    return existentes[0].id;
   }
 
-  if (ADMIN_PASSWORD.length < 8) {
+  if (datos.password.length < 8) {
     throw new Error(
-      "SEED_ADMIN_PASSWORD tiene que tener al menos 8 caracteres (es el mínimo que exige Better Auth)."
+      `La contraseña de ${datos.email} tiene menos de 8 caracteres, que es el mínimo de Better Auth.`
     );
   }
 
-  // Usamos el hasher del propio Better Auth: si escribiéramos el hash a mano
-  // con otro algoritmo, el login fallaría sin decir por qué.
   const ctx = await auth.$context;
-  const passwordHash = await ctx.password.hash(ADMIN_PASSWORD);
+  const passwordHash = await ctx.password.hash(datos.password);
 
   const userId = randomUUID();
   const ahora = new Date();
 
   await db.insert(user).values({
     id: userId,
-    name: ADMIN_NAME,
-    email: ADMIN_EMAIL,
+    name: datos.name,
+    email: datos.email,
     emailVerified: true,
+    role: datos.role,
+    accountId: datos.accountId ?? null,
     createdAt: ahora,
     updatedAt: ahora,
   });
 
-  await db.insert(account).values({
+  await db.insert(authAccount).values({
     id: randomUUID(),
     accountId: userId,
-    providerId: "credential", // proveedor de email + contraseña
+    providerId: "credential",
     userId,
     password: passwordHash,
     createdAt: ahora,
     updatedAt: ahora,
   });
 
-  console.log(`· Usuario admin creado: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
+  console.log(`· Usuario creado: ${datos.email} / ${datos.password} (${datos.role})`);
+  return userId;
 }
 
-async function crearRestaurantesYPulseras(): Promise<void> {
-  for (const definicion of RESTAURANTES) {
-    let restauranteId: number;
+async function main() {
+  console.log("Sembrando la base…\n");
 
-    const existente = await db
-      .select({ id: restaurants.id })
-      .from(restaurants)
-      .where(eq(restaurants.slug, definicion.slug))
+  await crearUsuario({
+    email: ADMIN_EMAIL,
+    password: ADMIN_PASSWORD,
+    name: ADMIN_NAME,
+    role: "admin",
+  });
+
+  const distribuidorId = await crearUsuario({
+    ...DISTRIBUIDOR,
+    role: "distributor",
+  });
+
+  for (const definicion of CUENTAS) {
+    // ── Cuenta ─────────────────────────────────────────────────────────────
+    let accountId: number;
+    const cuentaExistente = await db
+      .select({ id: accounts.id })
+      .from(accounts)
+      .where(eq(accounts.slug, definicion.slug))
       .limit(1);
 
-    if (existente.length > 0) {
-      restauranteId = existente[0].id;
-      console.log(`· Restaurante ya existe: ${definicion.name}`);
+    if (cuentaExistente[0]) {
+      accountId = cuentaExistente[0].id;
+      console.log(`· Cuenta ya existe: ${definicion.name}`);
     } else {
-      const [resultado] = await db.insert(restaurants).values({
+      const vence = new Date();
+      vence.setMonth(vence.getMonth() + 6);
+
+      const [resultado] = await db.insert(accounts).values({
         name: definicion.name,
         slug: definicion.slug,
+        distributorId: distribuidorId,
+        subscriptionStatus: "active",
+        subscriptionPrice: "35000.00",
+        subscriptionExpiresAt: vence,
         active: true,
-        createdAt: new Date(),
       });
-      restauranteId = resultado.insertId;
-      console.log(`· Restaurante creado: ${definicion.name}`);
+      accountId = resultado.insertId;
+      console.log(`· Cuenta creada: ${definicion.name}`);
     }
 
-    for (const pulsera of definicion.pulseras) {
-      const yaExiste = await db
-        .select({ id: bracelets.id })
-        .from(bracelets)
-        .where(eq(bracelets.code, pulsera.code))
+    await crearUsuario({
+      ...definicion.usuario,
+      role: "restaurant",
+      accountId,
+    });
+
+    // ── Locales ────────────────────────────────────────────────────────────
+    for (const local of definicion.locales) {
+      let locationId: number;
+      const localExistente = await db
+        .select({ id: locations.id })
+        .from(locations)
+        .where(eq(locations.slug, local.slug))
         .limit(1);
 
-      if (yaExiste.length > 0) continue;
+      if (localExistente[0]) {
+        locationId = localExistente[0].id;
+      } else {
+        const [resultado] = await db.insert(locations).values({
+          accountId,
+          name: local.name,
+          slug: local.slug,
+          displayName: local.displayName,
+          tagline: local.tagline,
+          googleReviewUrl: local.googleReviewUrl,
+          instagramUrl: local.instagramUrl,
+          whatsappPhone: local.whatsappPhone,
+          menuUrl: local.menuUrl,
+          websiteUrl: local.websiteUrl,
+          address: local.address,
+          active: true,
+        });
+        locationId = resultado.insertId;
+        console.log(`  Local creado: ${local.name}`);
+      }
 
-      await db.insert(bracelets).values({
-        code: pulsera.code,
-        restaurantId: restauranteId,
-        destinationUrl: definicion.destino,
-        label: pulsera.label,
-        active: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      // ── Camareros ────────────────────────────────────────────────────────
+      const camarerosIds: number[] = [];
+      for (const nombre of local.camareros) {
+        const existente = await db
+          .select({ id: waiters.id })
+          .from(waiters)
+          .where(eq(waiters.locationId, locationId))
+          .limit(50);
+
+        const yaEsta = existente.length >= local.camareros.length;
+        if (yaEsta) {
+          camarerosIds.push(...existente.map((fila) => fila.id));
+          break;
+        }
+
+        const [resultado] = await db.insert(waiters).values({
+          locationId,
+          name: nombre,
+          active: true,
+        });
+        camarerosIds.push(resultado.insertId);
+      }
+
+      // ── Pulseras ─────────────────────────────────────────────────────────
+      // Cinco por local: las tres primeras a camareros, el resto de mesa.
+      for (let i = 1; i <= 5; i++) {
+        const code = `${local.prefijo}${String(i).padStart(3, "0")}`;
+
+        const existente = await db
+          .select({ id: bracelets.id })
+          .from(bracelets)
+          .where(eq(bracelets.code, code))
+          .limit(1);
+        if (existente[0]) continue;
+
+        const camareroId = camarerosIds[i - 1] ?? null;
+
+        await db.insert(bracelets).values({
+          code,
+          locationId,
+          waiterId: camareroId,
+          label: camareroId ? null : `Mesa ${i}`,
+          active: true,
+        });
+      }
+
+      console.log(`  ${local.camareros.length} camareros y 5 pulseras verificados`);
     }
+  }
 
-    console.log(`  ${definicion.pulseras.length} pulseras verificadas`);
+  await crearEscaneos();
+
+  console.log("\nListo. Entrá a http://localhost:3000/login");
+  console.log("\n  Admin         " + ADMIN_EMAIL + " / " + ADMIN_PASSWORD);
+  console.log("  Distribuidor  " + DISTRIBUIDOR.email + " / " + DISTRIBUIDOR.password);
+  for (const cuenta of CUENTAS) {
+    console.log(
+      `  Restaurante   ${cuenta.usuario.email} / ${cuenta.usuario.password}  (${cuenta.name})`
+    );
   }
 }
 
 /**
- * Genera escaneos con una distribución que se parece a la real: más los fines
- * de semana y concentrados en el horario de almuerzo y cena. Un dashboard con
- * datos planos no sirve para saber si el gráfico está bien.
+ * Escaneos con una distribución parecida a la real: más los fines de semana y
+ * concentrados en almuerzo y cena. Un dashboard con datos planos no sirve para
+ * saber si los gráficos están bien.
  */
 async function crearEscaneos(): Promise<void> {
   const [{ total }] = await db
@@ -184,31 +340,27 @@ async function crearEscaneos(): Promise<void> {
     .from(scans);
 
   if (total > 0) {
-    console.log(`· Ya hay ${total} escaneos cargados; no se generan más.`);
+    console.log(`\n· Ya hay ${total} escaneos cargados; no se generan más.`);
     return;
   }
 
   const pulseras = await db
     .select({
       id: bracelets.id,
-      restaurantId: bracelets.restaurantId,
+      locationId: bracelets.locationId,
+      waiterId: bracelets.waiterId,
+      accountId: locations.accountId,
     })
-    .from(bracelets);
+    .from(bracelets)
+    .innerJoin(locations, eq(bracelets.locationId, locations.id));
 
   if (pulseras.length === 0) {
-    console.log("· No hay pulseras: no se generan escaneos.");
+    console.log("\n· No hay pulseras: no se generan escaneos.");
     return;
   }
 
-  const filas: {
-    braceletId: number;
-    restaurantId: number;
-    scannedAt: Date;
-    userAgent: string;
-    ipHash: string | null;
-  }[] = [];
-
   const ahora = new Date();
+  const filas: (typeof scans.$inferInsert)[] = [];
 
   for (let i = 0; i < TOTAL_ESCANEOS; i++) {
     const diasAtras = Math.floor(Math.random() * DIAS);
@@ -222,24 +374,25 @@ async function crearEscaneos(): Promise<void> {
     );
 
     const finDeSemana = fecha.getUTCDay() === 5 || fecha.getUTCDay() === 6;
-    // Los findes tienen más escaneos: si sale un día de semana, a veces lo
-    // descartamos y volvemos a sortear.
     if (!finDeSemana && Math.random() < 0.3) {
       i--;
       continue;
     }
 
-    // Franja de almuerzo (12–15) o de cena (20–23), en hora local aproximada.
     const almuerzo = Math.random() < 0.35;
     const hora = almuerzo
-      ? 12 + Math.floor(Math.random() * 3)
-      : 20 + Math.floor(Math.random() * 3);
+      ? 15 + Math.floor(Math.random() * 3) // ~12-14 hora local
+      : 23 + Math.floor(Math.random() * 1); // ~20-21 hora local
 
-    fecha.setUTCHours(hora, Math.floor(Math.random() * 60), Math.floor(Math.random() * 60), 0);
+    fecha.setUTCHours(
+      hora % 24,
+      Math.floor(Math.random() * 60),
+      Math.floor(Math.random() * 60),
+      0
+    );
 
     // El día de hoy todavía no terminó: si el sorteo cayó en una hora que no
-    // llegó, volvemos a tirar. Sin esto quedarían escaneos con fecha futura y
-    // el dashboard mostraría "escaneos hoy" que todavía no pasaron.
+    // llegó, volvemos a tirar en vez de crear escaneos con fecha futura.
     if (fecha.getTime() > ahora.getTime()) {
       i--;
       continue;
@@ -247,32 +400,38 @@ async function crearEscaneos(): Promise<void> {
 
     const pulsera = elegir(pulseras);
 
+    // Una parte de los escaneos termina tocando el botón de reseña, entre 5 y
+    // 90 segundos después de llegar a la página.
+    const convirtio = Math.random() < TASA_CONVERSION;
+    const reviewClickedAt = convirtio
+      ? new Date(fecha.getTime() + (5 + Math.floor(Math.random() * 85)) * 1000)
+      : null;
+
     filas.push({
+      token: randomUUID(),
       braceletId: pulsera.id,
-      restaurantId: pulsera.restaurantId,
+      locationId: pulsera.locationId,
+      accountId: pulsera.accountId,
+      waiterId: pulsera.waiterId,
       scannedAt: fecha,
+      reviewClickedAt,
       userAgent: elegir(USER_AGENTS),
-      // IPs de ejemplo dentro de un /24: se guardan hasheadas, igual que en
+      // IPs de ejemplo dentro de un /24, guardadas hasheadas igual que en
       // producción.
       ipHash: hashIp(`190.51.24.${Math.floor(Math.random() * 254) + 1}`),
     });
   }
 
-  // Insert por lotes: 200 filas en un solo INSERT es más rápido y evita
-  // 200 idas y vueltas a la base.
-  await db.insert(scans).values(filas);
+  // Insert por lotes: 400 filas en pocos INSERT en vez de 400 idas y vueltas.
+  const TAMANIO_LOTE = 100;
+  for (let i = 0; i < filas.length; i += TAMANIO_LOTE) {
+    await db.insert(scans).values(filas.slice(i, i + TAMANIO_LOTE));
+  }
 
-  console.log(`· ${filas.length} escaneos generados en los últimos ${DIAS} días.`);
-}
-
-async function main() {
-  console.log("Sembrando la base…\n");
-
-  await crearAdmin();
-  await crearRestaurantesYPulseras();
-  await crearEscaneos();
-
-  console.log("\nListo. Entrá a http://localhost:3000/admin");
+  const conversiones = filas.filter((fila) => fila.reviewClickedAt).length;
+  console.log(
+    `\n· ${filas.length} escaneos generados en los últimos ${DIAS} días (${conversiones} con reseña).`
+  );
 }
 
 main()

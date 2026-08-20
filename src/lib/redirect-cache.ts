@@ -1,59 +1,45 @@
+import type { ResolvedBracelet } from "@/db/queries/landing";
 import { env } from "./env";
 
 /**
- * Caché en memoria del endpoint /r/[code].
+ * Caché en memoria de la resolución código → local.
  *
- * Por qué existe: del otro lado hay una persona parada con el celular en la
- * mano. Ir a MySQL en cada escaneo agrega una ida y vuelta que se puede
- * evitar, porque la relación código → destino cambia poquísimas veces por día.
+ * Del otro lado hay una persona parada con el celular. Guardar en memoria la
+ * relación código → datos del local evita ir a MySQL en cada escaneo, porque
+ * esos datos cambian poquísimas veces por día.
  *
- * Por qué tiene TTL corto: el requisito es poder cambiar el destino desde el
- * panel sin tocar las pulseras. Con TTL de 60 segundos, un cambio se ve como
- * mucho un minuto después. Además, al editar desde el panel invalidamos la
- * entrada a mano (ver `invalidateBracelet`), así que en la práctica el cambio
- * es inmediato.
+ * TTL corto para que un cambio hecho desde un panel se vea enseguida. Además,
+ * al editar desde el panel se invalida la entrada a mano, así que en la
+ * práctica el cambio es inmediato y el TTL es solo la red de contención.
  *
- * Nota para producción: el caché vive en el proceso. Si PM2 corre en modo
- * cluster con varias instancias, cada una tiene el suyo y la invalidación
- * manual solo alcanza a la instancia que atendió el request del panel; las
- * demás se ponen al día cuando vence el TTL. Por eso ecosystem.config.js
- * arranca con `instances: 1`.
+ * El caché vive en el proceso. Con varias instancias, cada una tiene la suya y
+ * la invalidación manual solo alcanza a la que atendió el request del panel;
+ * las demás se ponen al día cuando vence el TTL.
  */
 
-export type CachedBracelet = {
-  braceletId: number;
-  restaurantId: number;
-  destinationUrl: string;
-  braceletActive: boolean;
-  restaurantActive: boolean;
-};
-
-/** `null` cachea explícitamente "este código no existe", para no volver a
- *  consultar la base ante un escaneo repetido de una pulsera desconocida
- *  (o ante alguien probando códigos al voleo). */
 type CacheEntry = {
-  value: CachedBracelet | null;
+  /** `null` cachea "este código no existe", para no repetir la consulta ante
+   *  escaneos de códigos desconocidos o alguien probando al voleo. */
+  value: ResolvedBracelet | null;
   expiresAt: number;
 };
 
 const globalForCache = globalThis as unknown as {
-  __pulserasRedirectCache?: Map<string, CacheEntry>;
+  __toqiaLandingCache?: Map<string, CacheEntry>;
 };
 
-// Igual que el pool: sobrevive a las recargas de módulos en desarrollo.
 const cache: Map<string, CacheEntry> =
-  globalForCache.__pulserasRedirectCache ?? new Map();
+  globalForCache.__toqiaLandingCache ?? new Map();
 
 if (!env.isProduction) {
-  globalForCache.__pulserasRedirectCache = cache;
+  globalForCache.__toqiaLandingCache = cache;
 }
 
 /**
- * Devuelve la entrada cacheada, o `undefined` si no hay o si venció.
- * Ojo con la diferencia: `undefined` = no sé, hay que consultar la base.
- * `null` (dentro de la entrada) = ya consulté y ese código no existe.
+ * `undefined` = no sé, hay que consultar la base.
+ * `null` = ya consulté y ese código no existe.
  */
-export function getCached(code: string): CachedBracelet | null | undefined {
+export function getCached(code: string): ResolvedBracelet | null | undefined {
   const entry = cache.get(code);
   if (!entry) return undefined;
 
@@ -65,22 +51,24 @@ export function getCached(code: string): CachedBracelet | null | undefined {
   return entry.value;
 }
 
-export function setCached(code: string, value: CachedBracelet | null): void {
+export function setCached(code: string, value: ResolvedBracelet | null): void {
   cache.set(code, { value, expiresAt: Date.now() + env.redirectCacheTtlMs });
 
-  // Barrido perezoso: cada tanto limpiamos vencidos para que el Map no crezca
-  // indefinidamente si alguien bombardea con códigos inexistentes.
-  if (cache.size > 5_000) {
-    pruneExpired();
-  }
+  // Barrido perezoso para que el Map no crezca sin límite si alguien
+  // bombardea con códigos inexistentes.
+  if (cache.size > 5_000) pruneExpired();
 }
 
-/** Se llama desde el panel al editar/desactivar una pulsera. */
+/** Se llama al editar o desactivar una pulsera. */
 export function invalidateBracelet(code: string): void {
   cache.delete(code);
 }
 
-/** Se llama al desactivar un restaurante: afecta a todas sus pulseras. */
+/**
+ * Se llama al editar un local, una cuenta o un camarero: cualquiera de esos
+ * cambios afecta a todas las pulseras que cuelgan de ahí, y no vale la pena
+ * mantener un índice inverso para invalidar solo las que corresponden.
+ */
 export function invalidateAll(): void {
   cache.clear();
 }
@@ -92,7 +80,6 @@ function pruneExpired(): void {
   }
 }
 
-/** Solo para diagnóstico. */
 export function cacheStats() {
   return { size: cache.size, ttlMs: env.redirectCacheTtlMs };
 }

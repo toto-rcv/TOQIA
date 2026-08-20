@@ -4,12 +4,10 @@ import { notFound } from "next/navigation";
 /**
  * Páginas de caso borde del escaneo.
  *
- * Estas son las únicas pantallas del sistema que ve un cliente del
- * restaurante, y las ve parado con el celular en la mano. Siguen el protocolo
- * minimalist-ui: fondo cálido, tipografía editorial, nada de decoración.
- *
- * Nunca muestran un stack trace ni un código de error: la persona no puede
- * hacer nada con esa información. Le decimos qué pasó y a quién avisar.
+ * Comparten la estética de la landing (negro con dorado) para que el cliente
+ * no sienta que se rompió algo distinto. Nunca muestran un error técnico: la
+ * persona no puede hacer nada con esa información, así que le decimos qué pasó
+ * y a quién avisar.
  */
 
 const ESTADOS = {
@@ -27,8 +25,7 @@ const ESTADOS = {
   },
   "sin-destino": {
     titulo: "Destino no configurado",
-    detalle:
-      "La pulsera está activa pero todavía no tiene cargado a dónde llevarte.",
+    detalle: "La pulsera está activa pero todavía no tiene cargado a dónde llevarte.",
     accion: "Avisale al personal del local para que terminen de configurarla.",
   },
 } as const;
@@ -49,7 +46,7 @@ export async function generateMetadata({
   const { estado } = await params;
   const contenido = isEstado(estado) ? ESTADOS[estado] : null;
   return {
-    title: contenido ? contenido.titulo : "Pulsera NFC",
+    title: contenido ? contenido.titulo : "Toqia",
     robots: { index: false, follow: false },
   };
 }
@@ -69,32 +66,34 @@ export default async function EstadoPulseraPage({
   const { titulo, detalle, accion } = ESTADOS[estado];
 
   return (
-    <main className="mn-page flex items-center justify-center px-6 py-24">
-      <div className="w-full max-w-xl animate-fade-up">
-        <div className="mn-card px-8 py-12 sm:px-12 sm:py-16">
-          <p className="mb-8 font-mono text-xs uppercase tracking-[0.14em] text-mn-ink-muted">
-            Pulsera NFC
+    <main className="tq-page flex items-center justify-center px-5 py-16">
+      <div className="w-full max-w-[440px]">
+        <div className="rounded-2xl border border-tq-gold/40 bg-tq-surface px-6 py-10 text-center">
+          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-tq-gold">
+            Toqia
           </p>
 
-          <h1 className="mn-title text-3xl sm:text-4xl">{titulo}</h1>
+          <h1 className="mt-6 text-xl font-semibold tracking-tight text-tq-text">
+            {titulo}
+          </h1>
 
-          <p className="mn-body mt-6 max-w-prose text-base">{detalle}</p>
+          <p className="mt-4 text-sm leading-relaxed text-tq-text-muted">{detalle}</p>
 
-          <div className="mt-10 border-t border-mn-border pt-6">
-            <p className="text-sm text-mn-ink-soft">{accion}</p>
-          </div>
+          <div className="tq-divider my-7" />
+
+          <p className="text-sm text-tq-text-muted">{accion}</p>
 
           {codigo ? (
-            <div className="mt-8 inline-flex items-center gap-3 bg-mn-yellow px-3 py-2">
-              <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-mn-ink-muted">
+            <p className="mt-7 inline-flex items-center gap-2 rounded-lg border border-tq-border px-3 py-1.5">
+              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-tq-text-muted">
                 Código
               </span>
-              <span className="font-mono text-sm text-mn-ink">{codigo}</span>
-            </div>
+              <span className="font-mono text-xs text-tq-gold">{codigo}</span>
+            </p>
           ) : null}
         </div>
 
-        <p className="mt-6 text-center font-mono text-[11px] tracking-[0.1em] text-mn-ink-muted">
+        <p className="mt-6 text-center text-xs text-tq-text-muted/70">
           No hace falta que hagas nada más.
         </p>
       </div>
