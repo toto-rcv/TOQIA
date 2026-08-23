@@ -9,9 +9,12 @@ import { cn } from "@/lib/utils";
 export function LocationPicker({
   locations,
   current,
+  basePath = "/panel/configuracion",
 }: {
   locations: { id: number; name: string }[];
   current: number;
+  /** La misma barra sirve para la página pública y para la carta. */
+  basePath?: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
@@ -25,7 +28,7 @@ export function LocationPicker({
           disabled={pending}
           onClick={() =>
             startTransition(() =>
-              router.push(`/panel/configuracion?local=${local.id}`)
+              router.push(`${basePath}?local=${local.id}`)
             )
           }
           className={cn(

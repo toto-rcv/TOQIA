@@ -82,7 +82,13 @@ export function ScanFiltersBar({
   const exportHref = `${exportPath}?${searchParams.toString()}`;
 
   return (
-    <div className="mb-4 flex flex-wrap items-end gap-3 rounded-card border border-ex-border bg-ex-surface px-4 py-3">
+    /* En celular, una grilla de dos columnas: cinco desplegables en fila
+       obligarían a un scroll horizontal dentro de la propia barra. */
+    <div
+      className="mb-4 rounded-card border border-ex-border bg-ex-surface p-4 shadow-card
+                 sm:px-5"
+    >
+    <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-end">
       {locations.length > 1 ? (
         <div className="space-y-1">
           <Label htmlFor="f-local">Local</Label>
@@ -91,7 +97,7 @@ export function ScanFiltersBar({
             value={local}
             disabled={pending}
             onChange={(event) => actualizar("local", event.target.value)}
-            className="h-8 w-[170px] text-xs"
+            className="text-[13px] sm:w-[170px]"
           >
             <option value="">Todos</option>
             {locations.map((item) => (
@@ -103,14 +109,14 @@ export function ScanFiltersBar({
         </div>
       ) : null}
 
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label htmlFor="f-pulsera">Pulsera</Label>
         <Select
           id="f-pulsera"
           value={pulsera}
           disabled={pending}
           onChange={(event) => actualizar("pulsera", event.target.value)}
-          className="h-8 w-[130px] font-mono text-xs"
+          className="font-mono text-[13px] sm:w-[130px]"
         >
           <option value="">Todas</option>
           {pulserasVisibles.map((item) => (
@@ -121,14 +127,14 @@ export function ScanFiltersBar({
         </Select>
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label htmlFor="f-camarero">Camarero</Label>
         <Select
           id="f-camarero"
           value={camarero}
           disabled={pending}
           onChange={(event) => actualizar("camarero", event.target.value)}
-          className="h-8 w-[160px] text-xs"
+          className="text-[13px] sm:w-[160px]"
         >
           <option value="">Todos</option>
           {camarerosVisibles.map((item) => (
@@ -139,7 +145,7 @@ export function ScanFiltersBar({
         </Select>
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label htmlFor="f-desde">Desde</Label>
         <Input
           id="f-desde"
@@ -148,11 +154,11 @@ export function ScanFiltersBar({
           max={hasta || undefined}
           disabled={pending}
           onChange={(event) => actualizar("desde", event.target.value)}
-          className="h-8 w-[150px] text-xs"
+          className="text-[13px] sm:w-[150px]"
         />
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <Label htmlFor="f-hasta">Hasta</Label>
         <Input
           id="f-hasta"
@@ -161,7 +167,7 @@ export function ScanFiltersBar({
           min={desde || undefined}
           disabled={pending}
           onChange={(event) => actualizar("hasta", event.target.value)}
-          className="h-8 w-[150px] text-xs"
+          className="text-[13px] sm:w-[150px]"
         />
       </div>
 
@@ -169,17 +175,20 @@ export function ScanFiltersBar({
         type="button"
         disabled={pending}
         onClick={() => actualizar("convertidos", convertidos ? "" : "1")}
+        aria-pressed={convertidos}
         className={cn(
-          "h-8 rounded-control border px-3 text-xs transition-colors",
+          "col-span-2 h-11 rounded-control border px-3 text-[13px] font-medium",
+          "transition-colors sm:col-span-1 sm:h-10",
           convertidos
-            ? "border-ex-blue/50 bg-ex-blue/10 text-ex-blue-bright"
-            : "border-ex-border text-ex-text-muted hover:text-ex-text"
+            ? "border-ex-blue/50 bg-ex-blue-wash text-ex-blue-deep"
+            : "border-ex-border text-ex-text-secondary hover:text-ex-text"
         )}
       >
         Solo con reseña
       </button>
+    </div>
 
-      <div className="ml-auto flex items-center gap-2">
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-ex-border-subtle pt-3">
         {hayFiltros ? (
           <Button
             variant="ghost"
@@ -188,14 +197,17 @@ export function ScanFiltersBar({
             onClick={() => startTransition(() => router.push(pathname))}
           >
             <X />
-            Limpiar
+            Limpiar filtros
           </Button>
-        ) : null}
+        ) : (
+          <span className="text-[12px] text-ex-text-muted">Sin filtros aplicados</span>
+        )}
 
-        <a href={exportHref} download>
-          <span className="ex-btn-primary">
+        <a href={exportHref} download className="shrink-0">
+          <span className="ex-btn-ghost">
             <Download className="size-4" />
-            Exportar CSV
+            <span className="max-sm:hidden">Exportar CSV</span>
+            <span className="sm:hidden">CSV</span>
           </span>
         </a>
       </div>

@@ -304,10 +304,14 @@ export async function createBracelet(formData: FormData): Promise<ActionResult> 
   const locationId = readInt(formData.get("locationId"));
   const label = readString(formData.get("label"));
   const overrideUrl = readString(formData.get("overrideUrl"));
+  const deviceType = readString(formData.get("deviceType")) || "pulsera";
 
   const errorCodigo = validateCode(code);
   if (errorCodigo) return fail(errorCodigo);
   if (!locationId) return fail("Elegí un local.");
+  if (deviceType !== "pulsera" && deviceType !== "placa") {
+    return fail("El tipo de dispositivo no es válido.");
+  }
 
   const errorUrl = validateOptionalUrl(overrideUrl, "El destino directo");
   if (errorUrl) return fail(errorUrl);
@@ -321,6 +325,7 @@ export async function createBracelet(formData: FormData): Promise<ActionResult> 
     await db.insert(bracelets).values({
       code,
       locationId,
+      deviceType: deviceType as "pulsera" | "placa",
       label: label === "" ? null : label.slice(0, 255),
       overrideUrl: overrideUrl === "" ? null : overrideUrl,
       active: true,
@@ -353,8 +358,12 @@ export async function createBraceletsBulk(
   const start = readInt(formData.get("start")) ?? 1;
   const count = readInt(formData.get("count"));
   const padding = readInt(formData.get("padding")) ?? 3;
+  const deviceType = readString(formData.get("deviceType")) || "pulsera";
 
   if (!locationId) return fail("Elegí un local.");
+  if (deviceType !== "pulsera" && deviceType !== "placa") {
+    return fail("El tipo de dispositivo no es válido.");
+  }
   if (prefix === "") return fail("Poné un prefijo (por ejemplo, B).");
   if (!/^[A-Za-z0-9._-]{1,20}$/.test(prefix)) {
     return fail("El prefijo solo admite letras, números, punto, guion y guion bajo.");
@@ -383,7 +392,14 @@ export async function createBraceletsBulk(
     if (nuevos.length === 0) return fail("Todos los códigos de ese rango ya existen.");
 
     await db.insert(bracelets).values(
-      nuevos.map((code) => ({ code, locationId, active: true }))
+      nuevos.map((code) => ({
+        code,
+        locationId,
+        // El valor ya se validó contra la lista permitida más arriba; el
+        // estrechamiento explícito es solo para el tipo de la columna enum.
+        deviceType: deviceType as "pulsera" | "placa",
+        active: true,
+      }))
     );
 
     for (const code of nuevos) invalidateBracelet(code);
@@ -405,8 +421,12 @@ export async function updateBracelet(formData: FormData): Promise<ActionResult> 
   const waiterId = readInt(formData.get("waiterId"));
   const label = readString(formData.get("label"));
   const overrideUrl = readString(formData.get("overrideUrl"));
+  const deviceType = readString(formData.get("deviceType")) || "pulsera";
 
   if (!id) return fail("Falta el identificador de la pulsera.");
+  if (deviceType !== "pulsera" && deviceType !== "placa") {
+    return fail("El tipo de dispositivo no es válido.");
+  }
 
   const errorCodigo = validateCode(code);
   if (errorCodigo) return fail(errorCodigo);
@@ -438,6 +458,7 @@ export async function updateBracelet(formData: FormData): Promise<ActionResult> 
       .set({
         code,
         locationId,
+        deviceType: deviceType as "pulsera" | "placa",
         waiterId: waiterId ?? null,
         label: label === "" ? null : label.slice(0, 255),
         overrideUrl: overrideUrl === "" ? null : overrideUrl,

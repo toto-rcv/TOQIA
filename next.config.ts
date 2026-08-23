@@ -13,8 +13,12 @@ const nextConfig: NextConfig = {
   // Ver src/lib/request-ip.ts para cómo se resuelve la IP real.
   experimental: {
     // Server Actions: el panel las usa para todas las mutaciones.
+    // El límite tiene que dar para el formulario de la landing completo, que
+    // puede llevar logo + portada + foto de cierre + la carta en PDF de una
+    // sola vez. Los límites por archivo (6 MB imagen, 12 MB PDF) están en
+    // src/lib/media.ts y son los que dan el mensaje de error entendible.
     serverActions: {
-      bodySizeLimit: "2mb",
+      bodySizeLimit: "32mb",
     },
   },
 };

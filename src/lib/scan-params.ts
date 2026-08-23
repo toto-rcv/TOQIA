@@ -9,6 +9,7 @@ export type RawScanParams = {
   desde?: string;
   hasta?: string;
   page?: string;
+  limit?: string;
 };
 
 /**

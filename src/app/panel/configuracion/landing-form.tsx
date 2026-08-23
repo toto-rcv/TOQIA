@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
+import { FileField } from "@/components/ui/file-field";
 import { Input, Label } from "@/components/ui/input";
 import { updateLanding } from "../actions";
 
@@ -13,13 +14,22 @@ type Location = {
   displayName: string | null;
   tagline: string | null;
   logoUrl: string | null;
+  coverImageUrl: string | null;
   googleReviewUrl: string | null;
   instagramUrl: string | null;
   whatsappPhone: string | null;
+  phone: string | null;
   websiteUrl: string | null;
   menuUrl: string | null;
+  reservationUrl: string | null;
   address: string | null;
   mapsUrl: string | null;
+  welcomeKicker: string | null;
+  welcomeTitle: string | null;
+  closingMessage: string | null;
+  closingImageUrl: string | null;
+  menuMode: string;
+  currency: string;
 };
 
 /**
@@ -29,7 +39,14 @@ type Location = {
  * hay nada obligatorio salvo, en la práctica, el enlace de Google: sin él la
  * página pierde su razón de ser y el formulario lo avisa.
  */
-export function LandingForm({ location }: { location: Location }) {
+export function LandingForm({
+  location,
+  /** ¿El local ya cargó platos en /panel/carta? Solo para avisarle si no. */
+  tieneCartaToqia,
+}: {
+  location: Location;
+  tieneCartaToqia: boolean;
+}) {
   const [error, setError] = React.useState<string | null>(null);
   const [guardado, setGuardado] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
@@ -57,10 +74,13 @@ export function LandingForm({ location }: { location: Location }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 pb-4">
       <input type="hidden" name="locationId" value={location.id} />
 
-      <Seccion titulo="Identidad">
+      <Seccion
+        titulo="Identidad"
+        descripcion="El nombre y las imágenes con las que se presenta tu local."
+      >
         <Campo
           id="displayName"
           name="displayName"
@@ -76,18 +96,61 @@ export function LandingForm({ location }: { location: Location }) {
           defaultValue={location.tagline ?? ""}
           placeholder="Cocina de autor en Palermo"
         />
-        <Campo
-          id="logoUrl"
-          name="logoUrl"
-          label="URL del logo"
-          defaultValue={location.logoUrl ?? ""}
-          placeholder="https://…/logo.png"
-          mono
-          hint="Tiene que ser una imagen accesible públicamente. PNG con fondo transparente se ve mejor sobre el negro."
+        <CampoArchivo
+          name="logo"
+          label="Logo"
+          actual={location.logoUrl}
+          formato="imagen"
+          hint="PNG con fondo transparente se ve mejor sobre la portada."
+        />
+        <CampoArchivo
+          name="cover"
+          label="Foto de portada"
+          actual={location.coverImageUrl}
+          formato="imagen"
+          hint="Va detrás del logo, arriba de todo. Una foto del salón funciona bien: se oscurece automáticamente para que el logo se lea."
         />
       </Seccion>
 
-      <Seccion titulo="Reseñas">
+      <Seccion
+        titulo="Textos de la página"
+        descripcion="Lo que lee el cliente. Si los dejás vacíos usamos los nuestros."
+      >
+        <Campo
+          id="welcomeKicker"
+          name="welcomeKicker"
+          label="Línea de arriba"
+          defaultValue={location.welcomeKicker ?? ""}
+          placeholder="Gracias por visitarnos"
+          hint="Si lo dejás vacío se usa “Gracias por visitarnos”."
+        />
+        <Campo
+          id="welcomeTitle"
+          name="welcomeTitle"
+          label="Título principal"
+          defaultValue={location.welcomeTitle ?? ""}
+          placeholder="Tu opinión nos ayuda a seguir mejorando"
+        />
+        <Campo
+          id="closingMessage"
+          name="closingMessage"
+          label="Mensaje de cierre"
+          defaultValue={location.closingMessage ?? ""}
+          placeholder="Gracias por ser parte de nuestra experiencia"
+        />
+        <CampoArchivo
+          name="closing"
+          label="Foto del cierre"
+          actual={location.closingImageUrl}
+          formato="imagen"
+          hint="Acompaña al mensaje de despedida, abajo de todo."
+        />
+      </Seccion>
+
+      <Seccion
+        titulo="Reseñas"
+        descripcion="El botón principal de la página."
+      >
         <Campo
           id="googleReviewUrl"
           name="googleReviewUrl"
@@ -99,7 +162,10 @@ export function LandingForm({ location }: { location: Location }) {
         />
       </Seccion>
 
-      <Seccion titulo="Contacto y enlaces">
+      <Seccion
+        titulo="Contacto y enlaces"
+        descripcion="Cada dato cargado agrega su botón; los vacíos no aparecen."
+      >
         <Campo
           id="instagramUrl"
           name="instagramUrl"
@@ -118,12 +184,29 @@ export function LandingForm({ location }: { location: Location }) {
           hint="Con código de país, sin + ni espacios."
         />
         <Campo
-          id="menuUrl"
-          name="menuUrl"
-          label="Menú"
-          defaultValue={location.menuUrl ?? ""}
-          placeholder="https://…/menu.pdf"
+          id="phone"
+          name="phone"
+          label="Teléfono"
+          defaultValue={location.phone ?? ""}
+          placeholder="+54 11 3333-4444"
+          hint="Es el del botón “Llamar”. Puede ser distinto del de WhatsApp."
+        />
+        <Campo
+          id="reservationUrl"
+          name="reservationUrl"
+          label="Reservas (opcional)"
+          defaultValue={location.reservationUrl ?? ""}
+          placeholder="https://…/reservar"
           mono
+          hint="Si lo dejás vacío, “Reservar” abre WhatsApp con el mensaje “Hola, quisiera reservar una mesa” ya escrito. Completalo solo si usás una plataforma de reservas."
+        />
+        <Campo
+          id="currency"
+          name="currency"
+          label="Moneda de la carta"
+          defaultValue={location.currency ?? "€"}
+          placeholder="€"
+          hint="El símbolo que acompaña los precios: €, $, US$…"
         />
         <Campo
           id="websiteUrl"
@@ -135,7 +218,16 @@ export function LandingForm({ location }: { location: Location }) {
         />
       </Seccion>
 
-      <Seccion titulo="Ubicación">
+      <SelectorDeCarta
+        modoInicial={location.menuMode === "pdf" ? "pdf" : "toqia"}
+        pdfActual={location.menuUrl}
+        tieneCartaToqia={tieneCartaToqia}
+      />
+
+      <Seccion
+        titulo="Ubicación"
+        descripcion="Para el botón “Cómo llegar”."
+      >
         <Campo
           id="address"
           name="address"
@@ -163,8 +255,15 @@ export function LandingForm({ location }: { location: Location }) {
         </p>
       ) : null}
 
-      <div className="flex items-center gap-3 border-t border-ex-border-subtle pt-4">
-        <Button type="submit" variant="primary" disabled={pending}>
+      {/* La barra de guardado queda pegada abajo: el formulario es largo y
+          obligar a bajar hasta el final para guardar es una fuente segura de
+          cambios perdidos. */}
+      <div
+        className="sticky bottom-[76px] z-10 flex flex-wrap items-center gap-3 rounded-card
+                   border border-ex-border bg-ex-surface/95 px-4 py-3 shadow-pop
+                   backdrop-blur sm:bottom-4 sm:px-5"
+      >
+        <Button type="submit" variant="primary" size="lg" disabled={pending}>
           {pending ? "Guardando…" : "Guardar cambios"}
         </Button>
 
@@ -179,20 +278,182 @@ export function LandingForm({ location }: { location: Location }) {
   );
 }
 
+/**
+ * Cada bloque es su propia tarjeta.
+ *
+ * El formulario tiene veinte campos: en una sola tarjeta larga hay que leerlo
+ * entero para encontrar uno. Separado, la persona salta directo al bloque que
+ * busca y ve de un vistazo qué le falta cargar.
+ */
 function Seccion({
   titulo,
+  descripcion,
   children,
 }: {
   titulo: string;
+  descripcion?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section>
-      <h3 className="mb-3 font-mono text-[11px] uppercase tracking-[0.12em] text-ex-text-muted">
-        {titulo}
-      </h3>
-      <div className="grid gap-4 sm:grid-cols-2">{children}</div>
+    <section className="rounded-card border border-ex-border bg-ex-surface shadow-card">
+      <div className="border-b border-ex-border-subtle px-4 py-3.5 sm:px-5">
+        <h3 className="text-[15px] font-semibold tracking-tight text-ex-text">
+          {titulo}
+        </h3>
+        {descripcion ? (
+          <p className="mt-0.5 text-[12.5px] text-ex-text-muted">{descripcion}</p>
+        ) : null}
+      </div>
+      <div className="grid gap-4 px-4 py-4 sm:grid-cols-2 sm:px-5">{children}</div>
     </section>
+  );
+}
+
+/**
+ * Qué carta ve el cliente al tocar "Ver menú".
+ *
+ * Es una elección explícita y no una deducción: antes, si el local subía su
+ * PDF pero además tenía platos cargados, ganaba la carta de Toqia y no había
+ * forma de entender por qué. Ahora elige el restaurante.
+ */
+function SelectorDeCarta({
+  modoInicial,
+  pdfActual,
+  tieneCartaToqia,
+}: {
+  modoInicial: "toqia" | "pdf";
+  pdfActual: string | null;
+  tieneCartaToqia: boolean;
+}) {
+  const [modo, setModo] = React.useState(modoInicial);
+
+  return (
+    <section className="rounded-card border border-ex-border bg-ex-surface shadow-card">
+      <div className="border-b border-ex-border-subtle px-4 py-3.5 sm:px-5">
+        <h3 className="text-[15px] font-semibold tracking-tight text-ex-text">Carta</h3>
+        <p className="mt-0.5 text-[12.5px] text-ex-text-muted">
+          Qué se abre cuando el cliente toca “Ver menú”.
+        </p>
+      </div>
+
+      <div className="space-y-3 px-4 py-4 sm:px-5">
+        <Opcion
+          valor="toqia"
+          elegido={modo === "toqia"}
+          onChange={setModo}
+          titulo="La carta de Toqia"
+          detalle="La que cargás en “Mi carta”, con categorías, precios y fotos. Los cambios se ven al instante y no hay que subir nada."
+          aviso={
+            tieneCartaToqia
+              ? null
+              : "Todavía no cargaste ningún plato: hasta que lo hagas, el botón “Ver menú” no aparece en tu página."
+          }
+        />
+
+        <Opcion
+          valor="pdf"
+          elegido={modo === "pdf"}
+          onChange={setModo}
+          titulo="Mi carta en PDF"
+          detalle="Tu propio archivo. Cada vez que cambien los precios hay que subir el PDF de nuevo."
+          aviso={
+            modo === "pdf" && !pdfActual
+              ? "Subí el archivo acá abajo, o el botón “Ver menú” no va a aparecer."
+              : null
+          }
+        />
+      </div>
+
+      {/* El campo del PDF solo cuando hace falta: si no, invita a subir un
+          archivo que después no se va a mostrar. */}
+      {modo === "pdf" ? (
+        <div className="px-4 pb-4 sm:px-5">
+          <CampoArchivo
+            name="menu"
+            label="Archivo de la carta"
+            actual={pdfActual}
+            formato="pdf"
+            hint="Un PDF. Se abre en una pestaña nueva cuando el cliente toca “Ver menú”."
+          />
+        </div>
+      ) : null}
+
+      {/* Viaja siempre, elija lo que elija. */}
+      <input type="hidden" name="menuMode" value={modo} />
+    </section>
+  );
+}
+
+function Opcion({
+  valor,
+  elegido,
+  onChange,
+  titulo,
+  detalle,
+  aviso,
+}: {
+  valor: "toqia" | "pdf";
+  elegido: boolean;
+  onChange: (valor: "toqia" | "pdf") => void;
+  titulo: string;
+  detalle: string;
+  aviso: string | null;
+}) {
+  return (
+    <label
+      className={
+        "flex cursor-pointer gap-3 rounded-control border p-3 transition-colors " +
+        (elegido
+          ? "border-ex-blue/50 bg-ex-surface-raised"
+          : "border-ex-border hover:border-ex-blue/25")
+      }
+    >
+      <input
+        type="radio"
+        name="menuModeRadio"
+        value={valor}
+        checked={elegido}
+        onChange={() => onChange(valor)}
+        className="mt-0.5 size-4 shrink-0 accent-ex-blue"
+      />
+      <span className="min-w-0">
+        <span className="block text-sm font-medium text-ex-text">{titulo}</span>
+        <span className="mt-0.5 block text-[11px] leading-relaxed text-ex-text-muted">
+          {detalle}
+        </span>
+        {aviso ? (
+          <span className="mt-1.5 block text-[11px] leading-relaxed text-ex-warning">
+            {aviso}
+          </span>
+        ) : null}
+      </span>
+    </label>
+  );
+}
+
+/** Igual que `Campo` pero para archivos. El logo va redondo, como se ve. */
+function CampoArchivo({
+  name,
+  label,
+  actual,
+  formato,
+  hint,
+}: {
+  name: string;
+  label: string;
+  actual: string | null;
+  formato: "imagen" | "pdf";
+  hint?: string;
+}) {
+  return (
+    <FileField
+      name={name}
+      label={label}
+      actual={actual}
+      formato={formato}
+      hint={hint}
+      forma={name === "logo" ? "redonda" : name === "cover" ? "ancha" : "cuadrada"}
+    />
   );
 }
 

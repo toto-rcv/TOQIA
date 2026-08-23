@@ -57,8 +57,21 @@ celular: una columna, un botón por fila.
 - El nombre y la frase que hayan configurado
 - **Dejar reseña en Google** — el botón principal, el único con el dorado
   encendido
-- Debajo, solo los botones que el restaurante haya cargado: menú, Instagram,
-  WhatsApp, cómo llegar, sitio web
+- Debajo, solo los botones que el restaurante haya cargado:
+
+  | Botón | A dónde va | Aparece si… |
+  |---|---|---|
+  | **Ver menú** | la carta de Toqia o el PDF, según lo que hayan elegido | está cargada la carta que eligieron |
+  | **Cómo llegar** | Google Maps | hay dirección o enlace de Maps |
+  | **Llamar** | marca el teléfono | hay teléfono |
+  | **WhatsApp** | chat con el local | hay número de WhatsApp |
+  | **Instagram** | el perfil del local | hay enlace de Instagram |
+  | **Reservar** | WhatsApp con “Hola, quisiera reservar una mesa” ya escrito | hay número de WhatsApp |
+  | **Sitio web** | la web del local | hay sitio web cargado |
+
+  WhatsApp e Instagram llevan su logo de verdad, en su color. El resto usa
+  iconos de línea, que es lo que corresponde: son acciones, no marcas.
+
 - La dirección al pie
 
 **Lo importante:** al tocar el botón de Google se registra ese clic antes de
@@ -82,7 +95,28 @@ qué pulsera revisar.
 
 ## Panel del restaurante — `/panel`
 
-### Estadísticas — `/panel`
+### Cómo se mueve el panel
+
+En la **computadora** las secciones están en una barra lateral fija a la
+izquierda. En el **celular** están abajo, en una barra fija: las cuatro que se
+usan todos los días (Resumen, Pulseras, Mi carta, Escaneos) siempre a la vista,
+y el resto en el botón **Más**. El pulgar llega a la parte de abajo de la
+pantalla; a la de arriba, no.
+
+Las tablas también cambian de forma. En el celular no hay tabla: cada fila se
+muestra como una tarjeta con lo importante arriba y el resto debajo. Es más
+código, pero es la única manera de que una tabla de ocho columnas se pueda leer
+en 360 píxeles sin arrastrar el dedo a los costados.
+
+**Los listados vienen de a 10.** Pulseras, camareros y escaneos se piden a la
+base de a diez por página. Al pasar de página se hace un pedido nuevo y la base
+devuelve solo esas diez: aunque una cuenta llegue a tener cien mil escaneos, lo
+que viaja por la red y lo que se dibuja en la pantalla es siempre lo mismo. El
+número de página va en la dirección (`?page=3`), así que se puede compartir el
+link, funciona el botón de atrás del navegador y anda aunque el JavaScript
+falle.
+
+### Resumen — `/panel`
 
 Es la pantalla que le sirve al dueño para saber si esto funciona y para armar
 el concurso mensual entre camareros.
@@ -140,18 +174,75 @@ si diez escaneos vinieron del mismo teléfono, sin almacenar el dato personal.
 
 ### Mi página — `/panel/configuracion`
 
-Acá el restaurante edita **lo que ve el cliente**: nombre visible, frase, logo,
-enlace de Google Reviews, Instagram, WhatsApp, menú, sitio web, dirección y
-enlace de Maps.
+Acá el restaurante edita **lo que ve el cliente**: nombre visible, frase,
+enlace de Google Reviews, Instagram, WhatsApp, teléfono, sitio web, dirección
+y enlace de Maps.
 
 Los campos vacíos simplemente no muestran su botón. El único que importa de
 verdad es el de Google: sin él, la página pierde su razón de ser.
+
+**Las imágenes se suben, no se pegan como enlace.** El logo, la foto de
+portada, la foto del cierre y la carta en PDF tienen un botón para elegir el
+archivo desde la computadora o el celular. Al lado se ve lo que hay cargado
+hoy, con un **Quitar** para dejarlo vacío.
+
+Cuando suben una imagen nueva, la anterior se borra sola. No hay que limpiar
+nada a mano ni queda ocupando lugar. Los archivos se guardan dentro de la base
+de datos, así que sobreviven a cada deploy y entran en el backup junto con el
+resto de los datos.
+
+Límites: **6 MB por imagen** y **12 MB por PDF**. Si se pasan, el formulario
+lo dice con el peso exacto en vez de fallar en silencio. Se aceptan JPG, PNG,
+WebP, GIF y AVIF.
+
+**La carta** se elige, no se adivina. Hay dos opciones:
+
+- **La carta de Toqia** — la que cargan en *Mi carta*. Se actualiza al
+  instante, no hay que subir nada, y el cliente la ve dentro de la misma
+  página con un botón de volver.
+- **Mi carta en PDF** — su propio archivo. Cada vez que cambian los precios
+  hay que subir el PDF de nuevo. Se abre en una pestaña aparte.
+
+El campo del archivo solo aparece si eligieron el PDF. Si eligen una opción
+que todavía no tiene contenido — la carta de Toqia sin platos, o el PDF sin
+subir — el panel lo avisa ahí mismo, y el botón “Ver menú” no aparece en la
+página del cliente hasta que la completen.
+
+Cambiar de opción **no borra** el PDF que ya estaba: pueden volver a él cuando
+quieran.
+
+**Reservas** está vacío a propósito: si no cargan nada, el botón “Reservar”
+abre WhatsApp con el mensaje “Hola, quisiera reservar una mesa” ya escrito.
+Solo hay que completarlo si el local usa una plataforma de reservas propia.
 
 **Ver cómo queda** abre la página tal cual la ve un cliente, sin registrar
 ningún escaneo.
 
 Si tienen varios locales, arriba hay un selector: cada local tiene su propia
 página.
+
+### Mi carta — `/panel/carta`
+
+La carta que ve el cliente al tocar **Ver menú**. Se organiza en categorías
+(Entradas, Principales, Postres…) y dentro de cada una, los platos.
+
+De cada plato se carga nombre, precio, descripción y, si quieren, **una foto**
+— se sube igual que las demás imágenes, y al cambiarla la anterior se borra.
+
+Cada categoría puede llevar un **ícono**: hamburguesa, empanadas, carne,
+postres, café, cerveza y unos veinte más. Se elige de una grilla al crear o
+editar la categoría, y aparece al lado del nombre en la carta del cliente. Es
+opcional: sin ícono la categoría se muestra solo con su nombre.
+
+Arriba de todo hay una **imagen de la carta**, opcional, que encabeza la
+página del cliente. Se guarda con su propio botón, sin tener que tocar el
+resto.
+
+Un plato que se acabó se marca como **no disponible**: en vez de desaparecer
+se muestra tachado, así el cliente sabe que existe y puede preguntarlo mañana.
+
+Los cambios se ven al instante: no hay que avisarle a nadie ni regrabar las
+pulseras.
 
 ---
 

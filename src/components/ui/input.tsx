@@ -10,15 +10,14 @@ export const Input = React.forwardRef<
     ref={ref}
     type={type}
     className={cn(
-      "h-9 w-full rounded-control border border-ex-border bg-ex-black px-3 text-sm text-ex-text",
+      // h-11 en vez de h-9: en un celular, 44px es el mínimo cómodo para el dedo.
+      "h-11 w-full rounded-control border border-ex-border bg-ex-surface px-3 text-sm text-ex-text",
       "placeholder:text-ex-text-disabled",
-      "focus:border-ex-blue focus:outline-none focus:ring-1 focus:ring-ex-blue/40",
-      "disabled:cursor-not-allowed disabled:opacity-40",
-      // Los inputs de fecha traen un ícono de calendario negro que sobre fondo
-      // oscuro es invisible: se invierte para que se vea.
+      "transition-[border-color,box-shadow] duration-150",
+      "focus:border-ex-blue focus:outline-none focus:ring-4 focus:ring-ex-blue/20",
+      "disabled:cursor-not-allowed disabled:opacity-45",
       "[&::-webkit-calendar-picker-indicator]:cursor-pointer",
       "[&::-webkit-calendar-picker-indicator]:opacity-60",
-      "[&::-webkit-calendar-picker-indicator]:invert",
       className
     )}
     {...props}
@@ -33,9 +32,10 @@ export const Textarea = React.forwardRef<
   <textarea
     ref={ref}
     className={cn(
-      "w-full rounded-control border border-ex-border bg-ex-black px-3 py-2 text-sm text-ex-text",
+      "w-full rounded-control border border-ex-border bg-ex-surface px-3 py-2.5 text-sm text-ex-text",
       "placeholder:text-ex-text-disabled",
-      "focus:border-ex-blue focus:outline-none focus:ring-1 focus:ring-ex-blue/40",
+      "transition-[border-color,box-shadow] duration-150",
+      "focus:border-ex-blue focus:outline-none focus:ring-4 focus:ring-ex-blue/20",
       className
     )}
     {...props}
@@ -49,7 +49,13 @@ export const Label = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <label
     ref={ref}
-    className={cn("block text-label font-medium text-ex-text-secondary", className)}
+    // Tamaño explícito y no `text-label`: tailwind-merge no conoce esa clave
+    // del tema, la toma por un color y la descarta al chocar con
+    // `text-ex-text-secondary`, dejando la etiqueta en 16px.
+    className={cn(
+      "block text-[12px] font-semibold uppercase tracking-[0.04em] text-ex-text-muted",
+      className
+    )}
     {...props}
   />
 ));

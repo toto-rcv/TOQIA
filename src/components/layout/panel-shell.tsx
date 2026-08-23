@@ -1,9 +1,19 @@
-import { SectionNav, type NavItem } from "@/components/layout/section-nav";
-import { SignOutButton } from "@/components/admin/sign-out-button";
+import { PanelNav, type NavItem } from "@/components/layout/panel-nav";
 
 /**
  * Estructura común de los tres paneles internos.
- * Cambian los ítems de navegación y la etiqueta; el resto es idéntico.
+ *
+ * Tres formas según el ancho, no una sola comprimida:
+ *
+ *  - **Escritorio (≥1024px)**: barra lateral fija de 244px con las secciones
+ *    en vertical. Es la forma que tolera crecer — cuando la etapa B agregue
+ *    stock, distribuidores y comisiones, entran como ítems nuevos sin pelear
+ *    por el ancho de una barra horizontal.
+ *  - **Tablet (≥640px)**: la lateral se colapsa a íconos; el nombre de cada
+ *    sección aparece al pasar el mouse.
+ *  - **Celular**: barra inferior fija con las cinco secciones principales y
+ *    el resto en un cajón. El pulgar llega a la parte de abajo de la
+ *    pantalla; a la de arriba, no.
  */
 export function PanelShell({
   title,
@@ -20,32 +30,18 @@ export function PanelShell({
 }) {
   return (
     <div className="ex-scope min-h-dvh bg-ex-black text-ex-text">
-      {/* h-[62px]: la barra tiene que dejar respirar a la navegación, que ocupa
-          todo el alto para poder marcar el ítem activo con su propio borde. */}
-      <header className="sticky top-0 z-40 border-b border-ex-border bg-ex-black/95 backdrop-blur">
-        <div className="mx-auto flex h-[62px] max-w-[1400px] items-stretch gap-6 px-5">
-          <div className="flex shrink-0 items-center gap-2.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-ex-blue" aria-hidden />
-            <span className="text-sm font-medium tracking-tight">{title}</span>
-            {badge ? (
-              <span className="rounded-control border border-ex-border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-ex-text-muted">
-                {badge}
-              </span>
-            ) : null}
-          </div>
+      <PanelNav title={title} badge={badge} email={email} items={items} />
 
-          <SectionNav items={items} />
-
-          <div className="flex shrink-0 items-center gap-4">
-            <span className="hidden font-mono text-[11px] text-ex-text-muted sm:inline">
-              {email}
-            </span>
-            <SignOutButton />
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-[1400px] px-5 py-6">{children}</main>
+      {/* pl en escritorio deja lugar a la lateral fija; pb en celular, a la
+          barra inferior, para que el último botón de la página no quede
+          tapado. */}
+      <div className="lg:pl-[244px] sm:pl-[68px]">
+        <main className="mx-auto max-w-[1240px] px-4 pb-28 pt-4 sm:px-6 sm:pb-10 sm:pt-6">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
+
+export type { NavItem };

@@ -1,14 +1,17 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 
-import { Card, CardBody } from "@/components/ui/card";
 import { cn, formatNumber } from "@/lib/utils";
 
 /**
  * Métrica del panel.
  *
- * El número manda: va primero, grande y en mono tabular. La etiqueta va
- * debajo, chica y apagada. La variación contra el período anterior es un
- * indicador secundario y nunca compite con la cifra.
+ * Orden de lectura: etiqueta arriba (qué estoy mirando), número grande abajo
+ * (cuánto), y la variación al pie. La etiqueta va primero porque una cifra
+ * sin contexto obliga a bajar la vista y volver a subir.
+ *
+ * `highlight` pinta la tarjeta principal en tinta oscura: en un tablero claro,
+ * invertir el contraste es lo que hace que una de las cuatro se lea primero,
+ * sin recurrir a un color de estado que significaría otra cosa.
  */
 export function MetricTile({
   value,
@@ -32,48 +35,81 @@ export function MetricTile({
   const texto = typeof value === "number" ? formatNumber(value) : value;
 
   return (
-    <Card>
-      <CardBody>
-        <div className="flex items-baseline gap-1">
-          <p
+    <div
+      className={cn(
+        "rounded-card border p-4 sm:p-5",
+        highlight
+          ? "border-transparent bg-ex-ink text-white shadow-pop"
+          : "border-ex-border bg-ex-surface shadow-card"
+      )}
+    >
+      <p
+        className={cn(
+          "text-[11.5px] font-medium leading-tight",
+          highlight ? "text-white/60" : "text-ex-text-muted"
+        )}
+      >
+        {label}
+      </p>
+
+      <div className="mt-2 flex items-baseline gap-1">
+        <p
+          className={cn(
+            "text-[28px] font-semibold tabular-nums tracking-tight sm:text-metric",
+            highlight ? "text-white" : "text-ex-text"
+          )}
+        >
+          {texto}
+        </p>
+        {suffix ? (
+          <span
             className={cn(
-              "font-mono text-metric font-medium tabular-nums",
-              highlight ? "text-ex-blue-bright" : "text-ex-text"
+              "text-base font-medium",
+              highlight ? "text-white/70" : "text-ex-text-muted"
             )}
           >
-            {texto}
-          </p>
-          {suffix ? (
-            <span className="font-mono text-sm text-ex-text-muted">{suffix}</span>
-          ) : null}
-        </div>
-
-        <p className="ex-label mt-1.5">{label}</p>
-
-        {variation !== undefined ? (
-          <VariationBadge value={variation} invert={invert} />
+            {suffix}
+          </span>
         ) : null}
+      </div>
 
-        {hint ? (
-          <p className="mt-2 text-[11px] text-ex-text-disabled">{hint}</p>
-        ) : null}
-      </CardBody>
-    </Card>
+      {variation !== undefined ? (
+        <VariationBadge value={variation} invert={invert} highlight={highlight} />
+      ) : null}
+
+      {hint ? (
+        <p
+          className={cn(
+            "mt-2 text-[11px]",
+            highlight ? "text-white/50" : "text-ex-text-disabled"
+          )}
+        >
+          {hint}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
 function VariationBadge({
   value,
   invert,
+  highlight,
 }: {
   value: number | null;
   invert: boolean;
+  highlight: boolean;
 }) {
   // Sin base de comparación no inventamos un porcentaje: "subió infinito" no
   // significa nada y confunde más de lo que informa.
   if (value === null) {
     return (
-      <p className="mt-2 flex items-center gap-1 text-[11px] text-ex-text-disabled">
+      <p
+        className={cn(
+          "mt-2.5 flex items-center gap-1 text-[11px]",
+          highlight ? "text-white/50" : "text-ex-text-disabled"
+        )}
+      >
         <Minus className="size-3" aria-hidden />
         sin datos del período anterior
       </p>
@@ -87,18 +123,25 @@ function VariationBadge({
   const Icono = sinCambio ? Minus : positivo ? ArrowUpRight : ArrowDownRight;
 
   return (
-    <p
-      className={cn(
-        "mt-2 flex items-center gap-1 font-mono text-[11px]",
-        sinCambio
-          ? "text-ex-text-muted"
-          : positivo
-            ? "text-ex-success"
-            : "text-ex-danger"
-      )}
-    >
-      <Icono className="size-3" aria-hidden />
-      {sinCambio ? "igual que" : `${Math.abs(redondeado)}% vs`} el período anterior
+    <p className="mt-2.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px]">
+      <span
+        className={cn(
+          "inline-flex items-center gap-0.5 rounded-pill px-1.5 py-0.5 font-semibold tabular-nums",
+          sinCambio
+            ? highlight
+              ? "bg-white/10 text-white/70"
+              : "bg-ex-elevated text-ex-text-muted"
+            : positivo
+              ? "bg-ex-success/12 text-ex-success"
+              : "bg-ex-danger/12 text-ex-danger"
+        )}
+      >
+        <Icono className="size-3" aria-hidden />
+        {sinCambio ? "igual" : `${Math.abs(redondeado)}%`}
+      </span>
+      <span className={highlight ? "text-white/50" : "text-ex-text-muted"}>
+        vs. período anterior
+      </span>
     </p>
   );
 }

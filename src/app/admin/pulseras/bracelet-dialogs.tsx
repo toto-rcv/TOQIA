@@ -105,11 +105,20 @@ export function NewBraceletDialog({
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="b-label">
-                Etiqueta <span className="text-ex-text-disabled">(opcional)</span>
-              </Label>
-              <Input id="b-label" name="label" placeholder="Mesa 4, Barra…" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="b-type">Tipo</Label>
+                <Select id="b-type" name="deviceType" defaultValue="pulsera">
+                  <option value="pulsera">Pulsera</option>
+                  <option value="placa">Placa</option>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="b-label">
+                  Etiqueta <span className="text-ex-text-disabled">(opcional)</span>
+                </Label>
+                <Input id="b-label" name="label" placeholder="Mesa 4, Barra…" />
+              </div>
             </div>
 
             <OverrideField id="b-override" />
@@ -227,6 +236,14 @@ export function BulkCreateDialog({
                     {local.accountName} · {local.name}
                   </option>
                 ))}
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="bulk-type">Tipo de dispositivo</Label>
+              <Select id="bulk-type" name="deviceType" defaultValue="pulsera">
+                <option value="pulsera">Pulseras</option>
+                <option value="placa">Placas</option>
               </Select>
             </div>
 
@@ -448,6 +465,18 @@ function EditBraceletDialog({
                   placeholder="Mesa 4, Barra…"
                 />
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor={`e-type-${bracelet.id}`}>Tipo de dispositivo</Label>
+              <Select
+                id={`e-type-${bracelet.id}`}
+                name="deviceType"
+                defaultValue={bracelet.deviceType}
+              >
+                <option value="pulsera">Pulsera</option>
+                <option value="placa">Placa</option>
+              </Select>
             </div>
 
             <OverrideField

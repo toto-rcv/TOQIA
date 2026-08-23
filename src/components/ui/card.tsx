@@ -3,7 +3,8 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Superficie base del panel. Un rectángulo con borde de 1px, sin sombra.
+ * Superficie base del panel: blanca, esquinas redondeadas y una sombra muy
+ * difusa. En un lienzo claro la sombra separa mejor que un borde marcado.
  * No todo es una tarjeta: se usa para agrupar bloques con sentido propio.
  */
 export function Card({
@@ -13,7 +14,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-card border border-ex-border bg-ex-surface",
+        "rounded-card border border-ex-border bg-ex-surface shadow-card",
         className
       )}
       {...props}
@@ -28,7 +29,7 @@ export function CardHeader({
   return (
     <div
       className={cn(
-        "flex items-center justify-between gap-4 border-b border-ex-border-subtle px-5 py-3.5",
+        "flex flex-wrap items-center justify-between gap-3 border-b border-ex-border-subtle px-4 py-4 sm:px-5",
         className
       )}
       {...props}
@@ -43,7 +44,7 @@ export function CardTitle({
   return (
     <h2
       className={cn(
-        "text-sm font-medium tracking-tight text-ex-text",
+        "text-[15px] font-semibold tracking-tight text-ex-text",
         className
       )}
       {...props}
@@ -62,5 +63,5 @@ export function CardBody({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("px-5 py-4", className)} {...props} />;
+  return <div className={cn("px-4 py-4 sm:px-5", className)} {...props} />;
 }

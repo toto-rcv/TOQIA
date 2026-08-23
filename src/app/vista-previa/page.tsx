@@ -1,7 +1,12 @@
 import { notFound } from "next/navigation";
 
 import { LandingView } from "@/components/landing/landing-view";
-import { getLocationById, getLocationForAccount } from "@/db/queries/locations";
+import {
+  getBraceletCodesOfLocation,
+  getLocationById,
+  getLocationForAccount,
+} from "@/db/queries/locations";
+import { hasVisibleMenu } from "@/db/queries/menu";
 import { requireUser } from "@/lib/session";
 
 export const metadata = {
@@ -40,12 +45,25 @@ export default async function VistaPreviaPage({
 
   if (!location) notFound();
 
+  // Para que el botón "Ver menú" se comporte igual que en la página real:
+  // hace falta saber si hay platos cargados y con qué pulsera armar el link
+  // a la carta. Cualquiera de las del local sirve.
+  const [tieneCarta, codigos] = await Promise.all([
+    hasVisibleMenu(location.id),
+    getBraceletCodesOfLocation(location.id),
+  ]);
+
   return (
     <>
       <div className="bg-ex-blue-deep px-4 py-2 text-center text-xs text-white">
         Vista previa · los clics de esta pantalla no se registran
       </div>
-      <LandingView landing={location} token={null} />
+      <LandingView
+        landing={location}
+        token={null}
+        code={codigos[0]}
+        hasMenu={tieneCarta}
+      />
     </>
   );
 }

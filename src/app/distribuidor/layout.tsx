@@ -1,9 +1,11 @@
-import { PanelShell } from "@/components/layout/panel-shell";
+import { PanelShell, type NavItem } from "@/components/layout/panel-shell";
 import { requireDistributor } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-const ITEMS = [{ href: "/distribuidor", label: "Mis cuentas", exact: true }];
+const ITEMS: NavItem[] = [
+  { href: "/distribuidor", label: "Mis cuentas", exact: true, icon: "cuentas" },
+];
 
 /**
  * Panel del distribuidor.

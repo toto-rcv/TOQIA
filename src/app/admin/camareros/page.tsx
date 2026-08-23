@@ -2,9 +2,11 @@ import { AccountFilter } from "@/components/admin/account-filter";
 import { PageHeader } from "@/components/admin/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Pagination } from "@/components/ui/pagination";
 import { EmptyState, Table, Td, Th, Thead, Tr } from "@/components/ui/table";
 import { listAccountOptions } from "@/db/queries/accounts";
 import { listWaiters } from "@/db/queries/waiters";
+import { parsePageParams } from "@/lib/pagination";
 import { requireAdmin } from "@/lib/session";
 import { formatDate, formatNumber } from "@/lib/utils";
 
@@ -22,16 +24,18 @@ export const dynamic = "force-dynamic";
 export default async function AdminWaitersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cuenta?: string }>;
+  searchParams: Promise<{ cuenta?: string; page?: string; limit?: string }>;
 }) {
   await requireAdmin();
-  const { cuenta } = await searchParams;
+  const params = await searchParams;
+  const { cuenta } = params;
+  const pagina = parsePageParams(params);
 
   const cuentaId = cuenta ? Number.parseInt(cuenta, 10) : NaN;
   const filtro = Number.isFinite(cuentaId) ? cuentaId : undefined;
 
   const [camareros, cuentas] = await Promise.all([
-    listWaiters({ accountId: filtro }),
+    listWaiters({ accountId: filtro }, pagina),
     listAccountOptions(),
   ]);
 
@@ -44,7 +48,7 @@ export default async function AdminWaitersPage({
         <AccountFilter accounts={cuentas} />
       </PageHeader>
 
-      {camareros.length === 0 ? (
+      {camareros.total === 0 ? (
         <Card>
           <EmptyState>
             Todavía ningún restaurante cargó camareros.
@@ -63,7 +67,7 @@ export default async function AdminWaitersPage({
               </tr>
             </Thead>
             <tbody>
-              {camareros.map((camarero) => (
+              {camareros.data.map((camarero) => (
                 <Tr
                   key={camarero.id}
                   className={camarero.active ? undefined : "opacity-60"}
@@ -83,6 +87,13 @@ export default async function AdminWaitersPage({
               ))}
             </tbody>
           </Table>
+
+          <Pagination
+            paged={camareros}
+            basePath="/admin/camareros"
+            searchParams={params}
+            itemLabel="camareros"
+          />
         </Card>
       )}
     </>

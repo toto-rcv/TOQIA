@@ -29,7 +29,16 @@ Sin servicios externos pagos. Todo corre en un VPS propio.
 
 ## Puesta en marcha local
 
-Necesitás **Node 20 o superior** y **Docker** (para MySQL).
+Necesitás **Node 20 o superior** y un **MySQL 8** corriendo en tu máquina.
+
+> **Atajo en Windows:** si ya tenés MySQL instalado, corré `setup.ps1` y saltá
+> directo a "Arrancar". El script crea la base y el usuario, deja el servidor en
+> UTC, genera el `.env` con secretos nuevos, instala dependencias, crea las
+> tablas y carga los datos de ejemplo:
+>
+> ```powershell
+> powershell -ExecutionPolicy Bypass -File .\setup.ps1
+> ```
 
 ### 1. Instalar dependencias
 
@@ -43,31 +52,44 @@ npm install
 cp .env.example .env
 ```
 
-Abrí el `.env` y generá los dos secretos:
+Generá los dos secretos con Node, que ya lo tenés instalado:
 
 ```bash
 # BETTER_AUTH_SECRET
-openssl rand -base64 32
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 # IP_HASH_SALT
-openssl rand -hex 32
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Los demás valores por defecto ya coinciden con el `docker-compose.yml`.
+### 3. Crear la base y el usuario
 
-### 3. Levantar MySQL
+Desde el cliente de MySQL:
 
-```bash
-docker compose up -d
+```sql
+CREATE DATABASE toqia
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'toqia'@'localhost' IDENTIFIED BY 'toqia';
+CREATE USER 'toqia'@'127.0.0.1' IDENTIFIED BY 'toqia';
+GRANT ALL PRIVILEGES ON toqia.* TO 'toqia'@'localhost';
+GRANT ALL PRIVILEGES ON toqia.* TO 'toqia'@'127.0.0.1';
+FLUSH PRIVILEGES;
+
+SET PERSIST time_zone = '+00:00';
 ```
 
-La primera vez tarda unos segundos en inicializar. Podés verificar que está listo con:
+Se crean los dos usuarios porque MySQL trata `localhost` y `127.0.0.1` como
+hosts distintos según cómo resuelva la conexión.
 
-```bash
-docker compose ps
-```
+`SET PERSIST` es importante: la app guarda todo en UTC y varias columnas usan
+`CURRENT_TIMESTAMP` por defecto, así que con el servidor en hora local esas
+fechas quedan corridas. A diferencia de `SET GLOBAL`, `PERSIST` sobrevive a los
+reinicios del servicio.
 
-La columna de estado tiene que decir `healthy`.
+Ajustá `DATABASE_URL` en el `.env` con el usuario, la contraseña y la base que
+hayas creado.
 
 ### 4. Crear las tablas
 
@@ -78,6 +100,12 @@ npm run db:push
 Esto aplica el esquema de `src/db/schema.ts` directamente contra la base. Para un
 flujo con archivos de migración versionados, usá `npm run db:generate` seguido de
 `npm run db:migrate`.
+
+> **`db:push` es para una base vacía.** Si la base ya tiene datos y el cambio de
+> esquema incluye una conversión de tipo de columna, drizzle-kit intenta un
+> `TRUNCATE` preventivo, falla por las foreign keys y deja la migración a medias.
+> Para subir una base con datos de la v2 a la etapa A, el comando es
+> `npm run migrate` — ver [MIGRACIONES.md](./MIGRACIONES.md).
 
 ### 5. Cargar datos de ejemplo
 
@@ -103,6 +131,16 @@ npm run dev
 
 - Panel: http://localhost:3000/admin
 - Prueba de redirección: http://localhost:3000/r/B001
+
+`npm run dev` usa Turbopack, que en Windows compila varias veces más rápido que
+webpack. Si alguna vez sospechás del compilador, `npm run dev:webpack` arranca lo
+mismo con el motor viejo.
+
+> **En Windows, agregá la carpeta del proyecto a las exclusiones de Microsoft
+> Defender** (Seguridad de Windows → Protección antivirus → Exclusiones →
+> Agregar carpeta). Defender escanea cada uno de los miles de archivos de
+> `node_modules` en cada compilación, y es la causa más común de que el
+> desarrollo local vaya lento.
 
 ---
 
@@ -209,8 +247,9 @@ Reiniciá `npm run dev` y grabá la pulsera con `https://algo-random.trycloudfla
 
 | Comando | Qué hace |
 |---|---|
-| `npm run dev` | Servidor de desarrollo en localhost |
+| `npm run dev` | Servidor de desarrollo en localhost (Turbopack) |
 | `npm run dev:lan` | Servidor de desarrollo accesible desde la red local |
+| `npm run dev:webpack` | Igual que `dev` pero con webpack, por si Turbopack falla |
 | `npm run build` | Build de producción (modo standalone) |
 | `npm run start` | Arranca el build de producción |
 | `npm run typecheck` | Verifica tipos sin compilar |
@@ -219,6 +258,25 @@ Reiniciá `npm run dev` y grabá la pulsera con `https://algo-random.trycloudfla
 | `npm run db:migrate` | Aplica migraciones pendientes |
 | `npm run db:studio` | Abre Drizzle Studio para explorar la base |
 | `npm run db:seed` | Carga los datos de ejemplo |
+| `npm run migrate` | Pone al día una base que ya tiene datos |
+| `npm run test:media` | Prueba el subsistema de archivos contra la base |
+
+---
+
+## Los tres ambientes visuales
+
+| Prefijo | Dónde | Qué es |
+|---|---|---|
+| `ex-*` | `/admin`, `/panel`, `/distribuidor` | Panel claro tipo SaaS: lienzo lavanda, tarjetas blancas redondeadas, violeta `#6D5BF6` como único acento |
+| `tq-*` | `/r/[code]` y `/r/[code]/carta` | La portada negra con dorado, y la carta en arena cálida con tipografía redonda |
+| `mn-*` | `/pulsera/*` | Las pantallas de estado (pulsera no reconocida, inactiva) |
+
+Los prefijos no son decorativos: evitan que un token del panel se cuele en la
+página que ve el cliente. Están definidos en `tailwind.config.ts`.
+
+Los dos colores de los gráficos (`#6D5BF6` escaneos, `#D97706` reseñas) pasaron
+el validador de paleta contra la superficie blanca: separación para daltonismo
+ΔE 33.4 y contraste ≥3:1.
 
 ---
 

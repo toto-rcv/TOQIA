@@ -2,9 +2,10 @@ import Link from "next/link";
 import { Eye } from "lucide-react";
 
 import { PageHeader } from "@/components/admin/page-header";
-import { Card, CardBody } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/table";
 import { listLocations } from "@/db/queries/locations";
+import { hasVisibleMenu } from "@/db/queries/menu";
 import { requireRestaurantUser } from "@/lib/session";
 import { LandingForm } from "./landing-form";
 import { LocationPicker } from "./location-picker";
@@ -61,6 +62,9 @@ export default async function ConfiguracionPage({
     );
   }
 
+  // Para avisarle si eligió la carta de Toqia pero todavía no cargó platos.
+  const tieneCartaToqia = await hasVisibleMenu(location.id);
+
   return (
     <>
       <PageHeader
@@ -84,13 +88,14 @@ export default async function ConfiguracionPage({
         />
       ) : null}
 
-      <Card>
-        <CardBody className="py-6">
-          {/* key fuerza a React a rearmar el formulario al cambiar de local:
-              si no, los defaultValue del local anterior quedarían pegados. */}
-          <LandingForm key={location.id} location={location} />
-        </CardBody>
-      </Card>
+      {/* Sin tarjeta contenedora: cada sección del formulario ya es una.
+          key fuerza a React a rearmar el formulario al cambiar de local: si no,
+          los defaultValue del local anterior quedarían pegados. */}
+      <LandingForm
+        key={location.id}
+        location={location}
+        tieneCartaToqia={tieneCartaToqia}
+      />
     </>
   );
 }

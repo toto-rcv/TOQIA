@@ -3,6 +3,17 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Tipografía de los títulos de la carta: pesada y condensada, claramente
+       distinta de la redondeada del cuerpo.
+       Anton se sirve desde nuestro dominio (paquete @fontsource, importado en
+       layout.tsx). Se probó primero con una pila del sistema — Arial Black,
+       Impact — pero iOS no trae ninguna de las dos y en un iPhone, que es
+       justo el dispositivo desde el que se abre esta página, los títulos
+       caían en la misma tipografía del cuerpo y no se notaba la diferencia. */
+    --tq-display: "Anton", "Arial Black", "Segoe UI Black", Impact, sans-serif;
+  }
+
   * {
     @apply border-ex-border;
   }
@@ -25,64 +36,61 @@
 }
 
 @layer components {
-  /* ── executive-dashboard-ui ────────────────────────────────────────────────
-     Superficie base del panel. Una tarjeta es un rectángulo con un borde de
-     1px casi invisible, sin sombra: la separación la da el cambio de fondo. */
+  /* ── Panel interno ─────────────────────────────────────────────────────────
+     SaaS claro. Una tarjeta es blanca, con esquinas redondeadas y una sombra
+     muy difusa: en un lienzo claro la sombra separa mejor que un borde gris,
+     que a este contraste se lee como suciedad. */
   .ex-card {
-    @apply rounded-card border border-ex-border bg-ex-surface;
+    @apply rounded-card border border-ex-border bg-ex-surface shadow-card;
   }
 
   .ex-card-flush {
     @apply border-b border-ex-border-subtle last:border-b-0;
   }
 
-  /* Etiqueta de métrica: chica, apagada, SIEMPRE debajo del número. */
+  /* Etiqueta de métrica: chica, apagada, SIEMPRE arriba del número. */
   .ex-label {
     @apply text-label font-medium text-ex-text-muted;
   }
 
   .ex-metric {
-    @apply font-mono text-metric font-medium tabular-nums text-ex-text;
+    @apply text-metric font-semibold tabular-nums tracking-tight text-ex-text;
   }
 
   /* ── Select ───────────────────────────────────────────────────────────────
      El desplegable nativo no hereda colores en Windows: sin estilar los
-     <option> el menú abre en blanco sobre blanco y no se lee nada. La flecha
-     va acá y no en una clase arbitraria de Tailwind porque el SVG tiene
-     espacios en el viewBox y eso rompe el parseo de la clase. */
+     <option> el menú puede abrir con los colores del sistema y no leerse. La
+     flecha va acá y no en una clase arbitraria de Tailwind porque el SVG
+     tiene espacios en el viewBox y eso rompe el parseo de la clase. */
   .ex-select {
-    @apply h-9 w-full appearance-none rounded-control border border-ex-border
-           bg-ex-black py-0 pl-3 pr-8 text-sm text-ex-text
-           transition-colors duration-150
-           focus:border-ex-blue focus:outline-none focus:ring-1 focus:ring-ex-blue/40
-           disabled:cursor-not-allowed disabled:opacity-40;
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23647184' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    @apply h-10 w-full appearance-none rounded-control border border-ex-border
+           bg-ex-surface py-0 pl-3 pr-9 text-sm text-ex-text
+           transition-[border-color,box-shadow] duration-150
+           focus:border-ex-blue focus:outline-none focus:ring-4 focus:ring-ex-blue/20
+           disabled:cursor-not-allowed disabled:opacity-45;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23787E9C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 0.55rem center;
-    background-size: 14px 14px;
+    background-position: right 0.65rem center;
+    background-size: 15px 15px;
     cursor: pointer;
   }
 
   .ex-select:hover {
-    @apply border-ex-blue/40;
+    @apply border-ex-blue/45;
   }
 
-  /* Sin esto, el menú que abre el sistema operativo sale con los colores por
-     defecto: fondo blanco y, como el <select> define texto claro, letras
-     blancas sobre blanco. */
   .ex-select option,
   .ex-select optgroup {
-    background-color: #101722;
-    color: #f3f7fc;
+    background-color: #ffffff;
+    color: #12162e;
   }
 
   .ex-select option:disabled {
-    color: #647184;
+    color: #a9aec5;
   }
 
-  /* La barra de navegación puede desbordar a lo ancho en pantallas chicas,
-     pero nunca a lo alto. Se le saca la barra de scroll para que el desborde
-     horizontal no dibuje nada encima de los enlaces. */
+  /* Rieles que pueden desbordar a lo ancho pero nunca a lo alto. Se les saca
+     la barra de scroll para que el desborde no dibuje nada encima. */
   .ex-nav-scroll {
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -92,26 +100,28 @@
   }
 
   .ex-input {
-    @apply w-full rounded-control border border-ex-border bg-ex-black px-3 py-2
+    @apply w-full rounded-control border border-ex-border bg-ex-surface px-3 py-2.5
            text-sm text-ex-text placeholder:text-ex-text-disabled
-           focus:border-ex-blue focus:outline-none focus:ring-1 focus:ring-ex-blue/40
+           transition-[border-color,box-shadow] duration-150
+           focus:border-ex-blue focus:outline-none focus:ring-4 focus:ring-ex-blue/20
            disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .ex-btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-control px-3 py-2
-           text-sm font-medium transition-[background-color,border-color,transform]
+    @apply inline-flex items-center justify-center gap-2 rounded-control px-3.5 py-2.5
+           text-sm font-medium transition-[background-color,border-color,transform,box-shadow]
            duration-150 active:scale-[0.98]
            disabled:pointer-events-none disabled:opacity-50;
   }
 
   .ex-btn-primary {
-    @apply ex-btn bg-ex-blue-deep text-white hover:bg-ex-blue;
+    @apply ex-btn bg-ex-blue text-white shadow-[0_6px_16px_-8px_rgba(109,91,246,0.9)]
+           hover:bg-ex-blue-deep;
   }
 
   .ex-btn-ghost {
-    @apply ex-btn border border-ex-border bg-transparent text-ex-text-secondary
-           hover:border-ex-blue/40 hover:text-ex-text;
+    @apply ex-btn border border-ex-border bg-ex-surface text-ex-text-secondary
+           hover:border-ex-blue/45 hover:text-ex-text;
   }
 
   .ex-btn-danger {
@@ -119,55 +129,115 @@
            hover:bg-ex-danger/10;
   }
 
-  /* ── Landing pública (negro + dorado neón) ────────────────────────────────
-     Es la única pantalla que ve el cliente del restaurante. Pensada para
-     celular: un botón por fila, área de toque grande, nada que requiera
-     precisión con el dedo. */
+  /* Píldora de sección: la usa la navegación lateral y las pestañas. */
+  .ex-pill {
+    @apply inline-flex items-center gap-2.5 rounded-control px-3 py-2.5 text-sm
+           font-medium transition-colors duration-150;
+  }
+
+  /* ── Landing pública del restaurante ──────────────────────────────────────
+     Fondo negro, tarjeta crema y dorado como acento. Es la única pantalla que
+     ve el cliente, y la ve en el celular: una columna, un objetivo por
+     bloque, áreas de toque grandes. */
   .tq-page {
     @apply min-h-dvh bg-tq-black text-tq-text;
-    /* Halo dorado muy tenue detrás del logo, para que el negro no sea plano. */
-    background-image: radial-gradient(
-      120% 60% at 50% 0%,
-      rgba(212, 175, 55, 0.13) 0%,
-      rgba(212, 175, 55, 0.04) 38%,
-      transparent 70%
-    );
   }
 
-  /* Botón principal: el de dejar la reseña. Es el único con el borde dorado
-     encendido y glow; todo lo demás queda un escalón por debajo. */
-  .tq-btn-primary {
+  /* Botón principal: dejar la reseña. Verde profundo, ancho completo, el
+     único elemento con ese color en toda la página. */
+  .tq-btn-review {
     @apply flex min-h-[60px] w-full items-center justify-center gap-3 rounded-xl
-           border border-tq-gold bg-tq-surface px-5 py-4
-           text-base font-semibold tracking-wide text-tq-gold-bright
-           transition-transform duration-150 active:scale-[0.98];
-    box-shadow:
-      0 0 0 1px rgba(212, 175, 55, 0.25),
-      0 0 18px rgba(212, 175, 55, 0.28),
-      inset 0 0 14px rgba(212, 175, 55, 0.09);
+           bg-tq-green px-5 py-4 text-[15px] font-semibold uppercase
+           tracking-[0.06em] text-white
+           transition-[transform,background-color] duration-150
+           hover:bg-tq-green-dark active:scale-[0.985];
   }
 
-  /* Botones secundarios: mismo borde dorado pero apagado, sin glow. */
-  .tq-btn {
-    @apply flex min-h-[56px] w-full items-center gap-3 rounded-xl
-           border border-tq-gold/40 bg-tq-surface px-5 py-3.5
-           text-[15px] font-medium text-tq-text
-           transition-[transform,border-color,background-color] duration-150
-           active:scale-[0.98] hover:border-tq-gold/70 hover:bg-tq-elevated;
+  /* Accesos secundarios: menú, cómo llegar, llamar, etc. Cuadrados, en grilla
+     de tres, sobre la tarjeta crema. */
+  .tq-tile {
+    @apply flex min-h-[104px] flex-col items-center justify-center gap-2
+           rounded-xl border border-tq-cream-border bg-tq-cream-alt px-2 py-4
+           text-center transition-[transform,border-color] duration-150
+           hover:border-tq-gold active:scale-[0.98];
   }
 
-  .tq-icon {
-    @apply size-5 shrink-0 text-tq-gold;
+  /* La caja de dos líneas es a propósito: "Cómo llegar" parte en dos y los
+     demás no, y sin la altura fija los subtítulos de una misma fila quedaban
+     cada uno a una altura distinta. Reservado el lugar, todos alinean. */
+  .tq-tile-title {
+    @apply flex min-h-[2.5em] items-center text-[12px] font-semibold uppercase
+           leading-tight tracking-[0.04em] text-tq-ink;
+  }
+
+  .tq-tile-sub {
+    @apply text-[11px] leading-tight text-tq-muted;
+  }
+
+  /* Filete dorado con el texto al medio ("Descubre más"). */
+  .tq-rule {
+    @apply flex items-center gap-3 text-[13px] font-medium text-tq-ink;
+  }
+  .tq-rule::before,
+  .tq-rule::after {
+    content: "";
+    @apply h-px flex-1;
+    background: linear-gradient(90deg, transparent, #c9a961, transparent);
   }
 
   .tq-divider {
     @apply h-px w-full;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(212, 175, 55, 0.4),
-      transparent
-    );
+    background: linear-gradient(90deg, transparent, rgba(201, 169, 97, 0.45), transparent);
+  }
+
+  /* ── La carta del cliente ─────────────────────────────────────────────────
+     Carta de pizarra: fondo negro grisáceo, títulos y precios en naranja, y
+     ninguna caja. Cada plato es una fila separada de la siguiente por un
+     filete fino, con el precio alineado a la derecha — el mismo recurso que
+     usa una carta impresa para que el ojo salte del nombre al precio.
+     La jerarquía es: categoría → nombre → precio → descripción. */
+  .tq-menu-page {
+    @apply min-h-dvh bg-tq-night text-tq-night-ink;
+  }
+
+  /* Título de categoría: suelto sobre el fondo, sin caja. Va en el naranja
+     claro del degradado — un escalón más brillante que el de los platos, para
+     que la jerarquía se lea también en blanco y negro, no solo por tamaño. */
+  .tq-cat-title {
+    @apply text-[22px] uppercase leading-none tracking-[0.06em] text-tq-flame-light
+           lg:text-[26px];
+    font-family: var(--tq-display);
+  }
+
+  /* Fila de plato: sin fondo ni bordes redondeados, apenas un filete abajo que
+     hace de renglón. `items-baseline` alinea el precio con la primera línea del
+     nombre aunque el plato tenga descripción larga. */
+  .tq-dish {
+    @apply flex items-baseline gap-4 border-b border-tq-night-line py-3;
+  }
+
+  /* El precio, a la derecha y en naranja. `tabular-nums` para que las columnas
+     de cifras queden a plomo entre sí y no bailen renglón a renglón. */
+  .tq-price {
+    @apply shrink-0 text-[17px] font-bold tabular-nums text-tq-flame lg:text-[18px];
+  }
+
+  /* Nombre en naranja y mayúsculas, como en la referencia. El interletrado
+     abierto es lo que evita que una mayúscula sostenida se lea apelmazada. */
+  .tq-dish-name {
+    @apply text-[14.5px] font-bold uppercase leading-tight tracking-[0.03em] text-tq-flame;
+  }
+
+  .tq-dish-desc {
+    @apply mt-1 text-[12.5px] font-medium leading-snug text-tq-night-soft;
+  }
+
+  /* Tipografía de los títulos: pesada y condensada (Anton), claramente
+     distinta de la redondeada del cuerpo. Viene como paquete de npm y se
+     sirve desde nuestro propio dominio, así que la página no le pide nada a
+     Google — ver `src/app/layout.tsx`. */
+  .tq-display {
+    font-family: var(--tq-display);
   }
 
   /* ── minimalist-ui ─────────────────────────────────────────────────────────
@@ -205,18 +275,31 @@
   }
 }
 
-/* Scrollbar discreta dentro del panel oscuro. */
+/* Scrollbar discreta dentro del panel. */
 .ex-scope ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 .ex-scope ::-webkit-scrollbar-track {
-  background: #0b1018;
+  background: transparent;
 }
 .ex-scope ::-webkit-scrollbar-thumb {
-  background: #1d2734;
-  border-radius: 6px;
+  background: #d7dbec;
+  border-radius: 999px;
 }
 .ex-scope ::-webkit-scrollbar-thumb:hover {
-  background: #2a3646;
+  background: #c2c7e0;
+}
+
+/* ── La carta pública ────────────────────────────────────────────────────────
+   Tipografía redonda y cercana, nada de serif editorial: es una carta de
+   restaurante que se lee en el celular, no una invitación de casamiento.
+   Nunito Sans / Quicksand no se pueden pedir a Google Fonts (queremos cero
+   dependencias de red), así que se usa la pila del sistema, que en iOS y
+   Android ya es humanista y redondeada. */
+.tq-menu {
+  font-family:
+    "Nunito Sans", "Avenir Next", "Segoe UI Variable Text", "Segoe UI",
+    system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  letter-spacing: -0.005em;
 }

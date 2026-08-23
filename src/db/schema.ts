@@ -2,12 +2,14 @@ import { relations, sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
+  customType,
   datetime,
   decimal,
   index,
   int,
   mysqlEnum,
   mysqlTable,
+  smallint,
   text,
   timestamp,
   varchar,
@@ -26,6 +28,20 @@ import {
    los tres ejes por los que se filtra en los reportes y así se evitan joins
    en las consultas más frecuentes.
    ─────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * De dónde sale la carta que ve el cliente.
+ *   toqia → la que el local edita en /panel/carta, se actualiza sola
+ *   pdf   → un PDF que el local subió y mantiene por su cuenta
+ * Es una elección explícita del restaurante: antes se adivinaba (si había
+ * platos ganaba la de Toqia) y nadie entendía por qué se mostraba una u otra.
+ */
+export const menuModes = ["toqia", "pdf"] as const;
+export type MenuMode = (typeof menuModes)[number];
+
+/** Formatos físicos que puede tener un dispositivo NFC. */
+export const deviceTypes = ["pulsera", "placa"] as const;
+export type DeviceType = (typeof deviceTypes)[number];
 
 export const subscriptionStatuses = [
   "trial",
@@ -79,25 +95,50 @@ export const locations = mysqlTable(
     /* ── Contenido de la landing pública ──────────────────────────────────
        Todo esto lo edita el propio restaurante desde su panel. Los campos
        vacíos simplemente no muestran su botón: la página se arma con lo que
-       haya cargado. */
+       haya cargado.
+
+       Las URLs son TEXT y no varchar: con utf8mb4 cada varchar(2048) reserva
+       8 KB dentro de la fila, y nueve columnas de URL superan el límite de
+       65535 bytes por fila de InnoDB. TEXT se guarda aparte y en la fila deja
+       solo un puntero. */
 
     // Si está vacío se usa `name`. Sirve para cuando el nombre comercial es
     // distinto del nombre interno.
     displayName: varchar("display_name", { length: 255 }),
-    logoUrl: varchar("logo_url", { length: 2048 }),
+    logoUrl: text("logo_url"),
     tagline: varchar("tagline", { length: 255 }),
 
     // El destino principal. Sin esto la landing no muestra el botón de reseña.
-    googleReviewUrl: varchar("google_review_url", { length: 2048 }),
+    googleReviewUrl: text("google_review_url"),
 
-    instagramUrl: varchar("instagram_url", { length: 2048 }),
+    instagramUrl: text("instagram_url"),
     // Solo dígitos con código de país, sin + ni espacios: 5491133334444
     whatsappPhone: varchar("whatsapp_phone", { length: 32 }),
-    websiteUrl: varchar("website_url", { length: 2048 }),
-    menuUrl: varchar("menu_url", { length: 2048 }),
+    websiteUrl: text("website_url"),
+    menuUrl: text("menu_url"),
     address: varchar("address", { length: 500 }),
     // Si está vacío pero hay dirección, la landing arma una búsqueda de Maps.
-    mapsUrl: varchar("maps_url", { length: 2048 }),
+    mapsUrl: text("maps_url"),
+
+    // Foto de portada, detrás del logo. Sin esto la cabecera queda en negro.
+    coverImageUrl: text("cover_image_url"),
+    // Teléfono para el botón de llamar. Puede ser distinto del de WhatsApp.
+    phone: varchar("phone", { length: 32 }),
+    // Reservas: link a la plataforma que use el local.
+    reservationUrl: text("reservation_url"),
+
+    // Textos de la página. Tienen valores por defecto en el render, así que
+    // un local recién dado de alta ya muestra algo coherente.
+    welcomeKicker: varchar("welcome_kicker", { length: 120 }),
+    welcomeTitle: varchar("welcome_title", { length: 200 }),
+    closingMessage: varchar("closing_message", { length: 200 }),
+    closingImageUrl: text("closing_image_url"),
+    // Imagen que encabeza la carta, arriba de las categorías.
+    menuHeaderImageUrl: text("menu_header_image_url"),
+    // Cuál de las dos cartas se muestra. Ver `menuModes`.
+    menuMode: mysqlEnum("menu_mode", menuModes).notNull().default("toqia"),
+    // Moneda con la que se muestran los precios de la carta.
+    currency: varchar("currency", { length: 8 }).notNull().default("€"),
 
     createdAt: datetime("created_at")
       .notNull()
@@ -108,6 +149,64 @@ export const locations = mysqlTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [index("locations_account_idx").on(table.accountId)]
+);
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Archivos subidos
+
+   Logos, portadas, fotos de platos y cartas en PDF viven acá, dentro de la
+   base, y se sirven por `/api/media/<id>/<token>`.
+
+   Por qué en la base y no en el disco del servidor: en Coolify el contenedor
+   se recrea en cada deploy y el disco se pierde con él. Guardarlos acá los
+   hace sobrevivir a los deploys, entrar en el backup de la base junto con el
+   resto de los datos, y funcionar igual en local que en producción sin montar
+   volúmenes ni contratar un bucket.
+
+   El `token` de la URL es el checksum del contenido: cuando el local cambia
+   la foto cambia la URL, así que el navegador nunca muestra la anterior aunque
+   la tenga cacheada para siempre.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/** MySQL: hasta 16 MB por archivo. `blob` a secas se queda en 64 KB. */
+const mediumblob = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType: () => "mediumblob",
+});
+
+export const mediaKinds = [
+  "logo",
+  "cover",
+  "closing",
+  "menu_pdf",
+  "menu_header",
+  "dish",
+] as const;
+export type MediaKind = (typeof mediaKinds)[number];
+
+export const mediaFiles = mysqlTable(
+  "media_files",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    // Al borrar un local se van sus archivos. Es la única forma de que no
+    // queden megabytes huérfanos en la base para siempre.
+    locationId: int("location_id")
+      .notNull()
+      .references(() => locations.id, { onDelete: "cascade" }),
+
+    kind: mysqlEnum("kind", mediaKinds).notNull(),
+    filename: varchar("filename", { length: 255 }).notNull(),
+    mimeType: varchar("mime_type", { length: 100 }).notNull(),
+    sizeBytes: int("size_bytes").notNull(),
+    // SHA-256 del contenido. Va en la URL para invalidar el caché del navegador.
+    checksum: varchar("checksum", { length: 64 }).notNull(),
+
+    data: mediumblob("data").notNull(),
+
+    createdAt: datetime("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [index("media_files_location_idx").on(table.locationId)]
 );
 
 export const waiters = mysqlTable(
@@ -126,6 +225,76 @@ export const waiters = mysqlTable(
   (table) => [index("waiters_location_idx").on(table.locationId)]
 );
 
+/* ───────────────────────────────────────────────────────────────────────────
+   Carta / menú
+
+   Cada local arma su carta con categorías y platos. Es contenido que edita el
+   propio restaurante y que ve el cliente al escanear, así que vive acá y no en
+   un PDF externo: el local lo cambia desde su panel y se actualiza al toque.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+export const menuCategories = mysqlTable(
+  "menu_categories",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    locationId: int("location_id")
+      .notNull()
+      .references(() => locations.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 120 }).notNull(),
+    description: varchar("description", { length: 255 }),
+    // Id del ícono elegido en el panel (ver src/lib/menu-icons.ts). Se guarda
+    // el id y no el SVG: si mañana cambia el dibujo, cambia en toda la app.
+    icon: varchar("icon", { length: 32 }),
+    // Orden en que se muestran. Lo maneja el panel con los botones de subir
+    // y bajar; no se expone el número al usuario.
+    position: smallint("position").notNull().default(0),
+    active: boolean("active").notNull().default(true),
+    createdAt: datetime("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [index("menu_categories_location_idx").on(table.locationId)]
+);
+
+export const menuItems = mysqlTable(
+  "menu_items",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    categoryId: int("category_id")
+      .notNull()
+      .references(() => menuCategories.id, { onDelete: "cascade" }),
+    // Desnormalizado: la carta pública se arma filtrando por local, y así no
+    // hace falta pasar por categorías para saber de quién es cada plato.
+    locationId: int("location_id")
+      .notNull()
+      .references(() => locations.id, { onDelete: "cascade" }),
+
+    name: varchar("name", { length: 160 }).notNull(),
+    description: varchar("description", { length: 500 }),
+    // decimal y no float: con float, 19.90 se guarda como 19.899999618530273.
+    price: decimal("price", { precision: 10, scale: 2 }),
+    imageUrl: text("image_url"),
+
+    position: smallint("position").notNull().default(0),
+    // Sin stock hoy: se muestra tachado en vez de desaparecer, así el cliente
+    // sabe que existe y puede preguntarlo mañana.
+    available: boolean("available").notNull().default(true),
+    active: boolean("active").notNull().default(true),
+
+    createdAt: datetime("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: datetime("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`)
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index("menu_items_category_idx").on(table.categoryId),
+    index("menu_items_location_idx").on(table.locationId),
+  ]
+);
+
 export const bracelets = mysqlTable(
   "bracelets",
   {
@@ -142,6 +311,10 @@ export const bracelets = mysqlTable(
     waiterId: int("waiter_id").references(() => waiters.id, {
       onDelete: "set null",
     }),
+
+    // Formato físico del dispositivo. Cambia solo cómo se lo nombra en los
+    // paneles; el funcionamiento es idéntico.
+    deviceType: mysqlEnum("device_type", deviceTypes).notNull().default("pulsera"),
 
     label: varchar("label", { length: 255 }),
 
@@ -314,6 +487,29 @@ export const locationsRelations = relations(locations, ({ one, many }) => ({
   waiters: many(waiters),
   bracelets: many(bracelets),
   scans: many(scans),
+  menuCategories: many(menuCategories),
+}));
+
+export const menuCategoriesRelations = relations(
+  menuCategories,
+  ({ one, many }) => ({
+    location: one(locations, {
+      fields: [menuCategories.locationId],
+      references: [locations.id],
+    }),
+    items: many(menuItems),
+  })
+);
+
+export const menuItemsRelations = relations(menuItems, ({ one }) => ({
+  category: one(menuCategories, {
+    fields: [menuItems.categoryId],
+    references: [menuCategories.id],
+  }),
+  location: one(locations, {
+    fields: [menuItems.locationId],
+    references: [locations.id],
+  }),
 }));
 
 export const waitersRelations = relations(waiters, ({ one, many }) => ({
@@ -364,3 +560,7 @@ export type NewBracelet = typeof bracelets.$inferInsert;
 export type Scan = typeof scans.$inferSelect;
 export type NewScan = typeof scans.$inferInsert;
 export type SubscriptionStatus = (typeof subscriptionStatuses)[number];
+export type MenuCategory = typeof menuCategories.$inferSelect;
+export type NewMenuCategory = typeof menuCategories.$inferInsert;
+export type MenuItem = typeof menuItems.$inferSelect;
+export type NewMenuItem = typeof menuItems.$inferInsert;

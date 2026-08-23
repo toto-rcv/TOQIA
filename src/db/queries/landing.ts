@@ -24,13 +24,22 @@ export type ResolvedBracelet = {
     displayName: string | null;
     tagline: string | null;
     logoUrl: string | null;
+    coverImageUrl: string | null;
     googleReviewUrl: string | null;
     instagramUrl: string | null;
     whatsappPhone: string | null;
+    phone: string | null;
     websiteUrl: string | null;
     menuUrl: string | null;
+    reservationUrl: string | null;
     address: string | null;
     mapsUrl: string | null;
+    welcomeKicker: string | null;
+    welcomeTitle: string | null;
+    closingMessage: string | null;
+    closingImageUrl: string | null;
+    menuHeaderImageUrl: string | null;
+    menuMode: string;
   };
 };
 
@@ -55,13 +64,22 @@ export async function resolveBraceletByCode(
       displayName: locations.displayName,
       tagline: locations.tagline,
       logoUrl: locations.logoUrl,
+      coverImageUrl: locations.coverImageUrl,
       googleReviewUrl: locations.googleReviewUrl,
       instagramUrl: locations.instagramUrl,
       whatsappPhone: locations.whatsappPhone,
+      phone: locations.phone,
       websiteUrl: locations.websiteUrl,
       menuUrl: locations.menuUrl,
+      reservationUrl: locations.reservationUrl,
       address: locations.address,
       mapsUrl: locations.mapsUrl,
+      welcomeKicker: locations.welcomeKicker,
+      welcomeTitle: locations.welcomeTitle,
+      closingMessage: locations.closingMessage,
+      closingImageUrl: locations.closingImageUrl,
+      menuHeaderImageUrl: locations.menuHeaderImageUrl,
+      menuMode: locations.menuMode,
     })
     .from(bracelets)
     .innerJoin(locations, eq(bracelets.locationId, locations.id))
@@ -87,13 +105,22 @@ export async function resolveBraceletByCode(
       displayName: row.displayName,
       tagline: row.tagline,
       logoUrl: row.logoUrl,
+      coverImageUrl: row.coverImageUrl,
       googleReviewUrl: row.googleReviewUrl,
       instagramUrl: row.instagramUrl,
       whatsappPhone: row.whatsappPhone,
+      phone: row.phone,
       websiteUrl: row.websiteUrl,
       menuUrl: row.menuUrl,
+      reservationUrl: row.reservationUrl,
       address: row.address,
       mapsUrl: row.mapsUrl,
+      welcomeKicker: row.welcomeKicker,
+      welcomeTitle: row.welcomeTitle,
+      closingMessage: row.closingMessage,
+      closingImageUrl: row.closingImageUrl,
+      menuHeaderImageUrl: row.menuHeaderImageUrl,
+      menuMode: row.menuMode,
     },
   };
 }

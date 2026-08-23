@@ -5,11 +5,13 @@ import { PageHeader } from "@/components/admin/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { CopyButton } from "@/components/ui/copy-button";
+import { Pagination } from "@/components/ui/pagination";
 import { EmptyState, Table, Td, Th, Thead, Tr } from "@/components/ui/table";
 import { listAccountOptions } from "@/db/queries/accounts";
 import { listBracelets } from "@/db/queries/bracelets";
 import { listLocations } from "@/db/queries/locations";
 import { listWaiterOptions } from "@/db/queries/waiters";
+import { parsePageParams } from "@/lib/pagination";
 import { requireAdmin } from "@/lib/session";
 import { braceletUrl, formatDateTime, formatNumber } from "@/lib/utils";
 import { BraceletRowActions, BulkCreateDialog, NewBraceletDialog } from "./bracelet-dialogs";
@@ -20,10 +22,12 @@ export const dynamic = "force-dynamic";
 export default async function AdminBraceletsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cuenta?: string; local?: string }>;
+  searchParams: Promise<{ cuenta?: string; local?: string; page?: string; limit?: string }>;
 }) {
   await requireAdmin();
-  const { cuenta, local } = await searchParams;
+  const params = await searchParams;
+  const { cuenta, local } = params;
+  const pagina = parsePageParams(params);
 
   const cuentaId = cuenta ? Number.parseInt(cuenta, 10) : NaN;
   const localId = local ? Number.parseInt(local, 10) : NaN;
@@ -32,7 +36,7 @@ export default async function AdminBraceletsPage({
   const filtroLocal = Number.isFinite(localId) ? localId : undefined;
 
   const [pulseras, locales, cuentas] = await Promise.all([
-    listBracelets({ accountId: filtroCuenta, locationId: filtroLocal }),
+    listBracelets({ accountId: filtroCuenta, locationId: filtroLocal }, pagina),
     listLocations({ accountId: filtroCuenta }),
     listAccountOptions(),
   ]);
@@ -69,7 +73,7 @@ export default async function AdminBraceletsPage({
             .
           </EmptyState>
         </Card>
-      ) : pulseras.length === 0 ? (
+      ) : pulseras.total === 0 ? (
         <Card>
           <EmptyState>
             No hay pulseras con este filtro. Usá &ldquo;Alta masiva&rdquo; para
@@ -93,7 +97,7 @@ export default async function AdminBraceletsPage({
               </tr>
             </Thead>
             <tbody>
-              {pulseras.map((pulsera) => {
+              {pulseras.data.map((pulsera) => {
                 const url = braceletUrl(pulsera.code);
                 const inactiva =
                   !pulsera.active || !pulsera.locationActive || !pulsera.accountActive;
@@ -105,6 +109,9 @@ export default async function AdminBraceletsPage({
                         <span className="font-mono text-xs font-medium text-ex-text">
                           {pulsera.code}
                         </span>
+                        <Badge tone={pulsera.deviceType === "placa" ? "accent" : "inactive"}>
+                          {pulsera.deviceType}
+                        </Badge>
                         {!pulsera.active ? <Badge tone="inactive">off</Badge> : null}
                         {pulsera.active && !pulsera.locationActive ? (
                           <Badge tone="warning">local off</Badge>
@@ -165,6 +172,13 @@ export default async function AdminBraceletsPage({
               })}
             </tbody>
           </Table>
+
+          <Pagination
+            paged={pulseras}
+            basePath="/admin/pulseras"
+            searchParams={params}
+            itemLabel="pulseras"
+          />
         </Card>
       )}
     </>

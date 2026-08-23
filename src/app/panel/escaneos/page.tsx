@@ -1,18 +1,17 @@
 import { PageHeader } from "@/components/admin/page-header";
 import { ScanFiltersBar } from "@/components/stats/scan-filters";
 import { ScansTable } from "@/components/stats/scans-table";
-import { listBracelets } from "@/db/queries/bracelets";
+import { listBraceletOptions } from "@/db/queries/bracelets";
 import { listLocationOptions } from "@/db/queries/locations";
 import { listScans } from "@/db/queries/scans";
 import { listWaiterOptions } from "@/db/queries/waiters";
-import { parsePage, parseScanFilters, type RawScanParams } from "@/lib/scan-params";
+import { parsePageParams } from "@/lib/pagination";
+import { parseScanFilters, type RawScanParams } from "@/lib/scan-params";
 import { requireRestaurantUser } from "@/lib/session";
 import { formatNumber } from "@/lib/utils";
 
 export const metadata = { title: "Escaneos · Toqia" };
 export const dynamic = "force-dynamic";
-
-const PAGE_SIZE = 50;
 
 export default async function PanelScansPage({
   searchParams,
@@ -21,7 +20,7 @@ export default async function PanelScansPage({
 }) {
   const user = await requireRestaurantUser();
   const params = await searchParams;
-  const page = parsePage(params.page);
+  const pagina = parsePageParams(params);
 
   const locations = await listLocationOptions(user.accountId);
   const locationIds = new Set(locations.map((item) => item.id));
@@ -34,9 +33,11 @@ export default async function PanelScansPage({
   }
   filters.accountId = user.accountId;
 
-  const [{ rows, total }, bracelets, waiters] = await Promise.all([
-    listScans(filters, { page, pageSize: PAGE_SIZE }),
-    listBracelets({ accountId: user.accountId }),
+  const [escaneos, bracelets, waiters] = await Promise.all([
+    listScans(filters, pagina),
+    // Solo id + código: llenar el desplegable no justifica traer los
+    // agregados de cada pulsera.
+    listBraceletOptions({ accountId: user.accountId }),
     listWaiterOptions([...locationIds]),
   ]);
 
@@ -44,25 +45,18 @@ export default async function PanelScansPage({
     <>
       <PageHeader
         title="Escaneos"
-        subtitle={`${formatNumber(total)} ${total === 1 ? "registro" : "registros"} con los filtros aplicados.`}
+        subtitle={`${formatNumber(escaneos.total)} ${escaneos.total === 1 ? "registro" : "registros"} con los filtros aplicados.`}
       />
 
       <ScanFiltersBar
         locations={locations}
-        bracelets={bracelets.map((item) => ({
-          id: item.id,
-          code: item.code,
-          locationId: item.locationId,
-        }))}
+        bracelets={bracelets}
         waiters={waiters}
         exportPath="/panel/escaneos/export"
       />
 
       <ScansTable
-        rows={rows}
-        total={total}
-        page={page}
-        pageSize={PAGE_SIZE}
+        paged={escaneos}
         basePath="/panel/escaneos"
         searchParams={params as Record<string, string | undefined>}
         showLocation={locations.length > 1}

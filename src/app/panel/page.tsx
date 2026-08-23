@@ -3,7 +3,13 @@ import { EvolutionChart } from "@/components/stats/evolution-chart";
 import { MetricTile } from "@/components/stats/metric-tile";
 import { RankingList } from "@/components/stats/ranking-list";
 import { StatsFilters } from "@/components/stats/stats-filters";
-import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardBody,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { listLocationOptions } from "@/db/queries/locations";
 import {
   getBraceletRanking,
@@ -56,13 +62,13 @@ export default async function PanelStatsPage({
   return (
     <>
       <PageHeader
-        title="Estadísticas"
-        subtitle={`${params.period.label.toLowerCase()} · las fechas se muestran en hora local`}
+        title="Resumen"
+        subtitle={`${params.period.label} · las fechas se muestran en hora local.`}
       />
 
       <StatsFilters locations={locations} maxDate={todayLocalKey()} />
 
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:mb-5 sm:gap-4 lg:grid-cols-4">
         <MetricTile
           value={summary.scans}
           label="Escaneos del período"
@@ -83,10 +89,15 @@ export default async function PanelStatsPage({
         <MetricTile value={total} label="Escaneos históricos" />
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         <Card>
           <CardHeader>
-            <CardTitle>Evolución</CardTitle>
+            <div>
+              <CardTitle>Evolución</CardTitle>
+              <CardDescription className="mt-0.5">
+                Cuántos escanearon y cuántos llegaron a Google
+              </CardDescription>
+            </div>
           </CardHeader>
           <CardBody className="pt-5">
             <EvolutionChart data={series} />
@@ -111,7 +122,7 @@ export default async function PanelStatsPage({
         </Card>
       </div>
 
-      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Pulseras más escaneadas</CardTitle>

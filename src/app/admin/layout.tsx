@@ -3,14 +3,16 @@ import { requireAdmin } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-const ITEMS = [
-  { href: "/admin", label: "Dashboard", exact: true },
-  { href: "/admin/cuentas", label: "Cuentas" },
-  { href: "/admin/locales", label: "Locales" },
-  { href: "/admin/pulseras", label: "Pulseras" },
-  { href: "/admin/camareros", label: "Camareros" },
-  { href: "/admin/escaneos", label: "Escaneos" },
-  { href: "/admin/usuarios", label: "Usuarios" },
+import type { NavItem } from "@/components/layout/panel-shell";
+
+const ITEMS: NavItem[] = [
+  { href: "/admin", label: "Panel", exact: true, icon: "estadisticas" },
+  { href: "/admin/cuentas", label: "Cuentas", icon: "cuentas" },
+  { href: "/admin/locales", label: "Locales", icon: "locales" },
+  { href: "/admin/pulseras", label: "Pulseras", icon: "pulseras" },
+  { href: "/admin/camareros", label: "Camareros", icon: "camareros" },
+  { href: "/admin/escaneos", label: "Escaneos", icon: "escaneos" },
+  { href: "/admin/usuarios", label: "Usuarios", icon: "usuarios" },
 ];
 
 /**

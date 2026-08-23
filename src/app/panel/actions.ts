@@ -10,6 +10,10 @@ import {
   getLocationForAccount,
 } from "@/db/queries/locations";
 import { getWaiterForAccount } from "@/db/queries/waiters";
+import {
+  ErrorDeArchivo,
+  resolverCampoDeArchivo,
+} from "@/lib/media";
 import { invalidateBracelet } from "@/lib/redirect-cache";
 import { requireRestaurantUser } from "@/lib/session";
 import {
@@ -165,10 +169,19 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
   const tagline = readString(formData.get("tagline"));
   const address = readString(formData.get("address"));
   const whatsappPhone = readString(formData.get("whatsappPhone"));
+  const phone = readString(formData.get("phone"));
+  const welcomeKicker = readString(formData.get("welcomeKicker"));
+  const welcomeTitle = readString(formData.get("welcomeTitle"));
+  const closingMessage = readString(formData.get("closingMessage"));
+  const currency = readString(formData.get("currency")) || "€";
 
-  // Cada URL se valida por separado para poder decir cuál está mal.
+  // Qué carta se muestra. Cualquier cosa que no sea "pdf" cae en "toqia":
+  // es el valor seguro, el que no depende de un archivo que puede faltar.
+  const menuMode = readString(formData.get("menuMode")) === "pdf" ? "pdf" : "toqia";
+
+  // Enlaces que el local escribe a mano. Las imágenes y el PDF ya no son
+  // campos de texto: se suben y se guardan en la base (ver más abajo).
   const campos: { key: string; label: string; value: string }[] = [
-    { key: "logoUrl", label: "El logo", value: readString(formData.get("logoUrl")) },
     {
       key: "googleReviewUrl",
       label: "El enlace de Google Reviews",
@@ -184,11 +197,15 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
       label: "El sitio web",
       value: readString(formData.get("websiteUrl")),
     },
-    { key: "menuUrl", label: "El menú", value: readString(formData.get("menuUrl")) },
     {
       key: "mapsUrl",
       label: "El enlace de Maps",
       value: readString(formData.get("mapsUrl")),
+    },
+    {
+      key: "reservationUrl",
+      label: "El enlace de reservas",
+      value: readString(formData.get("reservationUrl")),
     },
   ];
 
@@ -200,6 +217,14 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
   if (whatsappPhone !== "") {
     const errorTelefono = validatePhone(whatsappPhone);
     if (errorTelefono) return fail(errorTelefono);
+  }
+
+  if (phone !== "" && phone.replace(/\D/g, "").length < 6) {
+    return fail("El teléfono de contacto es demasiado corto.");
+  }
+
+  if (currency.length > 8) {
+    return fail("El símbolo de moneda no puede superar los 8 caracteres.");
   }
 
   if (displayName !== "" && displayName.length > 255) {
@@ -215,6 +240,50 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
       campos.map((campo) => [campo.key, vacioANull(campo.value)])
     );
 
+    // Archivos. Cada uno resuelve a: la URL nueva si subieron algo, null si
+    // apretaron "Quitar", o lo que ya había si no tocaron el campo. El
+    // archivo anterior se borra solo, sin dejar basura en la base.
+    const archivos = await Promise.all([
+      resolverCampoDeArchivo({
+        file: formData.get("logoFile"),
+        quitar: formData.get("logoRemove") === "1",
+        actual: local.logoUrl,
+        locationId,
+        kind: "logo",
+        formato: "imagen",
+        etiqueta: "El logo",
+      }),
+      resolverCampoDeArchivo({
+        file: formData.get("coverFile"),
+        quitar: formData.get("coverRemove") === "1",
+        actual: local.coverImageUrl,
+        locationId,
+        kind: "cover",
+        formato: "imagen",
+        etiqueta: "La foto de portada",
+      }),
+      resolverCampoDeArchivo({
+        file: formData.get("closingFile"),
+        quitar: formData.get("closingRemove") === "1",
+        actual: local.closingImageUrl,
+        locationId,
+        kind: "closing",
+        formato: "imagen",
+        etiqueta: "La foto de cierre",
+      }),
+      resolverCampoDeArchivo({
+        file: formData.get("menuFile"),
+        quitar: formData.get("menuRemove") === "1",
+        actual: local.menuUrl,
+        locationId,
+        kind: "menu_pdf",
+        formato: "pdf",
+        etiqueta: "La carta en PDF",
+      }),
+    ]);
+
+    const [logoUrl, coverImageUrl, closingImageUrl, menuUrl] = archivos;
+
     await db
       .update(locations)
       .set({
@@ -222,12 +291,21 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
         tagline: vacioANull(tagline),
         address: vacioANull(address),
         whatsappPhone: vacioANull(whatsappPhone.replace(/\D/g, "")),
-        logoUrl: porClave.logoUrl,
+        phone: vacioANull(phone),
+        welcomeKicker: vacioANull(welcomeKicker),
+        welcomeTitle: vacioANull(welcomeTitle),
+        closingMessage: vacioANull(closingMessage),
+        currency,
+        menuMode,
         googleReviewUrl: porClave.googleReviewUrl,
         instagramUrl: porClave.instagramUrl,
         websiteUrl: porClave.websiteUrl,
-        menuUrl: porClave.menuUrl,
         mapsUrl: porClave.mapsUrl,
+        reservationUrl: porClave.reservationUrl,
+        logoUrl,
+        coverImageUrl,
+        closingImageUrl,
+        menuUrl,
       })
       .where(eq(locations.id, locationId));
 
@@ -239,6 +317,11 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
     revalidarPanel();
     return ok();
   } catch (cause) {
+    // Los errores de archivo ya traen un mensaje pensado para el usuario
+    // ("pesa 8 MB y el máximo es 6 MB"): no tiene sentido taparlos con un
+    // genérico.
+    if (cause instanceof ErrorDeArchivo) return fail(cause.message);
+
     console.error("[panel] no se pudo actualizar la página del local", {
       locationId,
       cause,

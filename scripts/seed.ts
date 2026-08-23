@@ -24,6 +24,8 @@ import {
   accounts,
   bracelets,
   locations,
+  menuCategories,
+  menuItems,
   scans,
   user,
   waiters,
@@ -64,8 +66,15 @@ const CUENTAS = [
         instagramUrl: "https://instagram.com/laparrilladelcentro",
         whatsappPhone: "5491133334444",
         menuUrl: "https://laparrilladelcentro.com.ar/menu",
+        menuMode: "toqia" as const,
         websiteUrl: "https://laparrilladelcentro.com.ar",
         address: "Av. Corrientes 1234, CABA",
+        phone: "+541133334444",
+        reservationUrl: "https://laparrilladelcentro.com.ar/reservas",
+        welcomeKicker: "Gracias por visitarnos",
+        welcomeTitle: "Tu opinión nos ayuda a seguir mejorando",
+        closingMessage: "Gracias por ser parte de nuestra experiencia",
+        currency: "$",
         prefijo: "B",
         camareros: ["Diego Fernández", "Lucía Paz", "Martín Sosa"],
       },
@@ -78,8 +87,15 @@ const CUENTAS = [
         instagramUrl: "https://instagram.com/laparrilladelcentro",
         whatsappPhone: "5491144445555",
         menuUrl: "https://laparrilladelcentro.com.ar/menu",
+        menuMode: "pdf" as const,
         websiteUrl: "https://laparrilladelcentro.com.ar",
         address: "Paseo de la Costa 500, Vicente López",
+        phone: "+541144445555",
+        reservationUrl: "https://laparrilladelcentro.com.ar/reservas",
+        welcomeKicker: "Gracias por visitarnos",
+        welcomeTitle: "Tu opinión nos ayuda a seguir mejorando",
+        closingMessage: "Gracias por ser parte de nuestra experiencia",
+        currency: "$",
         prefijo: "V",
         camareros: ["Carla Méndez", "Nicolás Ferrari"],
       },
@@ -99,14 +115,75 @@ const CUENTAS = [
         instagramUrl: "https://instagram.com/nikkeipalermo",
         whatsappPhone: "5491155556666",
         menuUrl: "https://nikkeipalermo.com/carta",
+        menuMode: "toqia" as const,
         websiteUrl: "https://nikkeipalermo.com",
         address: "Gorriti 4800, CABA",
+        phone: "+541155556666",
+        reservationUrl: "https://nikkeipalermo.com/reservas",
+        welcomeKicker: "Gracias por elegirnos",
+        welcomeTitle: "Contanos cómo la pasaste",
+        closingMessage: "Nos vemos pronto",
+        currency: "$",
         prefijo: "S",
         camareros: ["Ana Torres", "Julián Vera"],
       },
     ],
   },
 ];
+
+/**
+ * Cartas de ejemplo. Sirven para ver la página del cliente con contenido real
+ * y para probar el editor sin tener que cargar todo a mano.
+ */
+const CARTAS: Record<string, { categoria: string; platos: [string, string, number][] }[]> = {
+  "la-parrilla-del-centro": [
+    {
+      categoria: "Entradas",
+      platos: [
+        ["Provoleta a la parrilla", "Con orégano y aceite de oliva", 6500],
+        ["Empanadas de carne", "Cortada a cuchillo, dos unidades", 4800],
+        ["Mollejas al limón", "Doradas a las brasas", 9200],
+      ],
+    },
+    {
+      categoria: "Principales",
+      platos: [
+        ["Bife de chorizo", "400 g, con guarnición a elección", 18500],
+        ["Entraña", "Con chimichurri de la casa", 17800],
+        ["Ojo de bife", "350 g, cocción a punto", 19200],
+        ["Pollo deshuesado", "Marinado en hierbas", 13500],
+      ],
+    },
+    {
+      categoria: "Postres",
+      platos: [
+        ["Flan casero", "Con dulce de leche y crema", 5200],
+        ["Panqueque de dulce de leche", "Flambeado en la mesa", 5800],
+      ],
+    },
+  ],
+  "sushi-nikkei-palermo": [
+    {
+      categoria: "Entradas",
+      platos: [
+        ["Ceviche nikkei", "Corvina, leche de tigre y batata", 11800],
+        ["Gyozas de cerdo", "Cinco unidades, salsa ponzu", 8900],
+      ],
+    },
+    {
+      categoria: "Rolls",
+      platos: [
+        ["Tiradito roll", "Salmón, palta y salsa acevichada", 12500],
+        ["Nikkei crunch", "Langostino tempura y queso crema", 13200],
+        ["Veggie roll", "Palta, mango y pepino", 9800],
+      ],
+    },
+    {
+      categoria: "Postres",
+      platos: [["Mochi de matcha", "Tres unidades", 6400]],
+    },
+  ],
+};
 
 const DISTRIBUIDOR = {
   email: "distribuidor@toqia.local",
@@ -187,6 +264,45 @@ async function crearUsuario(datos: {
   return userId;
 }
 
+/**
+ * Carga la carta de ejemplo de un local, si todavía no tiene ninguna.
+ * No pisa lo que ya exista: si el local ya tiene categorías, no toca nada.
+ */
+async function cargarCarta(locationId: number, slug: string): Promise<void> {
+  const definicion = CARTAS[slug];
+  if (!definicion) return;
+
+  const yaTiene = await db
+    .select({ id: menuCategories.id })
+    .from(menuCategories)
+    .where(eq(menuCategories.locationId, locationId))
+    .limit(1);
+
+  if (yaTiene[0]) return;
+
+  for (const [indice, bloque] of definicion.entries()) {
+    const [categoria] = await db.insert(menuCategories).values({
+      locationId,
+      name: bloque.categoria,
+      position: indice,
+      active: true,
+    });
+
+    await db.insert(menuItems).values(
+      bloque.platos.map(([nombre, descripcion, precio], posicion) => ({
+        categoryId: categoria.insertId,
+        locationId,
+        name: nombre,
+        description: descripcion,
+        price: precio.toFixed(2),
+        position: posicion,
+        available: true,
+        active: true,
+      }))
+    );
+  }
+}
+
 async function main() {
   console.log("Sembrando la base…\n");
 
@@ -261,6 +377,15 @@ async function main() {
           menuUrl: local.menuUrl,
           websiteUrl: local.websiteUrl,
           address: local.address,
+          phone: local.phone,
+          reservationUrl: local.reservationUrl,
+          welcomeKicker: local.welcomeKicker,
+          welcomeTitle: local.welcomeTitle,
+          closingMessage: local.closingMessage,
+          currency: local.currency,
+          // Los que reciben carta en el seed la muestran desde Toqia; el que
+          // no, cae en su PDF externo. Así el ejemplo cubre los dos modos.
+          menuMode: local.menuMode,
           active: true,
         });
         locationId = resultado.insertId;
@@ -312,6 +437,8 @@ async function main() {
           active: true,
         });
       }
+
+      await cargarCarta(locationId, local.slug);
 
       console.log(`  ${local.camareros.length} camareros y 5 pulseras verificados`);
     }

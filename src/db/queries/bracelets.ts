@@ -1,10 +1,17 @@
-import { and, eq, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, sql, type SQL } from "drizzle-orm";
 
 import { accounts, bracelets, db, locations, scans, waiters } from "@/db";
+import {
+  buildPaged,
+  offsetOf,
+  type PageParams,
+  type Paged,
+} from "@/lib/pagination";
 
 export type BraceletListItem = {
   id: number;
   code: string;
+  deviceType: string;
   label: string | null;
   overrideUrl: string | null;
   active: boolean;
@@ -22,27 +29,47 @@ export type BraceletListItem = {
   createdAt: Date;
 };
 
-/**
- * Listado de pulseras con sus agregados.
- *
- * Los conteos van por subconsulta y no por LEFT JOIN + GROUP BY: agrupar
- * obligaría a incluir todas las columnas de bracelets en el GROUP BY y MySQL
- * terminaría materializando una temporal más grande de lo necesario.
- */
-export async function listBracelets(options: {
+export type BraceletFilters = {
   accountId?: number;
   locationId?: number;
   waiterId?: number;
-}): Promise<BraceletListItem[]> {
+};
+
+function condicionesDe(options: BraceletFilters): SQL[] {
   const condiciones: SQL[] = [];
   if (options.accountId) condiciones.push(eq(locations.accountId, options.accountId));
   if (options.locationId) condiciones.push(eq(bracelets.locationId, options.locationId));
   if (options.waiterId) condiciones.push(eq(bracelets.waiterId, options.waiterId));
+  return condiciones;
+}
 
-  const query = db
-    .select({
+/**
+ * Una página de pulseras con sus agregados.
+ *
+ * El LIMIT/OFFSET va en el SQL: la base devuelve exactamente las filas que se
+ * van a dibujar, no todas las de la cuenta. El COUNT viaja en paralelo, sobre
+ * la misma condición pero sin los joins de presentación ni las subconsultas de
+ * agregado, que son lo caro.
+ *
+ * Los conteos van por subconsulta y no por LEFT JOIN + GROUP BY: agrupar
+ * obligaría a incluir todas las columnas de bracelets en el GROUP BY y MySQL
+ * terminaría materializando una temporal más grande de lo necesario. Con
+ * LIMIT 10 esas subconsultas corren diez veces, no una por cada fila de la
+ * tabla.
+ */
+export async function listBracelets(
+  options: BraceletFilters,
+  pagination: PageParams
+): Promise<Paged<BraceletListItem>> {
+  const condiciones = condicionesDe(options);
+  const where = condiciones.length > 0 ? and(...condiciones) : undefined;
+
+  const [filas, totales] = await Promise.all([
+    db
+      .select({
       id: bracelets.id,
       code: bracelets.code,
+      deviceType: bracelets.deviceType,
       label: bracelets.label,
       overrideUrl: bracelets.overrideUrl,
       active: bracelets.active,
@@ -67,20 +94,56 @@ export async function listBracelets(options: {
         WHERE ${scans.braceletId} = ${bracelets.id}
       )`,
     })
-    .from(bracelets)
-    .innerJoin(locations, eq(bracelets.locationId, locations.id))
-    .innerJoin(accounts, eq(locations.accountId, accounts.id))
-    .leftJoin(waiters, eq(bracelets.waiterId, waiters.id))
-    .orderBy(accounts.name, locations.name, bracelets.code);
+      .from(bracelets)
+      .innerJoin(locations, eq(bracelets.locationId, locations.id))
+      .innerJoin(accounts, eq(locations.accountId, accounts.id))
+      .leftJoin(waiters, eq(bracelets.waiterId, waiters.id))
+      .where(where)
+      // El id desempata: sin un orden total, dos filas con el mismo código
+      // podrían aparecer en dos páginas distintas o en ninguna.
+      .orderBy(accounts.name, locations.name, bracelets.code, bracelets.id)
+      .limit(pagination.limit)
+      .offset(offsetOf(pagination)),
 
-  const filas =
-    condiciones.length > 0 ? await query.where(and(...condiciones)) : await query;
+    db
+      .select({ total: sql<number>`COUNT(*)`.mapWith(Number) })
+      .from(bracelets)
+      .innerJoin(locations, eq(bracelets.locationId, locations.id))
+      .where(where),
+  ]);
 
-  return filas.map((fila) => ({
+  const data = filas.map((fila) => ({
     ...fila,
     waiterName: fila.waiterName ?? null,
     lastScanAt: fila.lastScanAt ? new Date(fila.lastScanAt) : null,
   }));
+
+  return buildPaged(data, totales[0]?.total ?? 0, pagination);
+}
+
+/**
+ * Solo id, código y local: lo que necesita un `<select>` de filtro.
+ *
+ * Existe para no usar `listBracelets` en los desplegables. Esa consulta trae
+ * tres subconsultas de agregado por fila; para llenar un combo alcanza con
+ * dos columnas.
+ */
+export async function listBraceletOptions(options: BraceletFilters) {
+  const condiciones = condicionesDe(options);
+
+  return db
+    .select({
+      id: bracelets.id,
+      code: bracelets.code,
+      locationId: bracelets.locationId,
+    })
+    .from(bracelets)
+    .innerJoin(locations, eq(bracelets.locationId, locations.id))
+    .where(condiciones.length > 0 ? and(...condiciones) : undefined)
+    .orderBy(asc(bracelets.code))
+    // Un combo con más de dos mil opciones ya no es usable; el tope evita que
+    // una cuenta enorme cuelgue la página del filtro.
+    .limit(2000);
 }
 
 export async function getBraceletById(id: number) {

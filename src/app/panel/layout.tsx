@@ -4,12 +4,19 @@ import { requireRestaurantUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-const ITEMS = [
-  { href: "/panel", label: "Estadísticas", exact: true },
-  { href: "/panel/pulseras", label: "Pulseras" },
-  { href: "/panel/camareros", label: "Camareros" },
-  { href: "/panel/escaneos", label: "Escaneos" },
-  { href: "/panel/configuracion", label: "Mi página" },
+import type { NavItem } from "@/components/layout/panel-shell";
+
+/**
+ * El orden importa: en el celular las cuatro primeras van a la barra inferior
+ * y el resto al cajón de "Más". Adelante queda lo que se mira todos los días.
+ */
+const ITEMS: NavItem[] = [
+  { href: "/panel", label: "Resumen", exact: true, icon: "estadisticas" },
+  { href: "/panel/pulseras", label: "Pulseras", icon: "pulseras" },
+  { href: "/panel/carta", label: "Mi carta", icon: "carta" },
+  { href: "/panel/escaneos", label: "Escaneos", icon: "escaneos" },
+  { href: "/panel/camareros", label: "Camareros", icon: "camareros" },
+  { href: "/panel/configuracion", label: "Mi página", icon: "pagina" },
 ];
 
 /**

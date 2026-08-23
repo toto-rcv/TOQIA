@@ -1,6 +1,12 @@
 import { and, desc, eq, gte, isNotNull, lte, sql, type SQL } from "drizzle-orm";
 
 import { accounts, bracelets, db, locations, scans, waiters } from "@/db";
+import {
+  buildPaged,
+  offsetOf,
+  type PageParams,
+  type Paged,
+} from "@/lib/pagination";
 
 export type ScanFilters = {
   /** Siempre lo impone el servidor a partir de la sesión, nunca la URL. */
@@ -57,12 +63,17 @@ const SELECCION = {
   ipHash: scans.ipHash,
 };
 
+/**
+ * Una página de escaneos.
+ *
+ * Es la tabla que más crece de todas: un local con veinte pulseras genera
+ * miles de filas por mes. El LIMIT es obligatorio, no una optimización.
+ */
 export async function listScans(
   filters: ScanFilters,
-  pagination: { page: number; pageSize: number }
-): Promise<{ rows: ScanRow[]; total: number }> {
+  pagination: PageParams
+): Promise<Paged<ScanRow>> {
   const where = buildWhere(filters);
-  const offset = (pagination.page - 1) * pagination.pageSize;
 
   const [filas, totales] = await Promise.all([
     db
@@ -74,18 +85,20 @@ export async function listScans(
       .leftJoin(waiters, eq(scans.waiterId, waiters.id))
       .where(where)
       .orderBy(desc(scans.scannedAt), desc(scans.id))
-      .limit(pagination.pageSize)
-      .offset(offset),
+      .limit(pagination.limit)
+      .offset(offsetOf(pagination)),
     db
       .select({ total: sql<number>`COUNT(*)`.mapWith(Number) })
       .from(scans)
       .where(where),
   ]);
 
-  return {
-    rows: filas.map((fila) => ({ ...fila, waiterName: fila.waiterName ?? null })),
-    total: totales[0]?.total ?? 0,
-  };
+  const data = filas.map((fila) => ({
+    ...fila,
+    waiterName: fila.waiterName ?? null,
+  }));
+
+  return buildPaged(data, totales[0]?.total ?? 0, pagination);
 }
 
 /**

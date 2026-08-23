@@ -106,10 +106,12 @@ export function StatsFilters({
   }
 
   return (
-    <div className="mb-4 space-y-2">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="mb-4 space-y-2 sm:mb-5">
+      {/* En celular los grupos de botones scrollean en horizontal dentro de su
+          propia píldora, en vez de romper en varias filas. */}
+      <div className="ex-nav-scroll flex items-center gap-2 overflow-x-auto pb-0.5">
         {/* Período: botones y no un select, porque es el control que más se toca. */}
-        <div className="flex items-center rounded-control border border-ex-border bg-ex-surface p-0.5">
+        <div className="flex shrink-0 items-center rounded-pill border border-ex-border bg-ex-surface p-1 shadow-subtle">
           {Object.keys(PERIOD_PRESETS).map((key) => (
             <button
               key={key}
@@ -117,9 +119,9 @@ export function StatsFilters({
               disabled={pending}
               onClick={() => elegirPreset(key)}
               className={cn(
-                "rounded-[3px] px-2.5 py-1 text-xs transition-colors duration-150",
+                "rounded-pill px-3 py-1.5 text-[12.5px] font-medium transition-colors duration-150",
                 periodo === key
-                  ? "bg-ex-blue-deep text-white"
+                  ? "bg-ex-blue text-white"
                   : "text-ex-text-muted hover:text-ex-text"
               )}
             >
@@ -133,9 +135,10 @@ export function StatsFilters({
             onClick={() => setAbierto((valor) => !valor)}
             title="Elegir un día o un rango de fechas"
             className={cn(
-              "flex items-center gap-1.5 rounded-[3px] px-2.5 py-1 text-xs transition-colors duration-150",
+              "flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-[12.5px] font-medium",
+              "transition-colors duration-150",
               rangoActivo
-                ? "bg-ex-blue-deep text-white"
+                ? "bg-ex-blue text-white"
                 : abierto
                   ? "bg-ex-elevated text-ex-text"
                   : "text-ex-text-muted hover:text-ex-text"
@@ -146,7 +149,7 @@ export function StatsFilters({
           </button>
         </div>
 
-        <div className="flex items-center rounded-control border border-ex-border bg-ex-surface p-0.5">
+        <div className="flex shrink-0 items-center rounded-pill border border-ex-border bg-ex-surface p-1 shadow-subtle">
           {GRANULARIDADES.map((item) => (
             <button
               key={item.value}
@@ -154,9 +157,9 @@ export function StatsFilters({
               disabled={pending}
               onClick={() => actualizar("g", item.value)}
               className={cn(
-                "rounded-[3px] px-2.5 py-1 text-xs transition-colors duration-150",
+                "rounded-pill px-3 py-1.5 text-[12.5px] font-medium transition-colors duration-150",
                 granularidad === item.value
-                  ? "bg-ex-elevated text-ex-text"
+                  ? "bg-ex-navy text-ex-text"
                   : "text-ex-text-muted hover:text-ex-text"
               )}
             >
@@ -173,7 +176,7 @@ export function StatsFilters({
             disabled={pending}
             onChange={(event) => actualizar("local", event.target.value)}
             aria-label="Filtrar por local"
-            className="h-8 w-auto min-w-[170px] text-xs"
+            className="h-10 w-auto min-w-[170px] shrink-0 text-[13px]"
           >
             <option value="">Todos los locales</option>
             {locations.map((item) => (
@@ -188,11 +191,11 @@ export function StatsFilters({
       {/* Panel de fechas. Se despliega con una animación corta para que se
           entienda de dónde salió. */}
       {abierto ? (
-        <div className="flex animate-fade-up flex-wrap items-end gap-3 rounded-card border border-ex-border bg-ex-surface px-4 py-3">
+        <div className="flex animate-fade-up flex-wrap items-end gap-3 rounded-card border border-ex-border bg-ex-surface p-4 shadow-card">
           <div className="space-y-1">
             <label
               htmlFor="rango-desde"
-              className="block text-label font-medium text-ex-text-secondary"
+              className="block text-[12px] font-semibold uppercase tracking-[0.04em] text-ex-text-muted"
             >
               Desde
             </label>
@@ -203,14 +206,14 @@ export function StatsFilters({
               max={hasta || maxDate}
               disabled={pending}
               onChange={(event) => actualizarFecha("desde", event.target.value)}
-              className="h-8 w-[155px] text-xs"
+              className="w-[155px] text-[13px]"
             />
           </div>
 
           <div className="space-y-1">
             <label
               htmlFor="rango-hasta"
-              className="block text-label font-medium text-ex-text-secondary"
+              className="block text-[12px] font-semibold uppercase tracking-[0.04em] text-ex-text-muted"
             >
               Hasta
             </label>
@@ -222,7 +225,7 @@ export function StatsFilters({
               max={maxDate}
               disabled={pending}
               onChange={(event) => actualizarFecha("hasta", event.target.value)}
-              className="h-8 w-[155px] text-xs"
+              className="w-[155px] text-[13px]"
             />
           </div>
 
@@ -237,7 +240,7 @@ export function StatsFilters({
               params.delete("periodo");
               navegar(params);
             }}
-            className="h-8 rounded-control border border-ex-border px-3 text-xs text-ex-text-muted
+            className="h-10 rounded-control border border-ex-border px-3 text-[13px] text-ex-text-muted
                        transition-colors duration-150 hover:border-ex-blue/40 hover:text-ex-text"
           >
             Hoy
@@ -248,7 +251,7 @@ export function StatsFilters({
               type="button"
               disabled={pending}
               onClick={limpiarRango}
-              className="flex h-8 items-center gap-1.5 rounded-control border border-ex-border px-3
+              className="flex h-10 items-center gap-1.5 rounded-control border border-ex-border px-3
                          text-xs text-ex-text-muted transition-colors duration-150
                          hover:border-ex-danger/40 hover:text-ex-danger"
             >

@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import { LogOut } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth-client";
 
@@ -27,8 +29,19 @@ export function SignOutButton() {
   }
 
   return (
-    <Button variant="ghost" size="sm" onClick={handleClick} disabled={pending}>
-      {pending ? "Saliendo…" : "Salir"}
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleClick}
+      disabled={pending}
+      title="Cerrar sesión"
+      className="w-full justify-center lg:justify-start"
+    >
+      <LogOut className="size-4 shrink-0" aria-hidden />
+      {/* En la lateral colapsada (tablet) queda solo el ícono. */}
+      <span className="hidden max-sm:inline lg:inline">
+        {pending ? "Saliendo…" : "Cerrar sesión"}
+      </span>
     </Button>
   );
 }

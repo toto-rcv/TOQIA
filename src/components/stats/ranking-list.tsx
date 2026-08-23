@@ -27,7 +27,7 @@ export function RankingList({
 }) {
   if (items.length === 0) {
     return (
-      <p className="px-5 py-10 text-center text-sm text-ex-text-muted">
+      <p className="px-5 py-12 text-center text-sm text-ex-text-muted">
         {emptyMessage}
       </p>
     );
@@ -40,16 +40,17 @@ export function RankingList({
       {items.map((item, index) => (
         <div
           key={item.id}
-          className="ex-card-flush flex items-center gap-3 px-5 py-2.5"
+          className="ex-card-flush flex items-center gap-3 px-4 py-3 sm:px-5"
         >
           {medals ? (
             <span
+              aria-hidden
               className={
-                "w-5 shrink-0 text-center font-mono text-xs " +
+                "grid size-6 shrink-0 place-items-center rounded-pill text-[11px] font-bold " +
                 (index === 0
-                  ? "text-ex-warning"
+                  ? "bg-ex-warning/15 text-ex-warning"
                   : index < 3
-                    ? "text-ex-text-secondary"
+                    ? "bg-ex-elevated text-ex-text-secondary"
                     : "text-ex-text-disabled")
               }
             >
@@ -59,7 +60,9 @@ export function RankingList({
 
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline gap-2">
-              <span className="truncate text-[13px] text-ex-text">{item.title}</span>
+              <span className="truncate text-[13.5px] font-medium text-ex-text">
+                {item.title}
+              </span>
               {item.subtitle ? (
                 <span className="truncate text-[11px] text-ex-text-muted">
                   {item.subtitle}
@@ -67,7 +70,7 @@ export function RankingList({
               ) : null}
             </div>
 
-            <div className="mt-1.5 h-[3px] w-full rounded-full bg-ex-border-subtle">
+            <div className="mt-2 h-1.5 w-full rounded-full bg-ex-navy">
               <div
                 className="h-full rounded-full bg-ex-blue"
                 style={{ width: `${maximo > 0 ? (item.value / maximo) * 100 : 0}%` }}
@@ -75,13 +78,11 @@ export function RankingList({
             </div>
 
             {item.detail ? (
-              <p className="mt-1 font-mono text-[10px] text-ex-text-muted">
-                {item.detail}
-              </p>
+              <p className="mt-1.5 text-[11px] text-ex-text-muted">{item.detail}</p>
             ) : null}
           </div>
 
-          <span className="num shrink-0 text-sm text-ex-text">
+          <span className="shrink-0 text-[15px] font-semibold tabular-nums text-ex-text">
             {formatNumber(item.value)}
           </span>
         </div>

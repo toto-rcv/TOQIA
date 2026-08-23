@@ -4,16 +4,20 @@ import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
 /**
- * Dos sistemas de diseño conviven en esta app y no se mezclan:
+ * Tres sistemas de diseño conviven en esta app y no se mezclan:
  *
- *  - `ex-*`  (executive-dashboard-ui) → todo lo que cuelga de /admin.
- *            Midnight Command Center: fondos casi negros azulados, azul
- *            eléctrico exclusivamente como acento, bordes de 1px casi
- *            invisibles.
+ *  - `ex-*`  → el panel interno (/admin, /panel, /distribuidor).
+ *            SaaS claro: lienzo lavanda muy pálido, tarjetas blancas con
+ *            esquinas redondeadas, violeta como único acento, tinta azul
+ *            oscura para el texto. Los nombres de token son semánticos
+ *            (surface, border, text…), así que el mismo `bg-ex-surface`
+ *            siguió funcionando cuando el panel pasó de oscuro a claro.
  *
- *  - `mn-*`  (minimalist-ui) → las páginas públicas de /pulsera, que ve el
- *            cliente del restaurante en el celular. Minimalismo editorial:
- *            blanco cálido, tinta apagada, pasteles desaturados.
+ *  - `tq-*`  → la landing pública y la carta que ve el cliente en el celular.
+ *            Dos ambientes: la portada negra con dorado, y la carta en tonos
+ *            arena, cálida y liviana.
+ *
+ *  - `mn-*`  → las páginas de estado de /pulsera (no reconocida, inactiva).
  *
  * El prefijo evita que un token del panel se cuele en la página pública.
  */
@@ -23,39 +27,97 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ── executive-dashboard-ui ───────────────────────────────────────
+        // ── Panel interno (SaaS claro) ───────────────────────────────────
         ex: {
-          black: "#070A0F", // fondo raíz
-          navy: "#0B1018", // fondo de sección
-          surface: "#101722", // superficie de tarjeta
-          elevated: "#141C28", // superficie elevada / hover
-          border: "#1D2734",
-          "border-subtle": "#151E2A",
-          text: "#F3F7FC",
-          "text-secondary": "#9BA8B8",
-          "text-muted": "#647184",
-          "text-disabled": "#3F4B5B",
-          blue: "#3B82F6", // acento principal
-          "blue-bright": "#60A5FA",
-          "blue-deep": "#2563EB",
-          success: "#34D399",
-          warning: "#FBBF24",
-          danger: "#F87171",
-          neutral: "#94A3B8",
+          // `black` y `navy` conservan el nombre por compatibilidad: hoy son
+          // el lienzo de la app y las zonas hundidas, no colores oscuros.
+          black: "#F3F4FB", // lienzo de la aplicación
+          navy: "#EAECF7", // zonas hundidas (cabeceras de tabla, rieles)
+          surface: "#FFFFFF", // tarjeta
+          elevated: "#F7F8FD", // hover / superficie sutil
+          border: "#E3E6F2",
+          "border-subtle": "#EFF1F8",
+
+          text: "#12162E", // tinta principal
+          "text-secondary": "#4B5170",
+          "text-muted": "#787E9C",
+          "text-disabled": "#A9AEC5",
+
+          blue: "#6D5BF6", // acento único
+          "blue-bright": "#8B7CF8",
+          "blue-deep": "#5A46E8",
+          "blue-wash": "#EFEDFE", // fondo de estado activo
+
+          // Paneles oscuros de contraste: la tarjeta destacada del dashboard.
+          ink: "#191C33",
+          "ink-soft": "#242847",
+
+          success: "#0E9F6E",
+          warning: "#D97706",
+          danger: "#E5484D",
+          neutral: "#8A90A8",
         },
         // ── landing pública del restaurante ──────────────────────────────
-        // Negro con acentos dorado neón. Es la pantalla que ve el cliente del
-        // restaurante en el celular, y la única que lleva la marca del local.
+        // Negro de fondo, tarjeta color crema y dorado como acento. Es la
+        // pantalla que ve el cliente del restaurante en el celular, y la única
+        // que lleva la marca del local.
         tq: {
-          black: "#050505", // fondo
-          surface: "#0C0C0C", // tarjetas y botones
-          elevated: "#141414", // hover
-          border: "#241F10", // borde apagado, para lo secundario
-          gold: "#D4AF37", // dorado base
-          "gold-bright": "#F0D97A", // texto sobre negro, más legible
+          black: "#0C0C0A", // fondo de la página
+          surface: "#151512", // tarjetas sobre el negro
+          elevated: "#1E1E1A",
+          border: "#2A2822",
+
+          cream: "#F6F2EA", // la tarjeta principal
+          "cream-alt": "#FFFFFF", // los accesos, un escalón por encima
+          "cream-border": "#E6DFD2",
+
+          gold: "#C9A961", // acento y filetes
+          "gold-soft": "#E3D2A6",
           "gold-dim": "#8A7328",
-          text: "#F5F1E6",
+
+          green: "#14442E", // el botón de reseña
+          "green-dark": "#0F3324",
+
+          ink: "#1B1B18", // texto sobre crema
+          "ink-soft": "#54514A",
+          muted: "#8B8779",
+
+          text: "#F5F1E6", // texto sobre negro
           "text-muted": "#9A937F",
+
+          /* ── La carta ──────────────────────────────────────────────────
+             Ambiente nocturno: negro grisáceo cálido, naranja en degradado y
+             texto blanco. Es la estética de pizarra de restaurante — lo que el
+             cliente ya asocia con una carta — y de paso el fondo oscuro hace
+             que las fotos de los platos salten. */
+          night: "#1B1A18", // fondo de la carta
+          "night-raised": "#252220", // fila de plato
+          "night-sunken": "#121110", // ficha de precio
+          "night-line": "#332F2C",
+          "night-ink": "#FFFFFF",
+          "night-soft": "#C2BAB3",
+          "night-muted": "#8E8781",
+
+          flame: "#F59B23", // el naranja de la marca
+          "flame-light": "#FBB040", // arranque del degradado
+          "flame-deep": "#E8730A", // final del degradado
+          "flame-soft": "#FFD08A",
+
+          /* ── Paleta arena (quedó de la versión anterior) ────────────────
+             Ambiente propio, en arena cálida. Se separa a propósito de la
+             portada negra: la carta se lee sentado, con luz de sala, y un
+             fondo claro cansa menos que texto claro sobre negro. */
+          sand: "#F0E3D3", // fondo de la carta
+          "sand-deep": "#E7D6C2", // separadores y chips
+          "sand-card": "#F8EFE4", // fila de plato
+          "sand-line": "#DFCDB6",
+          terracotta: "#C0543A", // banda de categoría (impar)
+          "terracotta-dark": "#A8452F",
+          espresso: "#4A4038", // banda de categoría (par)
+          "espresso-dark": "#3A322C",
+          "sand-ink": "#2E2721", // texto de la carta
+          "sand-soft": "#6B5F54",
+          "sand-muted": "#948577",
         },
         // ── minimalist-ui ────────────────────────────────────────────────
         mn: {
@@ -81,14 +143,18 @@ const config: Config = {
         serif: ["Ivy Text", "Newsreader", "Playfair Display", "Georgia", "serif"],
       },
       borderRadius: {
-        // Nada de tarjetas excesivamente redondeadas.
-        card: "6px",
-        control: "4px",
+        // Redondeo generoso: es lo que le da el aire de producto moderno.
+        card: "16px",
+        control: "10px",
+        pill: "999px",
       },
       boxShadow: {
-        // Sombras prácticamente inexistentes: opacidad muy baja y difusas.
-        subtle: "0 1px 2px rgba(0,0,0,0.04)",
-        "ex-glow": "0 0 0 1px rgba(59,130,246,0.25)",
+        // En un panel claro la sombra es lo que separa la tarjeta del lienzo:
+        // muy difusa y de opacidad baja, nunca un borde gris duro.
+        subtle: "0 1px 2px rgba(18,22,46,0.04)",
+        card: "0 1px 2px rgba(18,22,46,0.04), 0 8px 24px -12px rgba(18,22,46,0.10)",
+        pop: "0 12px 32px -12px rgba(18,22,46,0.22)",
+        "ex-glow": "0 0 0 3px rgba(109,91,246,0.14)",
       },
       fontSize: {
         // Escala para métricas: el número pesa más que su etiqueta.

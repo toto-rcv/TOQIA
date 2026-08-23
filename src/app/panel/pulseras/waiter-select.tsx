@@ -66,7 +66,8 @@ export function WaiterSelect({
         onChange={handleChange}
         disabled={pending}
         aria-label="Camarero asignado"
-        className={cn("h-7 w-full text-xs", error && "border-ex-danger")}
+        // h-10 para que en el celular sea un objetivo de toque real.
+        className={cn("h-10 w-full text-[13px] lg:h-9", error && "border-ex-danger")}
       >
         <option value="">Sin asignar</option>
         {waiters.map((camarero) => (
@@ -78,7 +79,7 @@ export function WaiterSelect({
       </Select>
 
       {error ? (
-        <p role="alert" className="mt-1 text-[10px] text-ex-danger">
+        <p role="alert" className="mt-1 text-[11px] text-ex-danger">
           {error}
         </p>
       ) : null}

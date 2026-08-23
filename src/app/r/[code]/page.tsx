@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { LandingView } from "@/components/landing/landing-view";
 import { resolveBraceletByCode, type ResolvedBracelet } from "@/db/queries/landing";
+import { hasVisibleMenu } from "@/db/queries/menu";
 import { hashIp } from "@/lib/hash";
 import { getCached, setCached } from "@/lib/redirect-cache";
 import { getClientIp } from "@/lib/request-ip";
@@ -82,7 +83,19 @@ export default async function LandingPage({
   const override = safeUrl(resolved.overrideUrl);
   if (override) redirect(override);
 
-  return <LandingView landing={resolved.landing} token={token} />;
+  // Si el local cargó carta propia, el botón del menú va a la carta de Toqia
+  // en vez de al PDF externo. Se consulta acá y no dentro del componente para
+  // que el render no dispare una query por su cuenta.
+  const conCarta = await hasVisibleMenu(resolved.locationId);
+
+  return (
+    <LandingView
+      landing={resolved.landing}
+      token={token}
+      code={code}
+      hasMenu={conCarta}
+    />
+  );
 }
 
 /** Resuelve el código usando el caché en memoria. */

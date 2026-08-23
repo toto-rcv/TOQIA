@@ -1,137 +1,205 @@
-import Link from "next/link";
-import { Check, Minus } from "lucide-react";
+import { Check, Minus, ScanLine } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
-import { EmptyState, Table, Td, Th, Thead, Tr } from "@/components/ui/table";
+import { Pagination } from "@/components/ui/pagination";
+import {
+  EmptyState,
+  RowCard,
+  RowField,
+  RowFields,
+  Table,
+  Td,
+  Th,
+  Thead,
+  Tr,
+} from "@/components/ui/table";
 import type { ScanRow } from "@/db/queries/scans";
-import { formatDateTime, formatNumber } from "@/lib/utils";
+import type { Paged } from "@/lib/pagination";
+import { formatDateTime } from "@/lib/utils";
 
-/** Tabla paginada de escaneos. La comparten /panel y /admin. */
+/**
+ * Tabla paginada de escaneos. La comparten /panel y /admin.
+ *
+ * Las filas que llegan son exactamente las de la página pedida: el LIMIT lo
+ * aplicó la base (ver `listScans`). Acá no se filtra ni se recorta nada.
+ */
 export function ScansTable({
-  rows,
-  total,
-  page,
-  pageSize,
+  paged,
   basePath,
   searchParams,
   showAccount = false,
   showLocation = true,
 }: {
-  rows: ScanRow[];
-  total: number;
-  page: number;
-  pageSize: number;
+  paged: Paged<ScanRow>;
   basePath: string;
-  searchParams: Record<string, string | undefined>;
+  searchParams: Record<string, string | string[] | undefined>;
   showAccount?: boolean;
   showLocation?: boolean;
 }) {
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const paginaActual = Math.min(page, totalPages);
-
-  if (rows.length === 0) {
+  if (paged.data.length === 0) {
     return (
       <Card>
-        <EmptyState>No hay escaneos que coincidan con estos filtros.</EmptyState>
+        <EmptyState icon={<ScanLine className="size-6" />}>
+          No hay escaneos que coincidan con estos filtros.
+        </EmptyState>
       </Card>
     );
   }
 
-  function href(nextPage: number) {
-    const query = new URLSearchParams();
-    for (const [key, value] of Object.entries(searchParams)) {
-      if (key !== "page" && value) query.set(key, value);
-    }
-    if (nextPage > 1) query.set("page", String(nextPage));
-    const qs = query.toString();
-    return qs ? `${basePath}?${qs}` : basePath;
-  }
-
-  const desde = (paginaActual - 1) * pageSize + 1;
-  const hasta = Math.min(paginaActual * pageSize, total);
-
   return (
     <Card className="overflow-hidden">
-      <Table>
-        <Thead>
-          <tr>
-            <Th className="w-[160px]">Fecha y hora</Th>
-            <Th className="w-[100px]">Pulsera</Th>
-            <Th className="w-[150px]">Camarero</Th>
-            {showAccount ? <Th className="w-[160px]">Cuenta</Th> : null}
-            {showLocation ? <Th className="w-[160px]">Local</Th> : null}
-            <Th className="w-[90px] text-center">Reseña</Th>
-            <Th>User agent</Th>
-            <Th className="w-[110px]">IP (hash)</Th>
-          </tr>
-        </Thead>
-        <tbody>
-          {rows.map((scan) => (
-            <Tr key={scan.id}>
-              <Td className="num text-xs text-ex-text">
-                {formatDateTime(scan.scannedAt)}
-              </Td>
-              <Td className="font-mono text-xs text-ex-text">{scan.braceletCode}</Td>
-              <Td className="text-xs">{scan.waiterName ?? "—"}</Td>
-              {showAccount ? <Td className="text-xs">{scan.accountName}</Td> : null}
-              {showLocation ? <Td className="text-xs">{scan.locationName}</Td> : null}
-              <Td className="text-center">
-                {scan.reviewClickedAt ? (
+      {/* ── Escritorio ───────────────────────────────────────────────── */}
+      <div className="hidden lg:block">
+        <Table>
+          <Thead>
+            <tr>
+              <Th className="w-[165px]">Fecha y hora</Th>
+              <Th className="w-[110px]">Pulsera</Th>
+              <Th className="w-[150px]">Camarero</Th>
+              {showAccount ? <Th className="w-[160px]">Cuenta</Th> : null}
+              {showLocation ? <Th className="w-[160px]">Local</Th> : null}
+              <Th className="w-[90px] text-center">Reseña</Th>
+              <Th>Dispositivo</Th>
+              <Th className="w-[120px]">IP (hash)</Th>
+            </tr>
+          </Thead>
+          <tbody>
+            {paged.data.map((scan) => (
+              <Tr key={scan.id}>
+                <Td className="text-[13px] tabular-nums text-ex-text">
+                  {formatDateTime(scan.scannedAt)}
+                </Td>
+                <Td className="font-mono text-[13px] font-medium text-ex-text">
+                  {scan.braceletCode}
+                </Td>
+                <Td className="text-[13px]">{scan.waiterName ?? "—"}</Td>
+                {showAccount ? (
+                  <Td className="text-[13px]">{scan.accountName}</Td>
+                ) : null}
+                {showLocation ? (
+                  <Td className="text-[13px]">{scan.locationName}</Td>
+                ) : null}
+                <Td className="text-center">
+                  <MarcaDeResena scan={scan} />
+                </Td>
+                <Td className="max-w-0">
                   <span
-                    title={`Fue a la reseña el ${formatDateTime(scan.reviewClickedAt)}`}
-                    className="inline-flex items-center justify-center text-ex-success"
+                    className="block truncate text-[12px] text-ex-text-muted"
+                    title={scan.userAgent ?? undefined}
                   >
-                    <Check className="size-4" />
+                    {dispositivo(scan.userAgent)}
                   </span>
-                ) : (
-                  <Minus className="inline-block size-4 text-ex-text-disabled" />
-                )}
-              </Td>
-              <Td className="max-w-0">
-                <span
-                  className="block truncate text-[11px] text-ex-text-muted"
-                  title={scan.userAgent ?? undefined}
-                >
-                  {scan.userAgent ?? "—"}
-                </span>
-              </Td>
-              <Td className="font-mono text-[11px] text-ex-text-disabled">
-                {/* Solo los primeros caracteres: alcanza para distinguir
-                    visitantes y no invita a jugar con el hash completo. */}
-                {scan.ipHash ? `${scan.ipHash.slice(0, 10)}…` : "—"}
-              </Td>
-            </Tr>
-          ))}
-        </tbody>
-      </Table>
-
-      <div className="flex items-center justify-between border-t border-ex-border px-4 py-3">
-        <p className="font-mono text-[11px] text-ex-text-muted">
-          {formatNumber(desde)}–{formatNumber(hasta)} de {formatNumber(total)}
-        </p>
-
-        <div className="flex items-center gap-2">
-          {paginaActual > 1 ? (
-            <Link href={href(paginaActual - 1)} className="ex-btn-ghost">
-              Anterior
-            </Link>
-          ) : (
-            <span className="ex-btn-ghost pointer-events-none opacity-40">Anterior</span>
-          )}
-
-          <span className="font-mono text-[11px] text-ex-text-muted">
-            {paginaActual} / {totalPages}
-          </span>
-
-          {paginaActual < totalPages ? (
-            <Link href={href(paginaActual + 1)} className="ex-btn-ghost">
-              Siguiente
-            </Link>
-          ) : (
-            <span className="ex-btn-ghost pointer-events-none opacity-40">Siguiente</span>
-          )}
-        </div>
+                </Td>
+                <Td className="font-mono text-[11.5px] text-ex-text-disabled">
+                  {/* Solo los primeros caracteres: alcanza para distinguir
+                      visitantes y no invita a jugar con el hash completo. */}
+                  {scan.ipHash ? `${scan.ipHash.slice(0, 10)}…` : "—"}
+                </Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
       </div>
+
+      {/* ── Celular y tablet ─────────────────────────────────────────── */}
+      <ul className="lg:hidden">
+        {paged.data.map((scan) => (
+          <RowCard key={scan.id}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[14.5px] font-semibold tabular-nums text-ex-text">
+                  {formatDateTime(scan.scannedAt)}
+                </p>
+                <p className="mt-0.5 font-mono text-[12.5px] text-ex-text-muted">
+                  {scan.braceletCode}
+                  {showLocation ? ` · ${scan.locationName}` : ""}
+                </p>
+              </div>
+              <MarcaDeResena scan={scan} conTexto />
+            </div>
+
+            <RowFields>
+              <RowField label="Camarero">{scan.waiterName ?? "—"}</RowField>
+              <RowField label="Dispositivo">
+                <span className="block truncate">
+                  {dispositivo(scan.userAgent)}
+                </span>
+              </RowField>
+            </RowFields>
+          </RowCard>
+        ))}
+      </ul>
+
+      <Pagination
+        paged={paged}
+        basePath={basePath}
+        searchParams={searchParams}
+        itemLabel="escaneos"
+      />
     </Card>
   );
+}
+
+function MarcaDeResena({
+  scan,
+  conTexto = false,
+}: {
+  scan: ScanRow;
+  conTexto?: boolean;
+}) {
+  if (scan.reviewClickedAt) {
+    return (
+      <span
+        title={`Fue a la reseña el ${formatDateTime(scan.reviewClickedAt)}`}
+        className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-ex-success/12
+                   px-2 py-1 text-[11px] font-semibold text-ex-success"
+      >
+        <Check className="size-3.5" aria-hidden />
+        {conTexto ? "Reseña" : <span className="sr-only">Fue a la reseña</span>}
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-ex-elevated
+                 px-2 py-1 text-[11px] font-medium text-ex-text-disabled"
+    >
+      <Minus className="size-3.5" aria-hidden />
+      {conTexto ? "Sin reseña" : <span className="sr-only">Sin reseña</span>}
+    </span>
+  );
+}
+
+/**
+ * El user agent completo no le dice nada a un dueño de restaurante. Se reduce
+ * al sistema y al navegador, que es lo único accionable ("mis clientes entran
+ * casi todos desde iPhone").
+ */
+function dispositivo(userAgent: string | null): string {
+  if (!userAgent) return "—";
+
+  const sistema = /iPhone|iPad|iPod/i.test(userAgent)
+    ? "iPhone"
+    : /Android/i.test(userAgent)
+      ? "Android"
+      : /Windows/i.test(userAgent)
+        ? "Windows"
+        : /Mac OS X/i.test(userAgent)
+          ? "Mac"
+          : /Linux/i.test(userAgent)
+            ? "Linux"
+            : "Otro";
+
+  const navegador = /Edg\//i.test(userAgent)
+    ? "Edge"
+    : /Chrome\//i.test(userAgent)
+      ? "Chrome"
+      : /Firefox\//i.test(userAgent)
+        ? "Firefox"
+        : /Safari\//i.test(userAgent)
+          ? "Safari"
+          : null;
+
+  return navegador ? `${sistema} · ${navegador}` : sistema;
 }

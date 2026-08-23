@@ -8,16 +8,16 @@ import { cn } from "@/lib/utils";
  * nunca como fondo de secciones grandes.
  */
 const badgeVariants = cva(
-  "inline-flex items-center gap-1.5 rounded-control border px-2 py-0.5 " +
-    "font-mono text-[11px] uppercase tracking-[0.08em]",
+  "inline-flex items-center gap-1.5 rounded-pill border px-2.5 py-0.5 " +
+    "text-[11px] font-semibold tracking-[0.01em]",
   {
     variants: {
       tone: {
-        active: "border-ex-success/25 bg-ex-success/10 text-ex-success",
+        active: "border-ex-success/20 bg-ex-success/10 text-ex-success",
         inactive: "border-ex-border bg-ex-elevated text-ex-text-muted",
         warning: "border-ex-warning/25 bg-ex-warning/10 text-ex-warning",
         danger: "border-ex-danger/25 bg-ex-danger/10 text-ex-danger",
-        accent: "border-ex-blue/25 bg-ex-blue/10 text-ex-blue-bright",
+        accent: "border-ex-blue/20 bg-ex-blue-wash text-ex-blue-deep",
       },
     },
     defaultVariants: { tone: "inactive" },
