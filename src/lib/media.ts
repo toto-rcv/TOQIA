@@ -147,10 +147,35 @@ export async function guardarArchivo({
       size: buffer.byteLength,
       cause,
     });
+
+    // MySQL rechaza un valor que no está en el enum de `kind` con este error.
+    // Pasa cuando la tabla se creó con una versión vieja del esquema y todavía
+    // no conoce el tipo de archivo (por ejemplo "dish", la foto de un plato).
+    // No es culpa del archivo, y decirle al usuario que pruebe con uno más
+    // liviano lo manda a perseguir un problema que no existe.
+    if (esValorFueraDelEnum(cause)) {
+      throw new ErrorDeArchivo(
+        `${etiqueta}: la base todavía no acepta este tipo de archivo. ` +
+          "Hay que aplicar las migraciones pendientes desde Mantenimiento, en el panel de administración."
+      );
+    }
+
     throw new ErrorDeArchivo(
       `${etiqueta}: no se pudo guardar el archivo. Probá con uno más liviano.`
     );
   }
+}
+
+/** ¿El error es "Data truncated for column …", que MySQL usa para los enums? */
+function esValorFueraDelEnum(cause: unknown): boolean {
+  // El error de drizzle envuelve el de mysql2 en `cause`, así que hay que
+  // mirar los dos niveles.
+  const candidatos = [cause, (cause as { cause?: unknown })?.cause];
+
+  return candidatos.some((error) => {
+    const codigo = (error as { errno?: number })?.errno;
+    return codigo === 1265 || codigo === 1406;
+  });
 }
 
 /**

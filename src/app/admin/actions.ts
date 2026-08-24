@@ -27,6 +27,7 @@ import {
 } from "@/db/queries/locations";
 import { auth } from "@/lib/auth";
 import { invalidateAll, invalidateBracelet } from "@/lib/redirect-cache";
+import { mensajeDeError } from "@/lib/errores-db";
 import { requireAdmin } from "@/lib/session";
 import {
   fail,
@@ -96,7 +97,7 @@ export async function createAccount(formData: FormData): Promise<ActionResult> {
       return fail(`Ya existe una cuenta con el slug "${slug}".`);
     }
     console.error("[admin] no se pudo crear la cuenta", { slug, cause });
-    return fail("No se pudo crear la cuenta. Probá de nuevo.");
+    return fail(mensajeDeError("No se pudo crear la cuenta", cause));
   }
 }
 
@@ -164,7 +165,7 @@ export async function updateAccount(formData: FormData): Promise<ActionResult> {
   } catch (cause) {
     if (esClaveDuplicada(cause)) return fail(`Ya existe otra cuenta con el slug "${slug}".`);
     console.error("[admin] no se pudo actualizar la cuenta", { id, cause });
-    return fail("No se pudo guardar la cuenta.");
+    return fail(mensajeDeError("No se pudo guardar la cuenta", cause));
   }
 }
 
@@ -191,7 +192,7 @@ export async function toggleAccount(
     return ok();
   } catch (cause) {
     console.error("[admin] no se pudo cambiar el estado de la cuenta", { id, cause });
-    return fail("No se pudo cambiar el estado de la cuenta.");
+    return fail(mensajeDeError("No se pudo cambiar el estado de la cuenta", cause));
   }
 }
 
@@ -235,7 +236,7 @@ export async function createLocation(formData: FormData): Promise<ActionResult> 
   } catch (cause) {
     if (esClaveDuplicada(cause)) return fail(`Ya existe un local con el slug "${slug}".`);
     console.error("[admin] no se pudo crear el local", { slug, cause });
-    return fail("No se pudo crear el local.");
+    return fail(mensajeDeError("No se pudo crear el local", cause));
   }
 }
 
@@ -270,7 +271,7 @@ export async function updateLocation(formData: FormData): Promise<ActionResult> 
   } catch (cause) {
     if (esClaveDuplicada(cause)) return fail(`Ya existe otro local con el slug "${slug}".`);
     console.error("[admin] no se pudo actualizar el local", { id, cause });
-    return fail("No se pudo guardar el local.");
+    return fail(mensajeDeError("No se pudo guardar el local", cause));
   }
 }
 
@@ -292,7 +293,7 @@ export async function toggleLocation(
     return ok();
   } catch (cause) {
     console.error("[admin] no se pudo cambiar el estado del local", { id, cause });
-    return fail("No se pudo cambiar el estado del local.");
+    return fail(mensajeDeError("No se pudo cambiar el estado del local", cause));
   }
 }
 
@@ -383,7 +384,7 @@ export async function createBracelet(formData: FormData): Promise<ActionResult> 
   } catch (cause) {
     if (esClaveDuplicada(cause)) return fail(`Ya existe una pulsera con el código ${code}.`);
     console.error("[admin] no se pudo crear la pulsera", { code, cause });
-    return fail("No se pudo crear la pulsera.");
+    return fail(mensajeDeError("No se pudo crear la pulsera", cause));
   }
 }
 
@@ -454,7 +455,7 @@ export async function createBraceletsBulk(
     return ok<BulkResult>({ created: nuevos.length, skipped: [...existentes] });
   } catch (cause) {
     console.error("[admin] falló el alta masiva", { prefix, count, cause });
-    return fail("No se pudo generar el lote.");
+    return fail(mensajeDeError("No se pudo generar el lote", cause));
   }
 }
 
@@ -526,7 +527,7 @@ export async function updateBracelet(formData: FormData): Promise<ActionResult> 
   } catch (cause) {
     if (esClaveDuplicada(cause)) return fail(`Ya existe otra pulsera con el código ${code}.`);
     console.error("[admin] no se pudo actualizar la pulsera", { id, cause });
-    return fail("No se pudo guardar la pulsera.");
+    return fail(mensajeDeError("No se pudo guardar la pulsera", cause));
   }
 }
 
@@ -547,7 +548,7 @@ export async function toggleBracelet(
     return ok();
   } catch (cause) {
     console.error("[admin] no se pudo cambiar el estado de la pulsera", { id, cause });
-    return fail("No se pudo cambiar el estado de la pulsera.");
+    return fail(mensajeDeError("No se pudo cambiar el estado de la pulsera", cause));
   }
 }
 
@@ -633,7 +634,7 @@ export async function createUser(formData: FormData): Promise<ActionResult> {
   } catch (cause) {
     if (esClaveDuplicada(cause)) return fail("Ya existe un usuario con ese email.");
     console.error("[admin] no se pudo crear el usuario", { email, cause });
-    return fail("No se pudo crear el usuario.");
+    return fail(mensajeDeError("No se pudo crear el usuario", cause));
   }
 }
 
@@ -672,7 +673,7 @@ export async function resetUserPassword(
     return ok();
   } catch (cause) {
     console.error("[admin] no se pudo cambiar la contraseña", { userId, cause });
-    return fail("No se pudo cambiar la contraseña.");
+    return fail(mensajeDeError("No se pudo cambiar la contraseña", cause));
   }
 }
 

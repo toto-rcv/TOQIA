@@ -9,6 +9,7 @@ import { getLocationById } from "@/db/queries/locations";
 import { listAccountIdsOfDistributor } from "@/db/queries/accounts";
 import { altaDeRestaurante } from "@/lib/alta-restaurante";
 import { invalidateBracelet } from "@/lib/redirect-cache";
+import { mensajeDeError } from "@/lib/errores-db";
 import { requireDistributor } from "@/lib/session";
 import {
   fail,
@@ -126,6 +127,6 @@ export async function colocarPulsera(
       braceletId,
       cause,
     });
-    return fail("No se pudo mover la pulsera.");
+    return fail(mensajeDeError("No se pudo mover la pulsera", cause));
   }
 }

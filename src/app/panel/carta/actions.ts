@@ -21,6 +21,7 @@ import {
 } from "@/lib/media";
 import { normalizeMenuIcon } from "@/lib/menu-icons";
 import { invalidateBracelet } from "@/lib/redirect-cache";
+import { mensajeDeError } from "@/lib/errores-db";
 import { requireRestaurantUser } from "@/lib/session";
 import {
   fail,
@@ -91,7 +92,7 @@ export async function createCategory(formData: FormData): Promise<ActionResult> 
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo crear la categoría", { cause });
-    return fail("No se pudo crear la categoría. Probá de nuevo.");
+    return fail(mensajeDeError("No se pudo crear la categoría", cause));
   }
 }
 
@@ -127,7 +128,7 @@ export async function updateCategory(formData: FormData): Promise<ActionResult> 
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo actualizar la categoría", { id, cause });
-    return fail("No se pudo guardar la categoría.");
+    return fail(mensajeDeError("No se pudo guardar la categoría", cause));
   }
 }
 
@@ -154,7 +155,7 @@ export async function toggleCategory(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo cambiar el estado de la categoría", { id, cause });
-    return fail("No se pudo cambiar el estado de la categoría.");
+    return fail(mensajeDeError("No se pudo cambiar el estado de la categoría", cause));
   }
 }
 
@@ -184,7 +185,7 @@ export async function deleteCategory(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo borrar la categoría", { id, cause });
-    return fail("No se pudo borrar la categoría.");
+    return fail(mensajeDeError("No se pudo borrar la categoría", cause));
   }
 }
 
@@ -244,7 +245,7 @@ export async function moveCategory(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo mover la categoría", { id, cause });
-    return fail("No se pudo cambiar el orden.");
+    return fail(mensajeDeError("No se pudo cambiar el orden", cause));
   }
 }
 
@@ -300,7 +301,7 @@ export async function createItem(formData: FormData): Promise<ActionResult> {
   } catch (cause) {
     if (cause instanceof ErrorDeArchivo) return fail(cause.message);
     console.error("[carta] no se pudo crear el plato", { cause });
-    return fail("No se pudo crear el plato. Probá de nuevo.");
+    return fail(mensajeDeError("No se pudo crear el plato", cause));
   }
 }
 
@@ -357,7 +358,7 @@ export async function updateItem(formData: FormData): Promise<ActionResult> {
   } catch (cause) {
     if (cause instanceof ErrorDeArchivo) return fail(cause.message);
     console.error("[carta] no se pudo actualizar el plato", { id, cause });
-    return fail("No se pudo guardar el plato.");
+    return fail(mensajeDeError("No se pudo guardar el plato", cause));
   }
 }
 
@@ -382,7 +383,7 @@ export async function toggleItemAvailable(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo cambiar la disponibilidad", { id, cause });
-    return fail("No se pudo cambiar la disponibilidad.");
+    return fail(mensajeDeError("No se pudo cambiar la disponibilidad", cause));
   }
 }
 
@@ -407,7 +408,7 @@ export async function deleteItem(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo borrar el plato", { id, cause });
-    return fail("No se pudo borrar el plato.");
+    return fail(mensajeDeError("No se pudo borrar el plato", cause));
   }
 }
 
@@ -458,7 +459,7 @@ export async function moveItem(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo mover el plato", { id, cause });
-    return fail("No se pudo cambiar el orden.");
+    return fail(mensajeDeError("No se pudo cambiar el orden", cause));
   }
 }
 
@@ -508,6 +509,6 @@ export async function updateMenuHeader(formData: FormData): Promise<ActionResult
       locationId,
       cause,
     });
-    return fail("No se pudo guardar la imagen.");
+    return fail(mensajeDeError("No se pudo guardar la imagen", cause));
   }
 }

@@ -83,6 +83,7 @@ async function recorrer(
   await agregarColumnas(ctx);
   await configurarModoDeCarta(ctx);
   await habilitarStockDePulseras(ctx);
+  await ensancharEnums(ctx);
   await convertirUrlsATexto(ctx);
   await normalizarFechas(ctx);
 
@@ -434,6 +435,109 @@ async function habilitarStockDePulseras(ctx: Contexto) {
       "ALTER TABLE `bracelets` MODIFY COLUMN `location_id` int NULL"
     );
   }
+}
+
+/* ── 2d. Valores nuevos en los enums ──────────────────────────────────────── */
+
+/**
+ * Los `enum` que crecieron con el tiempo.
+ *
+ * Este paso existe por un agujero real: las tablas se crean una sola vez, y
+ * los pasos de arriba las saltean cuando ya existen. Si una tabla se creó con
+ * una versión vieja del esquema, su enum se queda con los valores de entonces
+ * para siempre. MySQL no avisa: acepta el INSERT y falla recién al escribir,
+ * con un "Data truncated for column …" que no dice nada.
+ *
+ * Es lo que pasaba al subir la foto de un plato: `media_files.kind` no conocía
+ * el valor "dish" y el guardado fallaba con un error genérico.
+ */
+const ENUMS: Array<{
+  tabla: string;
+  columna: string;
+  valores: string[];
+  definicion: string;
+}> = [
+  {
+    tabla: "media_files",
+    columna: "kind",
+    valores: ["logo", "cover", "closing", "menu_pdf", "menu_header", "dish"],
+    definicion:
+      "enum('logo','cover','closing','menu_pdf','menu_header','dish') NOT NULL",
+  },
+  {
+    tabla: "bracelets",
+    columna: "device_type",
+    valores: ["pulsera", "placa"],
+    definicion: "enum('pulsera','placa') NOT NULL DEFAULT 'pulsera'",
+  },
+  {
+    tabla: "locations",
+    columna: "menu_mode",
+    valores: ["toqia", "pdf"],
+    definicion: "enum('toqia','pdf') NOT NULL DEFAULT 'toqia'",
+  },
+  {
+    tabla: "accounts",
+    columna: "subscription_status",
+    valores: ["trial", "active", "past_due", "cancelled"],
+    definicion:
+      "enum('trial','active','past_due','cancelled') NOT NULL DEFAULT 'trial'",
+  },
+  {
+    tabla: "user",
+    columna: "role",
+    valores: ["admin", "distributor", "restaurant"],
+    definicion:
+      "enum('admin','distributor','restaurant') NOT NULL DEFAULT 'restaurant'",
+  },
+];
+
+async function ensancharEnums(ctx: Contexto) {
+  ctx.grupo = "Valores de los enums";
+
+  for (const { tabla, columna, valores, definicion } of ENUMS) {
+    const tipo = await ctx.tipoColumna(tabla, columna);
+
+    if (!tipo) {
+      ctx.anotar(`${tabla}.${columna} (no existe)`, "no-aplica");
+      continue;
+    }
+
+    const actuales = valoresDeEnum(tipo);
+    const faltan = valores.filter((valor) => !actuales.includes(valor));
+
+    if (faltan.length === 0) {
+      ctx.anotar(`${tabla}.${columna}`, "ya-estaba");
+      continue;
+    }
+
+    // Si la base tiene un valor que el código no conoce, aplicar la definición
+    // nueva lo borraría de las filas que lo usan. Eso no lo arregla una
+    // migración automática: se avisa y se sigue.
+    const sobran = actuales.filter((valor) => !valores.includes(valor));
+    if (sobran.length > 0) {
+      ctx.anotar(
+        `${tabla}.${columna}: la base tiene valores que el código no conoce (${sobran.join(", ")}); no se toca`,
+        "no-aplica"
+      );
+      continue;
+    }
+
+    await ctx.correr(
+      `${tabla}.${columna}: faltaba ${faltan.join(", ")}`,
+      `ALTER TABLE \`${tabla}\` MODIFY COLUMN \`${columna}\` ${definicion}`
+    );
+  }
+}
+
+/** `enum('a','b')` → `["a", "b"]`. */
+function valoresDeEnum(tipo: string): string[] {
+  const contenido = tipo.match(/^enum\((.*)\)$/i);
+  if (!contenido) return [];
+
+  return contenido[1]
+    .split(",")
+    .map((parte) => parte.trim().replace(/^'|'$/g, "").replace(/''/g, "'"));
 }
 
 /* ── 3. varchar(2048) → TEXT en las URLs de locations ─────────────────────── */

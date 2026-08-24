@@ -15,6 +15,7 @@ import {
   resolverCampoDeArchivo,
 } from "@/lib/media";
 import { invalidateBracelet } from "@/lib/redirect-cache";
+import { mensajeDeError } from "@/lib/errores-db";
 import { requireRestaurantUser } from "@/lib/session";
 import {
   fail,
@@ -67,7 +68,7 @@ export async function createWaiter(formData: FormData): Promise<ActionResult> {
     return ok();
   } catch (cause) {
     console.error("[panel] no se pudo crear el camarero", { cause });
-    return fail("No se pudo crear el camarero. Probá de nuevo.");
+    return fail(mensajeDeError("No se pudo crear el camarero", cause));
   }
 }
 
@@ -91,7 +92,7 @@ export async function updateWaiter(formData: FormData): Promise<ActionResult> {
     return ok();
   } catch (cause) {
     console.error("[panel] no se pudo actualizar el camarero", { id, cause });
-    return fail("No se pudo guardar el camarero.");
+    return fail(mensajeDeError("No se pudo guardar el camarero", cause));
   }
 }
 
@@ -111,7 +112,7 @@ export async function toggleWaiter(
     return ok();
   } catch (cause) {
     console.error("[panel] no se pudo cambiar el estado del camarero", { id, cause });
-    return fail("No se pudo cambiar el estado del camarero.");
+    return fail(mensajeDeError("No se pudo cambiar el estado del camarero", cause));
   }
 }
 
@@ -153,7 +154,7 @@ export async function assignWaiter(
     return ok();
   } catch (cause) {
     console.error("[panel] no se pudo asignar el camarero", { braceletId, cause });
-    return fail("No se pudo asignar el camarero.");
+    return fail(mensajeDeError("No se pudo asignar el camarero", cause));
   }
 }
 
@@ -227,8 +228,25 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
     return fail("El símbolo de moneda no puede superar los 8 caracteres.");
   }
 
-  if (displayName !== "" && displayName.length > 255) {
-    return fail("El nombre visible no puede superar los 255 caracteres.");
+  // Cada texto libre tiene su propio tope en la base. Sin validarlos acá,
+  // pasarse por un carácter llegaba hasta MySQL y volvía como un
+  // "no se pudo guardar" que no decía qué campo achicar.
+  const TOPES: Array<[string, string, number]> = [
+    [displayName, "El nombre visible", 255],
+    [tagline, "La frase", 255],
+    [address, "La dirección", 500],
+    [phone, "El teléfono", 32],
+    [welcomeKicker, "El texto de bienvenida", 120],
+    [welcomeTitle, "El título de la reseña", 200],
+    [closingMessage, "El mensaje de cierre", 200],
+  ];
+
+  for (const [valor, etiqueta, tope] of TOPES) {
+    if (valor.length > tope) {
+      return fail(
+        `${etiqueta} no puede superar los ${tope} caracteres (tiene ${valor.length}).`
+      );
+    }
   }
 
   try {
@@ -326,6 +344,6 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
       locationId,
       cause,
     });
-    return fail("No se pudo guardar. Probá de nuevo.");
+    return fail(mensajeDeError("No se pudo guardar", cause));
   }
 }

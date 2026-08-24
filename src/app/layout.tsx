@@ -9,8 +9,8 @@ import "@fontsource/anton/latin-400.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pulseras NFC",
-  description: "Sistema de captación de reseñas de Google mediante pulseras NFC.",
+  title: "Toqia",
+  description: "Tu negocio a un toque",
   robots: { index: false, follow: false },
 };
 
