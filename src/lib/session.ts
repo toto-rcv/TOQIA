@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import type { UserRole } from "@/db/schema";
@@ -72,18 +72,67 @@ export async function requireDistributor(): Promise<SessionUser> {
 }
 
 /**
- * Exige un usuario de restaurante y garantiza que tenga cuenta asignada.
- * Un usuario con rol "restaurant" sin `accountId` no puede ver nada: sería un
- * error de alta, y es preferible cortarlo acá antes que mostrar datos de otro.
+ * Nombre de la cookie donde el admin guarda a qué restaurante entró.
+ *
+ * Es una cookie y no un parámetro en la URL para no tener que arrastrarlo por
+ * las seis páginas del panel, sus filtros y su paginación: cualquier link que
+ * se olvidara de propagarlo lo sacaría del restaurante a mitad de camino.
+ */
+export const COOKIE_CUENTA_ADMIN = "toqia_cuenta";
+
+/**
+ * Exige alguien que pueda operar el panel de un restaurante, y devuelve de qué
+ * cuenta se trata.
+ *
+ * Dos caminos:
+ *
+ *  - **Usuario de restaurante**: su cuenta sale de la sesión. Un usuario con
+ *    rol "restaurant" sin `accountId` no puede ver nada: sería un error de
+ *    alta, y es preferible cortarlo acá antes que mostrarle datos de otro.
+ *  - **Admin**: entra al panel del restaurante que haya elegido en
+ *    /admin/cuentas. Es lo que le permite configurarle la página o cargarle la
+ *    carta a un cliente sin pedirle la contraseña.
+ *
+ * Todo el panel pasa por acá —las seis páginas y todas sus Server Actions— así
+ * que la cuenta que devuelve esta función es la única fuente de verdad sobre
+ * qué datos se tocan. Nunca sale de la query string.
  */
 export async function requireRestaurantUser(): Promise<
   SessionUser & { accountId: number }
 > {
-  const user = await requireRole("restaurant");
+  const user = await requireUser();
+
+  if (user.role === "admin") {
+    const accountId = await cuentaElegidaPorElAdmin();
+    // Sin cuenta elegida no hay panel que mostrar: lo mandamos a elegirla.
+    if (accountId === null) redirect("/admin/cuentas?elegir=1");
+    return { ...user, accountId };
+  }
+
+  if (user.role !== "restaurant") redirect(homeForRole(user.role));
   if (user.accountId === null) {
     redirect("/login?error=sin-cuenta");
   }
   return user as SessionUser & { accountId: number };
+}
+
+/**
+ * La cuenta que el admin eligió, o null si no eligió ninguna o si la que
+ * había ya no existe (la borró, o se vació la base).
+ */
+export async function cuentaElegidaPorElAdmin(): Promise<number | null> {
+  const almacen = await cookies();
+  const valor = almacen.get(COOKIE_CUENTA_ADMIN)?.value;
+  if (!valor) return null;
+
+  const id = Number.parseInt(valor, 10);
+  if (!Number.isFinite(id) || id <= 0) return null;
+
+  // Se valida contra la base: una cookie vieja apuntando a una cuenta borrada
+  // haría fallar cada página del panel con un error sin explicación.
+  const { getAccountById } = await import("@/db/queries/accounts");
+  const cuenta = await getAccountById(id);
+  return cuenta ? cuenta.id : null;
 }
 
 /** A dónde va cada rol después de ingresar. */

@@ -88,5 +88,17 @@ export function pistaDeErrorDeBase(cause: unknown): string | null {
  */
 export function mensajeDeError(base: string, cause: unknown): string {
   const pista = pistaDeErrorDeBase(cause);
-  return pista ? `${base}. ${pista}` : `${base}. Probá de nuevo.`;
+  if (pista) return `${base}. ${pista}`;
+
+  // No fue un error de MySQL. Igual se muestra lo que dijo, recortado: un
+  // "Probá de nuevo" a secas deja al usuario probando de nuevo para siempre y
+  // a nosotros sin nada que investigar.
+  const detalle = cause instanceof Error ? cause.message.trim() : "";
+  if (detalle) {
+    const recortado =
+      detalle.length > 220 ? `${detalle.slice(0, 220)}…` : detalle;
+    return `${base}. ${recortado}`;
+  }
+
+  return `${base}. Probá de nuevo.`;
 }

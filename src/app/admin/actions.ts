@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 import {
   account as authAccount,
@@ -28,7 +29,7 @@ import {
 import { auth } from "@/lib/auth";
 import { invalidateAll, invalidateBracelet } from "@/lib/redirect-cache";
 import { mensajeDeError } from "@/lib/errores-db";
-import { requireAdmin } from "@/lib/session";
+import { COOKIE_CUENTA_ADMIN, requireAdmin } from "@/lib/session";
 import {
   fail,
   ok,
@@ -550,6 +551,54 @@ export async function toggleBracelet(
     console.error("[admin] no se pudo cambiar el estado de la pulsera", { id, cause });
     return fail(mensajeDeError("No se pudo cambiar el estado de la pulsera", cause));
   }
+}
+
+/* ── Entrar al panel de un restaurante ───────────────────────────────────── */
+
+/**
+ * Deja al admin operar el panel de un restaurante como si fuera el suyo.
+ *
+ * Sirve para configurarle la página o cargarle la carta a un cliente que
+ * recién arranca, sin pedirle la contraseña ni crearse un usuario falso.
+ *
+ * La cuenta elegida viaja en una cookie de sesión y no en la URL: el panel
+ * tiene seis páginas con filtros y paginación propios, y cualquier link que se
+ * olvidara de arrastrar el parámetro sacaría al admin del restaurante a mitad
+ * de camino. `httpOnly` porque nada del navegador necesita leerla, y `lax`
+ * para que no viaje desde otro sitio.
+ */
+export async function entrarAlPanelDe(accountId: number): Promise<ActionResult> {
+  await requireAdmin();
+
+  try {
+    const cuenta = await getAccountById(accountId);
+    if (!cuenta) return fail("La cuenta elegida no existe.");
+
+    const almacen = await cookies();
+    almacen.set(COOKIE_CUENTA_ADMIN, String(cuenta.id), {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    revalidatePath("/panel", "layout");
+    return ok();
+  } catch (cause) {
+    console.error("[admin] no se pudo entrar al panel", { accountId, cause });
+    return fail(mensajeDeError("No se pudo abrir el panel", cause));
+  }
+}
+
+/** Cierra el panel del restaurante y devuelve al admin a lo suyo. */
+export async function salirDelPanelDelRestaurante(): Promise<ActionResult> {
+  await requireAdmin();
+
+  const almacen = await cookies();
+  almacen.delete(COOKIE_CUENTA_ADMIN);
+
+  revalidatePath("/panel", "layout");
+  return ok();
 }
 
 /* ── Usuarios ────────────────────────────────────────────────────────────── */

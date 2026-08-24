@@ -1,6 +1,7 @@
 "use client";
 
-import { Plus, Power, Settings2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ExternalLink, Plus, Power, Settings2 } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input, Label, Select } from "@/components/ui/input";
 import { slugify } from "@/lib/validation";
-import { createAccount, toggleAccount, updateAccount } from "../actions";
+import {
+  createAccount,
+  entrarAlPanelDe,
+  toggleAccount,
+  updateAccount,
+} from "../actions";
 
 type Distributor = { id: string; name: string; email: string };
 
@@ -140,9 +146,51 @@ export function AccountRowActions({
 }) {
   return (
     <div className="flex items-center justify-end gap-1.5">
+      <AbrirPanelButton account={account} />
       <EditAccountDialog account={account} distributors={distributors} />
       <ToggleAccountButton account={account} />
     </div>
+  );
+}
+
+/**
+ * Entra al panel de este restaurante.
+ *
+ * Es lo que permite configurarle la página o cargarle la carta a un cliente
+ * que recién arranca, sin pedirle la contraseña. Al volver, el panel muestra
+ * una franja arriba avisando de quién es lo que se está viendo.
+ */
+function AbrirPanelButton({ account }: { account: AccountRow }) {
+  const router = useRouter();
+  const [pending, startTransition] = React.useTransition();
+
+  function abrir() {
+    startTransition(async () => {
+      const resultado = await entrarAlPanelDe(account.id);
+      // Si falla, lo natural es que sea porque la cuenta ya no existe; la
+      // lista se recarga y deja de mostrarla.
+      if (!resultado.ok) {
+        router.refresh();
+        return;
+      }
+      router.push("/panel");
+    });
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={abrir}
+      disabled={pending}
+      title={`Abrir el panel de ${account.name}`}
+      aria-label={`Abrir el panel de ${account.name}`}
+      className="inline-flex h-7 w-7 items-center justify-center rounded-control border
+                 border-ex-border text-ex-text-muted transition-colors
+                 hover:border-ex-blue/40 hover:text-ex-text active:scale-[0.98]
+                 disabled:opacity-40"
+    >
+      <ExternalLink className="size-3.5" />
+    </button>
   );
 }
 

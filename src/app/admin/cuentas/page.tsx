@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 
 import { PageHeader } from "@/components/admin/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +20,16 @@ const ETIQUETA_ESTADO: Record<string, { label: string; tone: "active" | "inactiv
   cancelled: { label: "cancelada", tone: "danger" },
 };
 
-export default async function AdminAccountsPage() {
+export default async function AdminAccountsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ elegir?: string }>;
+}) {
   await requireAdmin();
+
+  // Se llega con ?elegir=1 desde /panel: un admin sin restaurante elegido no
+  // tiene panel que mirar, y el aviso le dice qué le falta hacer.
+  const { elegir } = await searchParams;
 
   const [cuentas, distribuidores] = await Promise.all([
     listAccounts(),
@@ -37,6 +46,17 @@ export default async function AdminAccountsPage() {
       >
         <NewAccountDialog />
       </PageHeader>
+
+      {elegir ? (
+        <div className="mb-4 rounded-card border border-ex-warning/30 bg-ex-warning/10 px-4 py-3">
+          <p className="text-[12.5px] leading-relaxed text-ex-text">
+            Para entrar al panel de un restaurante, elegí cuál con el botón{" "}
+            <ExternalLink className="inline size-3.5 -translate-y-px" aria-hidden />{" "}
+            de su fila. Vas a poder configurarle la página y cargarle la carta
+            como si fueras él.
+          </p>
+        </div>
+      ) : null}
 
       {cuentas.length === 0 ? (
         <Card>

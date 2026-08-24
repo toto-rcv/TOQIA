@@ -1,6 +1,7 @@
 import { PanelShell } from "@/components/layout/panel-shell";
 import { getAccountById } from "@/db/queries/accounts";
 import { requireRestaurantUser } from "@/lib/session";
+import { AvisoDeAdmin } from "./aviso-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -33,13 +34,18 @@ export default async function PanelLayout({
   const user = await requireRestaurantUser();
   const account = await getAccountById(user.accountId);
 
+  // Un admin puede entrar al panel de cualquier restaurante desde /admin/cuentas.
+  // La chapa de arriba cambia para que no se confunda con su propio panel.
+  const comoAdmin = user.role === "admin";
+
   return (
     <PanelShell
       title={account?.name ?? "Toqia"}
-      badge="Restaurante"
+      badge={comoAdmin ? "Admin" : "Restaurante"}
       email={user.email}
       items={ITEMS}
     >
+      {comoAdmin ? <AvisoDeAdmin nombreDeCuenta={account?.name ?? "este local"} /> : null}
       {children}
     </PanelShell>
   );
