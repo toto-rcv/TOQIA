@@ -1,6 +1,6 @@
-import { and, asc, eq, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull, sql, type SQL } from "drizzle-orm";
 
-import { accounts, bracelets, db, locations, scans, waiters } from "@/db";
+import { accounts, bracelets, db, locations, scans, user, waiters } from "@/db";
 import {
   buildPaged,
   offsetOf,
@@ -15,12 +15,16 @@ export type BraceletListItem = {
   label: string | null;
   overrideUrl: string | null;
   active: boolean;
-  locationId: number;
-  locationName: string;
-  locationActive: boolean;
-  accountId: number;
-  accountName: string;
-  accountActive: boolean;
+  /** Null = la pulsera todavía no está puesta en ningún local (stock). */
+  locationId: number | null;
+  locationName: string | null;
+  locationActive: boolean | null;
+  accountId: number | null;
+  accountName: string | null;
+  accountActive: boolean | null;
+  /** Distribuidor que la tiene o que la colocó. */
+  distributorId: string | null;
+  distributorName: string | null;
   waiterId: number | null;
   waiterName: string | null;
   scanCount: number;
@@ -33,6 +37,13 @@ export type BraceletFilters = {
   accountId?: number;
   locationId?: number;
   waiterId?: number;
+  /** Pulseras entregadas a este distribuidor, estén o no puestas en un local. */
+  distributorId?: string;
+  /**
+   * true  → solo las que todavía no están en ningún local (stock)
+   * false → solo las que ya están puestas
+   */
+  sinLocal?: boolean;
 };
 
 function condicionesDe(options: BraceletFilters): SQL[] {
@@ -40,6 +51,11 @@ function condicionesDe(options: BraceletFilters): SQL[] {
   if (options.accountId) condiciones.push(eq(locations.accountId, options.accountId));
   if (options.locationId) condiciones.push(eq(bracelets.locationId, options.locationId));
   if (options.waiterId) condiciones.push(eq(bracelets.waiterId, options.waiterId));
+  if (options.distributorId) {
+    condiciones.push(eq(bracelets.distributorId, options.distributorId));
+  }
+  if (options.sinLocal === true) condiciones.push(isNull(bracelets.locationId));
+  if (options.sinLocal === false) condiciones.push(isNotNull(bracelets.locationId));
   return condiciones;
 }
 
@@ -79,6 +95,8 @@ export async function listBracelets(
       accountId: locations.accountId,
       accountName: accounts.name,
       accountActive: accounts.active,
+      distributorId: bracelets.distributorId,
+      distributorName: user.name,
       waiterId: bracelets.waiterId,
       waiterName: waiters.name,
       createdAt: bracelets.createdAt,
@@ -95,9 +113,12 @@ export async function listBracelets(
       )`,
     })
       .from(bracelets)
-      .innerJoin(locations, eq(bracelets.locationId, locations.id))
-      .innerJoin(accounts, eq(locations.accountId, accounts.id))
+      // LEFT y no INNER: una pulsera en stock todavía no tiene local, y con un
+      // INNER JOIN desaparecería de la lista en vez de mostrarse como stock.
+      .leftJoin(locations, eq(bracelets.locationId, locations.id))
+      .leftJoin(accounts, eq(locations.accountId, accounts.id))
       .leftJoin(waiters, eq(bracelets.waiterId, waiters.id))
+      .leftJoin(user, eq(bracelets.distributorId, user.id))
       .where(where)
       // El id desempata: sin un orden total, dos filas con el mismo código
       // podrían aparecer en dos páginas distintas o en ninguna.
@@ -108,13 +129,14 @@ export async function listBracelets(
     db
       .select({ total: sql<number>`COUNT(*)`.mapWith(Number) })
       .from(bracelets)
-      .innerJoin(locations, eq(bracelets.locationId, locations.id))
+      .leftJoin(locations, eq(bracelets.locationId, locations.id))
       .where(where),
   ]);
 
   const data = filas.map((fila) => ({
     ...fila,
     waiterName: fila.waiterName ?? null,
+    distributorName: fila.distributorName ?? null,
     lastScanAt: fila.lastScanAt ? new Date(fila.lastScanAt) : null,
   }));
 
@@ -130,20 +152,31 @@ export async function listBracelets(
  */
 export async function listBraceletOptions(options: BraceletFilters) {
   const condiciones = condicionesDe(options);
+  // Solo las que ya están puestas en un local: este listado alimenta el filtro
+  // de la tabla de escaneos, y una pulsera en stock no tiene escaneos.
+  condiciones.push(isNotNull(bracelets.locationId));
 
-  return db
+  const filas = await db
     .select({
       id: bracelets.id,
       code: bracelets.code,
       locationId: bracelets.locationId,
     })
     .from(bracelets)
-    .innerJoin(locations, eq(bracelets.locationId, locations.id))
+    .leftJoin(locations, eq(bracelets.locationId, locations.id))
     .where(condiciones.length > 0 ? and(...condiciones) : undefined)
     .orderBy(asc(bracelets.code))
     // Un combo con más de dos mil opciones ya no es usable; el tope evita que
     // una cuenta enorme cuelgue la página del filtro.
     .limit(2000);
+
+  // El `isNotNull` de arriba ya las descartó; esto es para que el tipo lo
+  // refleje, sin un `!` que mienta si mañana cambia la condición.
+  return filas.flatMap((fila) =>
+    fila.locationId === null
+      ? []
+      : [{ id: fila.id, code: fila.code, locationId: fila.locationId }]
+  );
 }
 
 export async function getBraceletById(id: number) {
@@ -196,4 +229,56 @@ export async function findExistingCodes(codes: string[]): Promise<Set<string>> {
     .where(sql`${bracelets.code} IN ${codes}`);
 
   return new Set(filas.map((fila) => fila.code));
+}
+
+export type StockPulseras = {
+  /** Entregadas al distribuidor, en total. */
+  total: number;
+  /** Todavía sin local: las que tiene para colocar. */
+  enStock: number;
+  /** Ya puestas en un local. */
+  colocadas: number;
+};
+
+/**
+ * Inventario de un distribuidor en una sola consulta.
+ *
+ * Va con COUNT condicional en vez de tres consultas: es la misma pasada por el
+ * índice `bracelets_distributor_idx` y no tres.
+ */
+export async function getStockDeDistribuidor(
+  distributorId: string
+): Promise<StockPulseras> {
+  const filas = await db
+    .select({
+      total: sql<number>`COUNT(*)`.mapWith(Number),
+      enStock: sql<number>`SUM(${bracelets.locationId} IS NULL)`.mapWith(Number),
+    })
+    .from(bracelets)
+    .where(eq(bracelets.distributorId, distributorId));
+
+  const total = filas[0]?.total ?? 0;
+  // SUM sobre cero filas devuelve NULL, no 0.
+  const enStock = Number(filas[0]?.enStock ?? 0) || 0;
+
+  return { total, enStock, colocadas: total - enStock };
+}
+
+/**
+ * Trae una pulsera verificando que sea de este distribuidor.
+ * La usan las acciones del panel del distribuidor, que no pueden confiar en un
+ * id que llegó por formulario.
+ */
+export async function getBraceletForDistributor(id: number, distributorId: string) {
+  const filas = await db
+    .select({
+      id: bracelets.id,
+      code: bracelets.code,
+      locationId: bracelets.locationId,
+      active: bracelets.active,
+    })
+    .from(bracelets)
+    .where(and(eq(bracelets.id, id), eq(bracelets.distributorId, distributorId)))
+    .limit(1);
+  return filas[0] ?? null;
 }

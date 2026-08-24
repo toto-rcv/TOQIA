@@ -1,9 +1,17 @@
 # Poner al día la base
 
+## En desarrollo
+
 Un solo comando, siempre el mismo, después de cada `git pull`:
 
 ```powershell
 npm run migrate
+```
+
+Para ver qué falta sin tocar nada:
+
+```powershell
+npm run migrate -- --dry-run
 ```
 
 Después, si querés datos de prueba:
@@ -12,7 +20,19 @@ Después, si querés datos de prueba:
 npm run db:seed
 ```
 
-Eso es todo. El script es idempotente: podés correrlo dos veces sin romper nada.
+Eso es todo. Es idempotente: podés correrlo dos veces sin romper nada.
+
+## En producción
+
+**Panel de administración → Mantenimiento.** La página muestra si falta algún
+cambio y cuál, y un botón lo aplica. Es la misma rutina que corre `npm run
+migrate` (vive en `src/lib/migraciones.ts`; el script de consola es solo una
+cáscara).
+
+Existe porque en el contenedor de producción no hay terminal a mano y `tsx` es
+una dependencia de desarrollo que puede no estar instalada. El síntoma de una
+base sin migrar es siempre el mismo: la página que usa la columna nueva tira
+`Application error: a server-side exception has occurred`.
 
 ---
 
@@ -72,10 +92,11 @@ Ningún paso borra ni reescribe filas.
 
 ---
 
-## En producción
+## En producción, desde tu máquina
 
-Lo mismo, apuntando a la base de Coolify. Es el paso 5 del `DEPLOY.md`, pero
-cambiando el comando:
+La forma recomendada es el botón de **Mantenimiento** (arriba). Si preferís
+hacerlo desde la consola apuntando a la base de Coolify, es el paso 5 del
+`DEPLOY.md` cambiando el comando:
 
 ```powershell
 Copy-Item .env .env.local.bak -ErrorAction SilentlyContinue
@@ -92,6 +113,19 @@ Remove-Item .env.local.bak
 > tocar el esquema de producción cuesta un minuto y evita una noche mala.
 
 Acordate de volver a desactivar **Make it publicly available** cuando termines.
+
+---
+
+## Vaciar la base para arrancar con datos reales
+
+**Panel de administración → Mantenimiento → Vaciar la base.** Borra cuentas,
+locales, pulseras, camareros, escaneos, cartas y archivos subidos, y todos los
+usuarios menos el admin que aprieta el botón. Hay que escribir `BORRAR TODO`
+para confirmar, el servidor vuelve a verificar el rol y la frase, y todo va en
+una transacción: si algo falla a mitad de camino no queda media base borrada.
+
+Es irreversible. Los contadores `AUTO_INCREMENT` vuelven a 1 para que los datos
+reales arranquen desde el uno.
 
 ---
 

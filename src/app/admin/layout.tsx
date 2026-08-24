@@ -13,6 +13,7 @@ const ITEMS: NavItem[] = [
   { href: "/admin/camareros", label: "Camareros", icon: "camareros" },
   { href: "/admin/escaneos", label: "Escaneos", icon: "escaneos" },
   { href: "/admin/usuarios", label: "Usuarios", icon: "usuarios" },
+  { href: "/admin/mantenimiento", label: "Mantenimiento", icon: "mantenimiento" },
 ];
 
 /**

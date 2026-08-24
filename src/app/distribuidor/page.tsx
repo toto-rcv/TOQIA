@@ -1,117 +1,157 @@
-import { PageHeader } from "@/components/admin/page-header";
-import { MetricTile } from "@/components/stats/metric-tile";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { EmptyState, Table, Td, Th, Thead, Tr } from "@/components/ui/table";
-import { listAccounts } from "@/db/queries/accounts";
-import { requireDistributor } from "@/lib/session";
-import { formatDate, formatNumber } from "@/lib/utils";
+import Link from "next/link";
 
-export const metadata = { title: "Mis cuentas · Toqia" };
+import { PageHeader } from "@/components/admin/page-header";
+import { EvolutionChart } from "@/components/stats/evolution-chart";
+import { MetricTile } from "@/components/stats/metric-tile";
+import { RankingList } from "@/components/stats/ranking-list";
+import {
+  Card,
+  CardBody,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/table";
+import {
+  listAccountIdsOfDistributor,
+  listAccounts,
+} from "@/db/queries/accounts";
+import { getStockDeDistribuidor } from "@/db/queries/bracelets";
+import {
+  getLocationBreakdown,
+  getSeries,
+  getStatsSummary,
+  getTotalScans,
+  type StatsScope,
+} from "@/db/queries/stats";
+import { requireDistributor } from "@/lib/session";
+import { parseStatsParams, type StatsSearchParams } from "@/lib/stats-params";
+import { formatNumber } from "@/lib/utils";
+
+export const metadata = { title: "Resumen · Toqia Distribuidor" };
 export const dynamic = "force-dynamic";
 
-const ETIQUETA_ESTADO: Record<
-  string,
-  { label: string; tone: "active" | "inactive" | "warning" | "danger" }
-> = {
-  trial: { label: "prueba", tone: "warning" },
-  active: { label: "activa", tone: "active" },
-  past_due: { label: "impaga", tone: "warning" },
-  cancelled: { label: "cancelada", tone: "danger" },
-};
-
-export default async function DistribuidorPage() {
+/**
+ * Lo que rinde la cartera del distribuidor, de un vistazo.
+ *
+ * Todo sale de `listAccountIdsOfDistributor`, que se alimenta de la sesión y
+ * nunca de la URL: esa lista es la única barrera entre un distribuidor y los
+ * datos de otro.
+ */
+export default async function DistribuidorPage({
+  searchParams,
+}: {
+  searchParams: Promise<StatsSearchParams>;
+}) {
   const user = await requireDistributor();
+  const params = parseStatsParams(await searchParams);
 
-  // El filtro por distribuidor sale de la sesión, no de la URL.
-  const cuentas = await listAccounts({ distributorId: user.id });
+  const accountIds = await listAccountIdsOfDistributor(user.id);
+  const scope: StatsScope = { accountIds };
 
-  const totales = cuentas.reduce(
-    (acc, cuenta) => ({
-      locales: acc.locales + cuenta.locationCount,
-      pulseras: acc.pulseras + cuenta.braceletCount,
-      escaneos: acc.escaneos + cuenta.scanCount,
-    }),
-    { locales: 0, pulseras: 0, escaneos: 0 }
-  );
+  const [cuentas, resumen, serie, total, porLocal, stock] = await Promise.all([
+    listAccounts({ distributorId: user.id }),
+    getStatsSummary(scope, params.period),
+    getSeries(scope, params.period, params.granularity),
+    getTotalScans(scope),
+    getLocationBreakdown(accountIds, params.period),
+    getStockDeDistribuidor(user.id),
+  ]);
+
+  if (accountIds.length === 0 && stock.total === 0) {
+    return (
+      <>
+        <PageHeader title="Resumen" />
+        <Card>
+          <EmptyState>
+            Todavía no tenés cuentas asignadas ni pulseras entregadas. Cuando
+            Toqia te entregue un lote vas a poder dar de alta tu primer
+            restaurante desde{" "}
+            <Link
+              href="/distribuidor/restaurantes"
+              className="text-ex-blue underline underline-offset-4"
+            >
+              Restaurantes
+            </Link>
+            .
+          </EmptyState>
+        </Card>
+      </>
+    );
+  }
+
+  const locales = cuentas.reduce((suma, cuenta) => suma + cuenta.locationCount, 0);
 
   return (
     <>
       <PageHeader
-        title="Mis cuentas"
-        subtitle="Los restaurantes que tenés asignados."
+        title="Resumen"
+        subtitle={`${params.period.label} · las fechas se muestran en hora local.`}
       />
 
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricTile value={cuentas.length} label="Cuentas" highlight />
-        <MetricTile value={totales.locales} label="Locales" />
-        <MetricTile value={totales.pulseras} label="Pulseras" />
-        <MetricTile value={totales.escaneos} label="Escaneos totales" />
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:mb-5 sm:gap-4 lg:grid-cols-4">
+        <MetricTile
+          value={resumen.scans}
+          label="Escaneos del período"
+          variation={resumen.variation.scans}
+          highlight
+        />
+        <MetricTile
+          value={resumen.reviewClicks}
+          label="Fueron a dejar reseña"
+          variation={resumen.variation.reviewClicks}
+        />
+        <MetricTile
+          value={resumen.conversionRate.toFixed(0)}
+          suffix="%"
+          label="Tasa de conversión"
+          hint={`Período anterior: ${resumen.previous.conversionRate.toFixed(0)}%`}
+        />
+        <MetricTile value={total} label="Escaneos históricos" />
       </div>
 
-      {cuentas.length === 0 ? (
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <MetricTile value={cuentas.length} label="Restaurantes" />
+        <MetricTile value={locales} label="Locales" />
+        <MetricTile
+          value={stock.enStock}
+          label="Pulseras sin colocar"
+          hint={`${formatNumber(stock.total)} entregadas en total`}
+        />
+        <MetricTile value={stock.colocadas} label="Pulseras colocadas" />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         <Card>
-          <EmptyState>
-            Todavía no tenés cuentas asignadas.
-          </EmptyState>
+          <CardHeader>
+            <div>
+              <CardTitle>Evolución</CardTitle>
+              <CardDescription className="mt-0.5">
+                Cuántos escanearon y cuántos llegaron a Google
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardBody className="pt-5">
+            <EvolutionChart data={serie} />
+          </CardBody>
         </Card>
-      ) : (
-        <Card className="overflow-hidden">
-          <Table>
-            <Thead>
-              <tr>
-                <Th>Cuenta</Th>
-                <Th className="w-[130px]">Suscripción</Th>
-                <Th className="w-[110px]">Vence</Th>
-                <Th className="w-[90px] text-right">Locales</Th>
-                <Th className="w-[90px] text-right">Pulseras</Th>
-                <Th className="w-[100px] text-right">Escaneos</Th>
-                <Th className="w-[90px]">Estado</Th>
-              </tr>
-            </Thead>
-            <tbody>
-              {cuentas.map((cuenta) => {
-                const estado = ETIQUETA_ESTADO[cuenta.subscriptionStatus] ?? {
-                  label: cuenta.subscriptionStatus,
-                  tone: "inactive" as const,
-                };
 
-                return (
-                  <Tr key={cuenta.id} className={cuenta.active ? undefined : "opacity-60"}>
-                    <Td className="text-sm text-ex-text">{cuenta.name}</Td>
-                    <Td>
-                      <Badge tone={estado.tone}>{estado.label}</Badge>
-                    </Td>
-                    <Td className="num text-[11px]">
-                      {cuenta.subscriptionExpiresAt
-                        ? formatDate(cuenta.subscriptionExpiresAt)
-                        : "—"}
-                    </Td>
-                    <Td className="num text-right text-sm text-ex-text">
-                      {formatNumber(cuenta.locationCount)}
-                    </Td>
-                    <Td className="num text-right text-sm text-ex-text">
-                      {formatNumber(cuenta.braceletCount)}
-                    </Td>
-                    <Td className="num text-right text-sm text-ex-text">
-                      {formatNumber(cuenta.scanCount)}
-                    </Td>
-                    <Td>
-                      <Badge tone={cuenta.active ? "active" : "inactive"}>
-                        {cuenta.active ? "alta" : "baja"}
-                      </Badge>
-                    </Td>
-                  </Tr>
-                );
-              })}
-            </tbody>
-          </Table>
+        <Card>
+          <CardHeader>
+            <CardTitle>Tus locales</CardTitle>
+          </CardHeader>
+          <RankingList
+            medals
+            items={porLocal.map((fila) => ({
+              id: fila.locationId,
+              title: fila.name,
+              value: fila.scans,
+              detail: `${formatNumber(fila.reviewClicks)} reseñas · ${fila.conversionRate.toFixed(0)}% de conversión`,
+            }))}
+            emptyMessage="Todavía no hay escaneos en este período."
+          />
         </Card>
-      )}
-
-      <p className="mt-4 text-[11px] text-ex-text-muted">
-        Las ventas y comisiones llegan en la próxima etapa.
-      </p>
+      </div>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, isNotNull, lt, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, lt, sql, type SQL } from "drizzle-orm";
 
 import { bracelets, db, locations, scans, waiters } from "@/db";
 import {
@@ -20,6 +20,12 @@ import {
 export type StatsScope = {
   /** Ausente = sin filtrar por cuenta. Solo lo usa el admin. */
   accountId?: number;
+  /**
+   * Varias cuentas a la vez. Lo usa el distribuidor, que ve juntas todas las
+   * que tiene asignadas. Una lista vacía significa "ninguna cuenta", no
+   * "todas": si no, un distribuidor sin cuentas vería el sistema entero.
+   */
+  accountIds?: number[];
   /** Si viene, limita a un local. Si no, agrega todos los del alcance. */
   locationId?: number;
 };
@@ -27,6 +33,13 @@ export type StatsScope = {
 function scopeCondition(scope: StatsScope): SQL | undefined {
   const condiciones: SQL[] = [];
   if (scope.accountId) condiciones.push(eq(scans.accountId, scope.accountId));
+  if (scope.accountIds) {
+    condiciones.push(
+      scope.accountIds.length === 0
+        ? sql`1 = 0`
+        : inArray(scans.accountId, scope.accountIds)
+    );
+  }
   if (scope.locationId) condiciones.push(eq(scans.locationId, scope.locationId));
   if (condiciones.length === 0) return undefined;
   return and(...condiciones);
@@ -309,11 +322,20 @@ export type LocationRankRow = {
   conversionRate: number;
 };
 
-/** Solo tiene sentido mostrarlo cuando la cuenta tiene más de un local. */
+/**
+ * Rendimiento local por local.
+ *
+ * Recibe una lista de cuentas y no una sola porque el mismo desglose lo usan
+ * el panel del restaurante (una cuenta) y el del distribuidor (todas las
+ * suyas). Con la lista vacía devuelve vacío, que es lo correcto para un
+ * distribuidor que todavía no tiene ninguna.
+ */
 export async function getLocationBreakdown(
-  accountId: number,
+  accountIds: number[],
   period: Period
 ): Promise<LocationRankRow[]> {
+  if (accountIds.length === 0) return [];
+
   const filas = await db
     .select({
       locationId: locations.id,
@@ -330,7 +352,7 @@ export async function getLocationBreakdown(
         lt(scans.scannedAt, period.to)
       )
     )
-    .where(eq(locations.accountId, accountId))
+    .where(inArray(locations.accountId, accountIds))
     .groupBy(locations.id, locations.name)
     .orderBy(desc(sql`COUNT(${scans.id})`));
 

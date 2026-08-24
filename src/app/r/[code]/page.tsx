@@ -6,6 +6,7 @@ import { LandingView } from "@/components/landing/landing-view";
 import { resolveBraceletByCode, type ResolvedBracelet } from "@/db/queries/landing";
 import { hasVisibleMenu } from "@/db/queries/menu";
 import { hashIp } from "@/lib/hash";
+import { destinoDeCodigoSinLocal } from "@/lib/pulsera-sin-local";
 import { getCached, setCached } from "@/lib/redirect-cache";
 import { getClientIp } from "@/lib/request-ip";
 import { recordScan } from "@/lib/scan-logger";
@@ -57,7 +58,7 @@ export default async function LandingPage({
   if (!code) redirect("/pulsera/no-reconocida");
 
   const resolved = await resolveCached(code);
-  if (!resolved) redirect(`/pulsera/no-reconocida?c=${encodeURIComponent(code)}`);
+  if (!resolved) redirect(await destinoDeCodigoSinLocal(code));
 
   // La cuenta manda sobre todo lo demás: si está dada de baja o cancelada, no
   // importa el estado del local ni el de la pulsera.

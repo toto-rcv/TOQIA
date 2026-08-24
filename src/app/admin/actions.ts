@@ -17,6 +17,7 @@ import {
   getAccountById,
   getAccountBySlug,
   getBraceletCodesOfAccount,
+  getDistributorById,
 } from "@/db/queries/accounts";
 import { getBraceletByCode, getBraceletById, findExistingCodes } from "@/db/queries/bracelets";
 import {
@@ -297,18 +298,60 @@ export async function toggleLocation(
 
 /* ── Pulseras ────────────────────────────────────────────────────────────── */
 
+/* ── Destino de una pulsera ──────────────────────────────────────────────── */
+
+/**
+ * Dónde está una pulsera: en un local, en el stock de un distribuidor, o en el
+ * stock de Toqia sin asignar.
+ *
+ * Viaja en un solo campo del formulario con el formato `local:12` /
+ * `distribuidor:<uuid>` / `stock`. Un solo desplegable en vez de dos campos
+ * excluyentes evita el estado imposible de "un local y un distribuidor a la
+ * vez", que después habría que validar en todos lados.
+ */
+type Destino = { locationId: number | null; distributorId: string | null };
+
+async function leerDestino(
+  formData: FormData
+): Promise<ActionResult<Destino>> {
+  const raw = readString(formData.get("destino"));
+
+  if (raw === "" || raw === "stock") {
+    return ok<Destino>({ locationId: null, distributorId: null });
+  }
+
+  if (raw.startsWith("local:")) {
+    const locationId = Number.parseInt(raw.slice("local:".length), 10);
+    if (!Number.isFinite(locationId) || locationId <= 0) {
+      return fail("El destino elegido no es válido.");
+    }
+    if (!(await getLocationById(locationId))) {
+      return fail("El local elegido no existe.");
+    }
+    return ok<Destino>({ locationId, distributorId: null });
+  }
+
+  if (raw.startsWith("distribuidor:")) {
+    const distributorId = raw.slice("distribuidor:".length);
+    if (!(await getDistributorById(distributorId))) {
+      return fail("El distribuidor elegido no existe.");
+    }
+    return ok<Destino>({ locationId: null, distributorId });
+  }
+
+  return fail("El destino elegido no es válido.");
+}
+
 export async function createBracelet(formData: FormData): Promise<ActionResult> {
   await requireAdmin();
 
   const code = readString(formData.get("code"));
-  const locationId = readInt(formData.get("locationId"));
   const label = readString(formData.get("label"));
   const overrideUrl = readString(formData.get("overrideUrl"));
   const deviceType = readString(formData.get("deviceType")) || "pulsera";
 
   const errorCodigo = validateCode(code);
   if (errorCodigo) return fail(errorCodigo);
-  if (!locationId) return fail("Elegí un local.");
   if (deviceType !== "pulsera" && deviceType !== "placa") {
     return fail("El tipo de dispositivo no es válido.");
   }
@@ -316,15 +359,18 @@ export async function createBracelet(formData: FormData): Promise<ActionResult> 
   const errorUrl = validateOptionalUrl(overrideUrl, "El destino directo");
   if (errorUrl) return fail(errorUrl);
 
+  const destino = await leerDestino(formData);
+  if (!destino.ok) return destino;
+
   try {
-    if (!(await getLocationById(locationId))) return fail("El local elegido no existe.");
     if (await getBraceletByCode(code)) {
       return fail(`Ya existe una pulsera con el código ${code}.`);
     }
 
     await db.insert(bracelets).values({
       code,
-      locationId,
+      locationId: destino.data!.locationId,
+      distributorId: destino.data!.distributorId,
       deviceType: deviceType as "pulsera" | "placa",
       label: label === "" ? null : label.slice(0, 255),
       overrideUrl: overrideUrl === "" ? null : overrideUrl,
@@ -353,14 +399,12 @@ export async function createBraceletsBulk(
 ): Promise<ActionResult<BulkResult>> {
   await requireAdmin();
 
-  const locationId = readInt(formData.get("locationId"));
   const prefix = readString(formData.get("prefix"));
   const start = readInt(formData.get("start")) ?? 1;
   const count = readInt(formData.get("count"));
   const padding = readInt(formData.get("padding")) ?? 3;
   const deviceType = readString(formData.get("deviceType")) || "pulsera";
 
-  if (!locationId) return fail("Elegí un local.");
   if (deviceType !== "pulsera" && deviceType !== "placa") {
     return fail("El tipo de dispositivo no es válido.");
   }
@@ -383,9 +427,10 @@ export async function createBraceletsBulk(
     codes.push(code);
   }
 
-  try {
-    if (!(await getLocationById(locationId))) return fail("El local elegido no existe.");
+  const destino = await leerDestino(formData);
+  if (!destino.ok) return destino;
 
+  try {
     const existentes = await findExistingCodes(codes);
     const nuevos = codes.filter((code) => !existentes.has(code));
 
@@ -394,7 +439,8 @@ export async function createBraceletsBulk(
     await db.insert(bracelets).values(
       nuevos.map((code) => ({
         code,
-        locationId,
+        locationId: destino.data!.locationId,
+        distributorId: destino.data!.distributorId,
         // El valor ya se validó contra la lista permitida más arriba; el
         // estrechamiento explícito es solo para el tipo de la columna enum.
         deviceType: deviceType as "pulsera" | "placa",
@@ -417,7 +463,6 @@ export async function updateBracelet(formData: FormData): Promise<ActionResult> 
 
   const id = readInt(formData.get("id"));
   const code = readString(formData.get("code"));
-  const locationId = readInt(formData.get("locationId"));
   const waiterId = readInt(formData.get("waiterId"));
   const label = readString(formData.get("label"));
   const overrideUrl = readString(formData.get("overrideUrl"));
@@ -430,17 +475,23 @@ export async function updateBracelet(formData: FormData): Promise<ActionResult> 
 
   const errorCodigo = validateCode(code);
   if (errorCodigo) return fail(errorCodigo);
-  if (!locationId) return fail("Elegí un local.");
 
   const errorUrl = validateOptionalUrl(overrideUrl, "El destino directo");
   if (errorUrl) return fail(errorUrl);
 
+  const destino = await leerDestino(formData);
+  if (!destino.ok) return destino;
+  const { locationId, distributorId } = destino.data!;
+
   try {
     const actual = await getBraceletById(id);
     if (!actual) return fail("La pulsera ya no existe.");
-    if (!(await getLocationById(locationId))) return fail("El local elegido no existe.");
 
-    // El camarero tiene que ser del mismo local que la pulsera.
+    // El camarero tiene que ser del mismo local que la pulsera. Una pulsera
+    // que vuelve al stock pierde el camarero: ya no está en ningún salón.
+    if (waiterId && locationId === null) {
+      return fail("Una pulsera sin local no puede tener camarero asignado.");
+    }
     if (waiterId) {
       const filas = await db
         .select({ locationId: waiters.locationId })
@@ -458,6 +509,7 @@ export async function updateBracelet(formData: FormData): Promise<ActionResult> 
       .set({
         code,
         locationId,
+        distributorId,
         deviceType: deviceType as "pulsera" | "placa",
         waiterId: waiterId ?? null,
         label: label === "" ? null : label.slice(0, 255),

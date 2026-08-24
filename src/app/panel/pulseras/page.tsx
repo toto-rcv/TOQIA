@@ -47,8 +47,13 @@ export default async function PanelBraceletsPage({
   const waiters = await listWaiterOptions(locations.map((item) => item.id));
   const variosLocales = locations.length > 1;
 
-  const camarerosDe = (locationId: number) =>
-    waiters.filter((camarero) => camarero.locationId === locationId);
+  // La pulsera puede no tener local si está en stock. Acá no debería pasar
+  // —el listado va filtrado por cuenta— pero un desplegable vacío es mejor
+  // final que una excepción en la página del restaurante.
+  const camarerosDe = (locationId: number | null) =>
+    locationId === null
+      ? []
+      : waiters.filter((camarero) => camarero.locationId === locationId);
 
   return (
     <>

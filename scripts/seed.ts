@@ -471,15 +471,20 @@ async function crearEscaneos(): Promise<void> {
     return;
   }
 
-  const pulseras = await db
-    .select({
-      id: bracelets.id,
-      locationId: bracelets.locationId,
-      waiterId: bracelets.waiterId,
-      accountId: locations.accountId,
-    })
-    .from(bracelets)
-    .innerJoin(locations, eq(bracelets.locationId, locations.id));
+  // Solo las que ya están puestas en un local: una pulsera en stock no puede
+  // haber sido escaneada. El `locations.id` del join es lo que da el
+  // `location_id` no nulo que necesita cada escaneo.
+  const pulseras = (
+    await db
+      .select({
+        id: bracelets.id,
+        locationId: locations.id,
+        waiterId: bracelets.waiterId,
+        accountId: locations.accountId,
+      })
+      .from(bracelets)
+      .innerJoin(locations, eq(bracelets.locationId, locations.id))
+  ).filter((fila) => fila.locationId !== null);
 
   if (pulseras.length === 0) {
     console.log("\n· No hay pulseras: no se generan escaneos.");

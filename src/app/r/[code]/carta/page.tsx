@@ -5,6 +5,7 @@ import { MenuView } from "@/components/landing/menu-view";
 import { resolveBraceletByCode } from "@/db/queries/landing";
 import { getLocationById } from "@/db/queries/locations";
 import { getMenu } from "@/db/queries/menu";
+import { destinoDeCodigoSinLocal } from "@/lib/pulsera-sin-local";
 import { getCached, setCached } from "@/lib/redirect-cache";
 
 /**
@@ -47,7 +48,7 @@ export default async function CartaPage({
   if (!code) redirect("/pulsera/no-reconocida");
 
   const resolved = await resolver(code);
-  if (!resolved) redirect(`/pulsera/no-reconocida?c=${encodeURIComponent(code)}`);
+  if (!resolved) redirect(await destinoDeCodigoSinLocal(code));
 
   const cuentaHabilitada =
     resolved.accountActive && resolved.subscriptionStatus !== "cancelled";

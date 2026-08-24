@@ -1,4 +1,4 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import { accounts, bracelets, db, locations, scans, user } from "@/db";
 
@@ -125,4 +125,31 @@ export async function listDistributors() {
     .from(user)
     .where(eq(user.role, "distributor"))
     .orderBy(asc(user.name));
+}
+
+/**
+ * Solo los ids de las cuentas de un distribuidor.
+ *
+ * Es la barrera del panel del distribuidor: todo lo que ve se filtra por esta
+ * lista, que sale de su sesión y nunca de la URL. Con la lista vacía, las
+ * consultas de estadísticas devuelven cero en vez de todo el sistema.
+ */
+export async function listAccountIdsOfDistributor(
+  distributorId: string
+): Promise<number[]> {
+  const filas = await db
+    .select({ id: accounts.id })
+    .from(accounts)
+    .where(eq(accounts.distributorId, distributorId));
+  return filas.map((fila) => fila.id);
+}
+
+/** Un distribuidor por id, para validar el destino de una pulsera. */
+export async function getDistributorById(id: string) {
+  const filas = await db
+    .select({ id: user.id, name: user.name })
+    .from(user)
+    .where(and(eq(user.id, id), eq(user.role, "distributor")))
+    .limit(1);
+  return filas[0] ?? null;
 }

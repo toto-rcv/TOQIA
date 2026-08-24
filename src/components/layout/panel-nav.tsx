@@ -11,6 +11,7 @@ import {
   type LucideIcon,
   Nfc,
   ScanLine,
+  Wrench,
   Store,
   UserRound,
   Users,
@@ -46,6 +47,7 @@ const ICONOS = {
   locales: LayoutGrid,
   usuarios: UserRound,
   suscripciones: CreditCard,
+  mantenimiento: Wrench,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONOS;

@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
 import { accounts, bracelets, db, locations, scans } from "@/db";
 
@@ -18,6 +18,8 @@ export type LocationListItem = {
 
 export async function listLocations(options?: {
   accountId?: number;
+  /** Varias cuentas a la vez: lo usa el distribuidor con las suyas. */
+  accountIds?: number[];
 }): Promise<LocationListItem[]> {
   const query = db
     .select({
@@ -43,9 +45,18 @@ export async function listLocations(options?: {
     .innerJoin(accounts, eq(locations.accountId, accounts.id))
     .orderBy(asc(accounts.name), asc(locations.name));
 
-  return options?.accountId
-    ? query.where(eq(locations.accountId, options.accountId))
-    : query;
+  if (options?.accountId) {
+    return query.where(eq(locations.accountId, options.accountId));
+  }
+
+  if (options?.accountIds) {
+    // Lista vacía significa "ninguna cuenta", no "todas": sin esto, un
+    // distribuidor sin cuentas vería los locales de todo el sistema.
+    if (options.accountIds.length === 0) return [];
+    return query.where(inArray(locations.accountId, options.accountIds));
+  }
+
+  return query;
 }
 
 /** Selector de locales del panel del restaurante. */

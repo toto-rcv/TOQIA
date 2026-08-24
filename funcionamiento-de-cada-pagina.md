@@ -310,13 +310,99 @@ cuenta que va a ver. También se cambia la contraseña de cualquiera.
 **No hay registro público.** El endpoint está deshabilitado del lado del
 servidor: todos los accesos salen de acá.
 
+### Mantenimiento — `/admin/mantenimiento`
+
+Dos herramientas que antes solo existían por consola y que en producción no se
+podían usar.
+
+**Esquema de la base.** Dice si la base está al día con el código y, si no lo
+está, lista exactamente qué columnas o tablas faltan. El botón las aplica. Es
+la misma rutina que `npm run migrate`, así que no borra nada y se puede correr
+las veces que haga falta.
+
+Cuando la base no está migrada, la página que usa la columna nueva no muestra
+un error entendible: muestra `Application error: a server-side exception has
+occurred`. Si aparece eso después de un deploy, el primer lugar donde mirar es
+acá.
+
+**Vaciar la base.** Borra todo —cuentas, locales, pulseras, camareros,
+escaneos, cartas, archivos subidos y los demás usuarios— y deja únicamente al
+admin que aprieta el botón, con su sesión abierta. Sirve para pasar de los
+datos de prueba a los reales.
+
+Es irreversible y no hay deshacer: pide escribir `BORRAR TODO`, el servidor
+vuelve a verificar el rol y la frase, y todo el borrado va en una transacción
+para que no pueda quedar media base vacía.
+
 ---
 
 ## Panel del distribuidor — `/distribuidor`
 
-Por ahora es solo lectura: las cuentas que le asignaste, con sus locales,
-pulseras y escaneos. El módulo de ventas y comisiones llega en la etapa
-siguiente.
+El distribuidor ve y opera únicamente sobre lo suyo. "Lo suyo" son las cuentas
+que tienen su `distributor_id` y las pulseras que Toqia le entregó. Esa lista
+sale siempre de su sesión y nunca de la URL: es la única barrera entre un
+distribuidor y los datos de otro.
+
+### Resumen — `/distribuidor`
+
+Escaneos, reseñas y conversión de todas sus cuentas juntas, con el gráfico de
+evolución y el ranking de sus locales. Abajo, el estado del inventario:
+cuántas pulseras le entregaron, cuántas colocó y cuántas le quedan.
+
+### Restaurantes — `/distribuidor/restaurantes`
+
+Sus clientes, con locales, pulseras y escaneos de cada uno.
+
+**Nuevo restaurante** da de alta las tres cosas de una vez: la cuenta, su
+primer local y el usuario que entra al panel. Queda asociado al distribuidor
+automáticamente. Al terminar muestra el email y la contraseña juntos para
+copiar y pasárselos al cliente — es el único momento en que la contraseña está
+a la vista, porque después queda hasheada y no hay forma de recuperarla.
+
+Lo único opcional pero importante es el enlace de reseñas de Google: sin eso
+las pulseras funcionan pero no llevan a ningún lado. Si no lo tiene a mano, el
+restaurante lo carga después desde su panel.
+
+### Pulseras — `/distribuidor/pulseras`
+
+Las que Toqia le entregó. El desplegable de cada fila decide en qué local está,
+y guarda al soltarlo: colocar veinte pulseras es la tarea repetitiva del
+distribuidor y un botón de confirmar por pulsera se siente enseguida.
+
+**El distribuidor no crea códigos.** Los códigos existen porque alguien grabó
+un chip físico; inventarlos desde el panel rompería la correspondencia entre lo
+que hay en la base y lo que hay en la caja. Las pulseras las da de alta el
+admin y elige a qué stock van.
+
+---
+
+## El stock de pulseras
+
+Una pulsera puede estar parada en tres lugares, y el recorrido es siempre el
+mismo:
+
+```
+STOCK DE TOQIA  →  STOCK DEL DISTRIBUIDOR  →  LOCAL
+```
+
+En la base son dos columnas de `bracelets`:
+
+| Dónde está | `location_id` | `distributor_id` |
+|---|---|---|
+| Stock de Toqia | NULL | NULL |
+| Entregada a un distribuidor | NULL | el distribuidor |
+| Puesta en un local | el local | el distribuidor que la colocó |
+
+`distributor_id` no se borra al colocarla: es lo que después permite saber
+quién vendió qué.
+
+En `/admin/pulseras`, el alta —individual y masiva— tiene un solo desplegable
+de **destino** con las tres opciones. Un solo campo y no dos excluyentes: así
+no existe el estado imposible de "en un local y en un stock a la vez".
+
+Si alguien escanea una pulsera que todavía está en un stock, la página le dice
+que la pulsera existe pero no está en uso, en vez del cartel de "no
+reconocida" que corresponde a un chip mal grabado.
 
 ---
 

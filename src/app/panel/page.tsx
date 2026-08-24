@@ -55,7 +55,7 @@ export default async function PanelStatsPage({
       getBraceletRanking(scope, params.period, 8),
       getWaiterRanking(scope, params.period, 10),
       locations.length > 1
-        ? getLocationBreakdown(user.accountId, params.period)
+        ? getLocationBreakdown([user.accountId], params.period)
         : Promise.resolve([]),
     ]);
 

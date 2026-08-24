@@ -23,6 +23,12 @@ const ESTADOS = {
       "La pulsera existe pero está desactivada en este momento, así que no tiene un destino al que llevarte.",
     accion: "Avisale al personal del local para que la reactiven.",
   },
+  "sin-asignar": {
+    titulo: "Esta pulsera todavía no está en uso",
+    detalle:
+      "La pulsera existe pero todavía no fue asignada a ningún local, así que no tiene un destino al que llevarte.",
+    accion: "Si sos del local, avisale a tu distribuidor para que la active.",
+  },
   "sin-destino": {
     titulo: "Destino no configurado",
     detalle: "La pulsera está activa pero todavía no tiene cargado a dónde llevarte.",

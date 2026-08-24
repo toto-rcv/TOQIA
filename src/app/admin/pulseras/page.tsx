@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Pagination } from "@/components/ui/pagination";
 import { EmptyState, Table, Td, Th, Thead, Tr } from "@/components/ui/table";
-import { listAccountOptions } from "@/db/queries/accounts";
+import { listAccountOptions, listDistributors } from "@/db/queries/accounts";
 import { listBracelets } from "@/db/queries/bracelets";
 import { listLocations } from "@/db/queries/locations";
 import { listWaiterOptions } from "@/db/queries/waiters";
@@ -35,10 +35,11 @@ export default async function AdminBraceletsPage({
   const filtroCuenta = Number.isFinite(cuentaId) ? cuentaId : undefined;
   const filtroLocal = Number.isFinite(localId) ? localId : undefined;
 
-  const [pulseras, locales, cuentas] = await Promise.all([
+  const [pulseras, locales, cuentas, distribuidores] = await Promise.all([
     listBracelets({ accountId: filtroCuenta, locationId: filtroLocal }, pagina),
     listLocations({ accountId: filtroCuenta }),
     listAccountOptions(),
+    listDistributors(),
   ]);
 
   const opcionesLocales = locales.map((item) => ({
@@ -56,8 +57,16 @@ export default async function AdminBraceletsPage({
         subtitle="La URL grabada en el chip nunca cambia. Lo que cambia es la página a la que lleva."
       >
         <AccountFilter accounts={cuentas} />
-        <NewBraceletDialog locations={opcionesLocales} defaultLocationId={filtroLocal} />
-        <BulkCreateDialog locations={opcionesLocales} defaultLocationId={filtroLocal} />
+        <NewBraceletDialog
+          locations={opcionesLocales}
+          distributors={distribuidores}
+          defaultLocationId={filtroLocal}
+        />
+        <BulkCreateDialog
+          locations={opcionesLocales}
+          distributors={distribuidores}
+          defaultLocationId={filtroLocal}
+        />
       </PageHeader>
 
       {locales.length === 0 ? (
@@ -99,8 +108,13 @@ export default async function AdminBraceletsPage({
             <tbody>
               {pulseras.data.map((pulsera) => {
                 const url = braceletUrl(pulsera.code);
+                // `locationActive` y `accountActive` vienen en null cuando la
+                // pulsera está en stock: ahí no hay local ni cuenta que puedan
+                // estar dados de baja, así que no cuentan como inactiva.
                 const inactiva =
-                  !pulsera.active || !pulsera.locationActive || !pulsera.accountActive;
+                  !pulsera.active ||
+                  pulsera.locationActive === false ||
+                  pulsera.accountActive === false;
 
                 return (
                   <Tr key={pulsera.id} className={inactiva ? "opacity-60" : undefined}>
@@ -113,10 +127,13 @@ export default async function AdminBraceletsPage({
                           {pulsera.deviceType}
                         </Badge>
                         {!pulsera.active ? <Badge tone="inactive">off</Badge> : null}
-                        {pulsera.active && !pulsera.locationActive ? (
+                        {pulsera.locationId === null ? (
+                          <Badge tone="warning">stock</Badge>
+                        ) : null}
+                        {pulsera.active && pulsera.locationActive === false ? (
                           <Badge tone="warning">local off</Badge>
                         ) : null}
-                        {pulsera.active && !pulsera.accountActive ? (
+                        {pulsera.active && pulsera.accountActive === false ? (
                           <Badge tone="danger">cuenta baja</Badge>
                         ) : null}
                         {pulsera.overrideUrl ? (
@@ -129,11 +146,26 @@ export default async function AdminBraceletsPage({
 
                     <Td className="text-xs">{pulsera.label ?? "—"}</Td>
 
+                    {/* Una pulsera sin local está en un stock: se muestra de
+                        quién es, que es la única información que hay. */}
                     <Td className="text-xs">
-                      <span className="block truncate">{pulsera.locationName}</span>
-                      <span className="block truncate text-[10px] text-ex-text-disabled">
-                        {pulsera.accountName}
-                      </span>
+                      {pulsera.locationName ? (
+                        <>
+                          <span className="block truncate">{pulsera.locationName}</span>
+                          <span className="block truncate text-[10px] text-ex-text-disabled">
+                            {pulsera.accountName}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="block truncate text-ex-text-muted">
+                            En stock
+                          </span>
+                          <span className="block truncate text-[10px] text-ex-text-disabled">
+                            {pulsera.distributorName ?? "Toqia"}
+                          </span>
+                        </>
+                      )}
                     </Td>
 
                     <Td className="text-xs">{pulsera.waiterName ?? "—"}</Td>
@@ -164,6 +196,7 @@ export default async function AdminBraceletsPage({
                       <BraceletRowActions
                         bracelet={pulsera}
                         locations={opcionesLocales}
+                        distributors={distribuidores}
                         waiters={camareros}
                       />
                     </Td>

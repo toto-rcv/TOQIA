@@ -4,14 +4,18 @@ import { requireDistributor } from "@/lib/session";
 export const dynamic = "force-dynamic";
 
 const ITEMS: NavItem[] = [
-  { href: "/distribuidor", label: "Mis cuentas", exact: true, icon: "cuentas" },
+  { href: "/distribuidor", label: "Resumen", exact: true, icon: "estadisticas" },
+  { href: "/distribuidor/restaurantes", label: "Restaurantes", icon: "cuentas" },
+  { href: "/distribuidor/pulseras", label: "Pulseras", icon: "pulseras" },
 ];
 
 /**
  * Panel del distribuidor.
  *
- * Etapa 1: solo lectura de las cuentas que tiene asignadas. El módulo de
- * ventas y comisiones queda para la etapa 2.
+ * Ve y opera únicamente sobre lo suyo: las cuentas que tiene asignadas y las
+ * pulseras que se le entregaron. El guard vive acá y cubre las tres páginas,
+ * pero cada Server Action vuelve a pedir el rol y a verificar la pertenencia
+ * por su cuenta: un layout no protege un POST directo.
  */
 export default async function DistribuidorLayout({
   children,

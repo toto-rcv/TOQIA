@@ -302,9 +302,23 @@ export const bracelets = mysqlTable(
     // Lo que va grabado en el chip (ej. "B001"). Único en todo el sistema.
     code: varchar("code", { length: 50 }).notNull().unique(),
 
-    locationId: int("location_id")
-      .notNull()
-      .references(() => locations.id, { onDelete: "cascade" }),
+    /* ── Dónde está esta pulsera ──────────────────────────────────────────
+       El recorrido físico es TOQIA → DISTRIBUIDOR → RESTAURANTE, y una
+       pulsera puede estar parada en cualquiera de las tres etapas:
+
+         location_id = NULL, distributor_id = NULL  → stock de Toqia
+         location_id = NULL, distributor_id = X     → entregada al distribuidor
+         location_id = N                            → puesta en un local
+
+       Por eso `location_id` es nullable: antes una pulsera no podía existir
+       sin local y no había forma de representar el stock. */
+    locationId: int("location_id").references(() => locations.id, {
+      onDelete: "cascade",
+    }),
+
+    // El distribuidor que la tiene o que la colocó. Se conserva después de
+    // asignarla a un local: es lo que permite saber quién vendió qué.
+    distributorId: varchar("distributor_id", { length: 36 }),
 
     // Camarero al que se le asignó. Null = pulsera de mesa, sin dueño.
     // onDelete: set null → borrar un camarero no borra sus pulseras.
@@ -335,6 +349,7 @@ export const bracelets = mysqlTable(
   (table) => [
     index("bracelets_location_idx").on(table.locationId),
     index("bracelets_waiter_idx").on(table.waiterId),
+    index("bracelets_distributor_idx").on(table.distributorId),
   ]
 );
 

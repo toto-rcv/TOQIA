@@ -24,20 +24,91 @@ import {
 
 type LocationOption = { id: number; name: string; accountName: string };
 type WaiterOption = { id: number; name: string; locationId: number; active: boolean };
+type DistributorOption = { id: string; name: string; email: string };
+
+/* ── Destino ─────────────────────────────────────────────────────────────── */
+
+/**
+ * Dónde está la pulsera: en un local, en el stock de un distribuidor, o en el
+ * de Toqia.
+ *
+ * Es un solo desplegable y no dos campos excluyentes: así no existe el estado
+ * imposible de "en un local y en un stock a la vez", y el recorrido físico
+ * Toqia → distribuidor → local se lee de arriba hacia abajo en la lista.
+ */
+const DESTINO_STOCK = "stock";
+
+function valorDeDestino(
+  locationId: number | null,
+  distributorId: string | null
+): string {
+  if (locationId) return `local:${locationId}`;
+  if (distributorId) return `distribuidor:${distributorId}`;
+  return DESTINO_STOCK;
+}
+
+/** El local elegido, o null si el destino es un stock. */
+function localDeDestino(destino: string): number | null {
+  return destino.startsWith("local:")
+    ? Number(destino.slice("local:".length))
+    : null;
+}
+
+function DestinoSelect({
+  id,
+  locations,
+  distributors,
+  value,
+  onChange,
+}: {
+  id: string;
+  locations: LocationOption[];
+  distributors: DistributorOption[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>Destino</Label>
+      <Select id={id} name="destino" value={value} onChange={(e) => onChange(e.target.value)}>
+        <optgroup label="Sin colocar">
+          <option value={DESTINO_STOCK}>Stock de Toqia</option>
+          {distributors.map((distribuidor) => (
+            <option key={distribuidor.id} value={`distribuidor:${distribuidor.id}`}>
+              Stock de {distribuidor.name}
+            </option>
+          ))}
+        </optgroup>
+        <optgroup label="En un local">
+          {locations.map((local) => (
+            <option key={local.id} value={`local:${local.id}`}>
+              {local.accountName} · {local.name}
+            </option>
+          ))}
+        </optgroup>
+      </Select>
+    </div>
+  );
+}
 
 /* ── Alta individual ─────────────────────────────────────────────────────── */
 
 export function NewBraceletDialog({
   locations,
+  distributors,
   defaultLocationId,
 }: {
   locations: LocationOption[];
+  distributors: DistributorOption[];
   defaultLocationId?: number;
 }) {
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
   const formRef = React.useRef<HTMLFormElement>(null);
+  const [destino, setDestino] = React.useState(
+    defaultLocationId ? `local:${defaultLocationId}` : DESTINO_STOCK
+  );
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -85,24 +156,13 @@ export function NewBraceletDialog({
                   className="font-mono"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="b-location">Local</Label>
-                <Select
-                  id="b-location"
-                  name="locationId"
-                  required
-                  defaultValue={defaultLocationId ? String(defaultLocationId) : ""}
-                >
-                  <option value="" disabled>
-                    Elegí uno…
-                  </option>
-                  {locations.map((local) => (
-                    <option key={local.id} value={local.id}>
-                      {local.accountName} · {local.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+              <DestinoSelect
+                id="b-destino"
+                locations={locations}
+                distributors={distributors}
+                value={destino}
+                onChange={setDestino}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -144,9 +204,11 @@ export function NewBraceletDialog({
 
 export function BulkCreateDialog({
   locations,
+  distributors,
   defaultLocationId,
 }: {
   locations: LocationOption[];
+  distributors: DistributorOption[];
   defaultLocationId?: number;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -159,6 +221,9 @@ export function BulkCreateDialog({
   const [start, setStart] = React.useState(1);
   const [count, setCount] = React.useState(20);
   const [padding, setPadding] = React.useState(3);
+  const [destino, setDestino] = React.useState(
+    defaultLocationId ? `local:${defaultLocationId}` : DESTINO_STOCK
+  );
 
   const preview = React.useMemo(() => {
     if (count < 1) return "—";
@@ -220,24 +285,13 @@ export function BulkCreateDialog({
           </DialogHeader>
 
           <DialogBody className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="bulk-location">Local</Label>
-              <Select
-                id="bulk-location"
-                name="locationId"
-                required
-                defaultValue={defaultLocationId ? String(defaultLocationId) : ""}
-              >
-                <option value="" disabled>
-                  Elegí uno…
-                </option>
-                {locations.map((local) => (
-                  <option key={local.id} value={local.id}>
-                    {local.accountName} · {local.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
+            <DestinoSelect
+              id="bulk-destino"
+              locations={locations}
+              distributors={distributors}
+              value={destino}
+              onChange={setDestino}
+            />
 
             <div className="space-y-1.5">
               <Label htmlFor="bulk-type">Tipo de dispositivo</Label>
@@ -335,15 +389,22 @@ export function BulkCreateDialog({
 export function BraceletRowActions({
   bracelet,
   locations,
+  distributors,
   waiters,
 }: {
   bracelet: BraceletListItem;
   locations: LocationOption[];
+  distributors: DistributorOption[];
   waiters: WaiterOption[];
 }) {
   return (
     <div className="flex items-center justify-end gap-1.5">
-      <EditBraceletDialog bracelet={bracelet} locations={locations} waiters={waiters} />
+      <EditBraceletDialog
+        bracelet={bracelet}
+        locations={locations}
+        distributors={distributors}
+        waiters={waiters}
+      />
       <ToggleBraceletButton bracelet={bracelet} />
     </div>
   );
@@ -352,22 +413,29 @@ export function BraceletRowActions({
 function EditBraceletDialog({
   bracelet,
   locations,
+  distributors,
   waiters,
 }: {
   bracelet: BraceletListItem;
   locations: LocationOption[];
+  distributors: DistributorOption[];
   waiters: WaiterOption[];
 }) {
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
-  const [locationId, setLocationId] = React.useState(String(bracelet.locationId));
+  const [destino, setDestino] = React.useState(
+    valorDeDestino(bracelet.locationId, bracelet.distributorId)
+  );
 
   // Un camarero solo puede tener pulseras de su propio local, así que la lista
-  // se filtra por el local elegido en este mismo formulario.
-  const camarerosDelLocal = waiters.filter(
-    (camarero) => camarero.locationId === Number(locationId)
-  );
+  // se filtra por el local elegido en este mismo formulario. Si el destino es
+  // un stock no hay local, y no hay camareros para elegir.
+  const localElegido = localDeDestino(destino);
+  const camarerosDelLocal =
+    localElegido === null
+      ? []
+      : waiters.filter((camarero) => camarero.locationId === localElegido);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -422,21 +490,13 @@ function EditBraceletDialog({
                   className="font-mono"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor={`e-location-${bracelet.id}`}>Local</Label>
-                <Select
-                  id={`e-location-${bracelet.id}`}
-                  name="locationId"
-                  value={locationId}
-                  onChange={(event) => setLocationId(event.target.value)}
-                >
-                  {locations.map((local) => (
-                    <option key={local.id} value={local.id}>
-                      {local.accountName} · {local.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+              <DestinoSelect
+                id={`e-destino-${bracelet.id}`}
+                locations={locations}
+                distributors={distributors}
+                value={destino}
+                onChange={setDestino}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -446,6 +506,7 @@ function EditBraceletDialog({
                   id={`e-waiter-${bracelet.id}`}
                   name="waiterId"
                   defaultValue={bracelet.waiterId ? String(bracelet.waiterId) : ""}
+                  disabled={localElegido === null}
                 >
                   <option value="">Sin asignar</option>
                   {camarerosDelLocal.map((camarero) => (
