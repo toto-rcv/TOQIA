@@ -227,11 +227,29 @@ export async function resolverCampoDeArchivo({
   return actual;
 }
 
-/** Un input file vacío llega igual, como un File de 0 bytes y sin nombre. */
+/**
+ * ¿Este campo del formulario trae un archivo con contenido?
+ *
+ * Un input file vacío llega igual, como un archivo de 0 bytes y sin nombre,
+ * así que no alcanza con preguntar si el campo vino.
+ *
+ * Se mira la forma del objeto y no `value instanceof File` a propósito: `File`
+ * recién es global desde Node 20, y en un servidor con Node 18 esa línea tira
+ * `File is not defined` y voltea toda la acción. Con esto funciona en las dos
+ * versiones, y de paso deja de depender de que el objeto venga de la misma
+ * clase que la del proceso.
+ */
 export function esArchivoConContenido(
   value: FormDataEntryValue | null
 ): value is File {
-  return value instanceof File && value.size > 0;
+  if (typeof value !== "object" || value === null) return false;
+
+  const candidato = value as Partial<File>;
+  return (
+    typeof candidato.arrayBuffer === "function" &&
+    typeof candidato.size === "number" &&
+    candidato.size > 0
+  );
 }
 
 /* ── Borrado ─────────────────────────────────────────────────────────────── */
