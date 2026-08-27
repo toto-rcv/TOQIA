@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
@@ -687,42 +687,138 @@ export async function createUser(formData: FormData): Promise<ActionResult> {
   }
 }
 
-/** Cambia la contraseña de un usuario del panel. */
-export async function resetUserPassword(
-  formData: FormData
-): Promise<ActionResult> {
-  await requireAdmin();
+/**
+ * Edita un usuario existente: nombre, email, rol, cuenta y —opcionalmente— la
+ * contraseña.
+ *
+ * La contraseña vacía significa "dejala como está". Es lo que uno quiere el
+ * 90% de las veces que abre este formulario: corregir un email mal tipeado no
+ * debería obligar a inventar una contraseña nueva y tener que avisarle al
+ * usuario.
+ *
+ * Dos cosas que no deja hacer, las dos por el mismo motivo —que nadie se quede
+ * afuera del sistema sin querer—:
+ *
+ *   - Cambiarte el rol a vos mismo.
+ *   - Sacarle el rol admin al último admin que queda.
+ */
+export async function updateUser(formData: FormData): Promise<ActionResult> {
+  const actual = await requireAdmin();
 
   const userId = readString(formData.get("userId"));
+  const name = readString(formData.get("name"));
+  const email = readString(formData.get("email")).toLowerCase();
+  const role = readString(formData.get("role"));
+  const accountId = readInt(formData.get("accountId"));
   const password = readString(formData.get("password"));
 
   if (userId === "") return fail("Falta el identificador del usuario.");
 
-  const errorPassword = validatePassword(password);
-  if (errorPassword) return fail(errorPassword);
+  const errorNombre = validateName(name);
+  if (errorNombre) return fail(errorNombre);
+
+  const errorEmail = validateEmail(email);
+  if (errorEmail) return fail(errorEmail);
+
+  if (!["admin", "distributor", "restaurant"].includes(role)) {
+    return fail("El rol no es válido.");
+  }
+
+  if (role === "restaurant" && !accountId) {
+    return fail("Un usuario de restaurante necesita una cuenta asignada.");
+  }
+
+  // Vacía = no se toca. Si escribieron algo, tiene que ser válida.
+  if (password !== "") {
+    const errorPassword = validatePassword(password);
+    if (errorPassword) return fail(errorPassword);
+  }
 
   try {
-    const ctx = await auth.$context;
-    const passwordHash = await ctx.password.hash(password);
-
-    const filas = await db
-      .select({ id: authAccount.id })
-      .from(authAccount)
-      .where(eq(authAccount.userId, userId))
+    const existentes = await db
+      .select({ id: user.id, role: user.role })
+      .from(user)
+      .where(eq(user.id, userId))
       .limit(1);
 
-    if (!filas[0]) return fail("Ese usuario no tiene credenciales cargadas.");
+    const anterior = existentes[0];
+    if (!anterior) return fail("Ese usuario ya no existe.");
+
+    if (userId === actual.id && role !== anterior.role) {
+      return fail(
+        "No podés cambiarte el rol a vos mismo. Pedile a otro admin que lo haga."
+      );
+    }
+
+    if (anterior.role === "admin" && role !== "admin") {
+      const [conteo] = await db
+        .select({ total: sql<number>`COUNT(*)`.mapWith(Number) })
+        .from(user)
+        .where(eq(user.role, "admin"));
+
+      if ((conteo?.total ?? 0) <= 1) {
+        return fail(
+          "Es el único admin que queda: si le sacás el rol, nadie puede entrar a la administración."
+        );
+      }
+    }
+
+    // El email es único en la base; se avisa antes para dar un mensaje claro.
+    const conEseEmail = await db
+      .select({ id: user.id })
+      .from(user)
+      .where(eq(user.email, email))
+      .limit(1);
+    if (conEseEmail[0] && conEseEmail[0].id !== userId) {
+      return fail("Ya existe otro usuario con ese email.");
+    }
+
+    if (accountId && !(await getAccountById(accountId))) {
+      return fail("La cuenta elegida no existe.");
+    }
 
     await db
-      .update(authAccount)
-      .set({ password: passwordHash })
-      .where(eq(authAccount.id, filas[0].id));
+      .update(user)
+      .set({
+        name,
+        email,
+        role: role as "admin",
+        // La cuenta solo aplica al rol restaurante: dejársela a un admin o a
+        // un distribuidor no hace nada, pero confunde al leer la tabla.
+        accountId: role === "restaurant" ? accountId : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(user.id, userId));
 
+    if (password !== "") {
+      const ctx = await auth.$context;
+      const passwordHash = await ctx.password.hash(password);
+
+      const credenciales = await db
+        .select({ id: authAccount.id })
+        .from(authAccount)
+        .where(eq(authAccount.userId, userId))
+        .limit(1);
+
+      if (!credenciales[0]) {
+        return fail(
+          "Los datos se guardaron, pero ese usuario no tiene credenciales cargadas y no se le pudo poner la contraseña."
+        );
+      }
+
+      await db
+        .update(authAccount)
+        .set({ password: passwordHash })
+        .where(eq(authAccount.id, credenciales[0].id));
+    }
+
+    revalidarAdmin();
     revalidatePath("/admin/usuarios");
     return ok();
   } catch (cause) {
-    console.error("[admin] no se pudo cambiar la contraseña", { userId, cause });
-    return fail(mensajeDeError("No se pudo cambiar la contraseña", cause));
+    if (esClaveDuplicada(cause)) return fail("Ya existe otro usuario con ese email.");
+    console.error("[admin] no se pudo actualizar el usuario", { userId, cause });
+    return fail(mensajeDeError("No se pudo guardar el usuario", cause));
   }
 }
 

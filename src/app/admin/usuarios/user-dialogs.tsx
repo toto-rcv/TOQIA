@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRound, Plus } from "lucide-react";
+import { Plus, Settings2 } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,142 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input, Label, Select } from "@/components/ui/input";
-import { createUser, resetUserPassword } from "../actions";
+import { createUser, updateUser } from "../actions";
 
 type AccountOption = { id: number; name: string };
 
+export type UsuarioEditable = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  accountId: number | null;
+};
+
+/* ── Campos ──────────────────────────────────────────────────────────────── */
+
+/**
+ * El cuerpo del formulario, compartido por el alta y la edición.
+ *
+ * Son el mismo formulario a propósito: si al agregar un campo hubiera que
+ * acordarse de tocarlo en dos lados, tarde o temprano los dos dejan de estar
+ * sincronizados y el de editar se queda sin algo que sí se puede crear.
+ *
+ * Las dos diferencias entre un modo y el otro están acá adentro, no en dos
+ * copias del formulario:
+ *
+ *   - En el alta la contraseña es obligatoria; al editar, vacía significa
+ *     "dejala como está".
+ *   - Al editar, los campos vienen con lo que el usuario ya tiene.
+ */
+function CamposDeUsuario({
+  idPrefijo,
+  accounts,
+  usuario,
+}: {
+  /** Prefijo de los `id` del DOM: puede haber varios diálogos en la página. */
+  idPrefijo: string;
+  accounts: AccountOption[];
+  /** Si viene, el formulario es de edición. */
+  usuario?: UsuarioEditable;
+}) {
+  const editando = usuario !== undefined;
+  const [role, setRole] = React.useState(usuario?.role ?? "restaurant");
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label htmlFor={`${idPrefijo}-name`}>Nombre</Label>
+          <Input
+            id={`${idPrefijo}-name`}
+            name="name"
+            required
+            placeholder="Nombre y apellido"
+            defaultValue={usuario?.name ?? ""}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`${idPrefijo}-role`}>Rol</Label>
+          <Select
+            id={`${idPrefijo}-role`}
+            name="role"
+            value={role}
+            onChange={(event) => setRole(event.target.value)}
+          >
+            <option value="restaurant">Restaurante</option>
+            <option value="distributor">Distribuidor</option>
+            <option value="admin">Admin</option>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor={`${idPrefijo}-email`}>Email</Label>
+        <Input
+          id={`${idPrefijo}-email`}
+          name="email"
+          type="email"
+          required
+          spellCheck={false}
+          placeholder="dueño@restaurante.com"
+          defaultValue={usuario?.email ?? ""}
+        />
+      </div>
+
+      {/* La cuenta solo aplica al rol restaurante: es lo que define qué datos
+          ve ese usuario. */}
+      {role === "restaurant" ? (
+        <div className="space-y-1.5">
+          <Label htmlFor={`${idPrefijo}-account`}>Cuenta</Label>
+          <Select
+            id={`${idPrefijo}-account`}
+            name="accountId"
+            required
+            defaultValue={usuario?.accountId ? String(usuario.accountId) : ""}
+          >
+            <option value="" disabled>
+              Elegí una…
+            </option>
+            {accounts.map((cuenta) => (
+              <option key={cuenta.id} value={cuenta.id}>
+                {cuenta.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+      ) : null}
+
+      <div className="space-y-1.5">
+        <Label htmlFor={`${idPrefijo}-password`}>
+          Contraseña
+          {editando ? (
+            <span className="text-ex-text-disabled"> (opcional)</span>
+          ) : null}
+        </Label>
+        <Input
+          id={`${idPrefijo}-password`}
+          name="password"
+          type="password"
+          required={!editando}
+          minLength={8}
+          autoComplete="new-password"
+          placeholder={editando ? "Dejala vacía para no cambiarla" : undefined}
+        />
+        <p className="text-[11px] leading-relaxed text-ex-text-muted">
+          {editando
+            ? "Si la cambiás, las sesiones abiertas siguen activas hasta que venzan."
+            : "Mínimo 8 caracteres. Pasásela al usuario por un canal seguro y pedile que la cambie."}
+        </p>
+      </div>
+    </>
+  );
+}
+
+/* ── Alta ────────────────────────────────────────────────────────────────── */
+
 export function NewUserDialog({ accounts }: { accounts: AccountOption[] }) {
   const [open, setOpen] = React.useState(false);
-  const [role, setRole] = React.useState("restaurant");
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -37,20 +166,27 @@ export function NewUserDialog({ accounts }: { accounts: AccountOption[] }) {
         return;
       }
       formRef.current?.reset();
-      setRole("restaurant");
       setOpen(false);
     });
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setError(null);
+      }}
+    >
       <Button variant="primary" size="sm" onClick={() => setOpen(true)}>
         <Plus />
         Nuevo usuario
       </Button>
 
       <DialogContent>
-        <form ref={formRef} onSubmit={handleSubmit}>
+        {/* `key` fuerza a rearmar los campos al cerrar y volver a abrir: si no,
+            el rol elegido en el intento anterior quedaría pegado. */}
+        <form ref={formRef} onSubmit={handleSubmit} key={open ? "abierto" : "cerrado"}>
           <DialogHeader>
             <DialogTitle>Nuevo usuario</DialogTitle>
             <DialogDescription>
@@ -59,77 +195,17 @@ export function NewUserDialog({ accounts }: { accounts: AccountOption[] }) {
           </DialogHeader>
 
           <DialogBody className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="u-name">Nombre</Label>
-                <Input id="u-name" name="name" required placeholder="Nombre y apellido" />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="u-role">Rol</Label>
-                <Select
-                  id="u-role"
-                  name="role"
-                  value={role}
-                  onChange={(event) => setRole(event.target.value)}
-                >
-                  <option value="restaurant">Restaurante</option>
-                  <option value="distributor">Distribuidor</option>
-                  <option value="admin">Admin</option>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="u-email">Email</Label>
-              <Input
-                id="u-email"
-                name="email"
-                type="email"
-                required
-                spellCheck={false}
-                placeholder="dueño@restaurante.com"
-              />
-            </div>
-
-            {/* La cuenta solo aplica al rol restaurante: es lo que define qué
-                datos ve ese usuario. */}
-            {role === "restaurant" ? (
-              <div className="space-y-1.5">
-                <Label htmlFor="u-account">Cuenta</Label>
-                <Select id="u-account" name="accountId" required defaultValue="">
-                  <option value="" disabled>
-                    Elegí una…
-                  </option>
-                  {accounts.map((cuenta) => (
-                    <option key={cuenta.id} value={cuenta.id}>
-                      {cuenta.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-            ) : null}
-
-            <div className="space-y-1.5">
-              <Label htmlFor="u-password">Contraseña</Label>
-              <Input
-                id="u-password"
-                name="password"
-                type="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-              />
-              <p className="text-[11px] text-ex-text-muted">
-                Mínimo 8 caracteres. Pasásela al usuario por un canal seguro y
-                pedile que la cambie.
-              </p>
-            </div>
-
+            <CamposDeUsuario idPrefijo="u" accounts={accounts} />
             {error ? <ErrorBox message={error} /> : null}
           </DialogBody>
 
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+            >
               Cancelar
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
@@ -142,16 +218,27 @@ export function NewUserDialog({ accounts }: { accounts: AccountOption[] }) {
   );
 }
 
-export function ResetPasswordButton({
-  userId,
-  email,
+/* ── Edición ─────────────────────────────────────────────────────────────── */
+
+/**
+ * El mismo formulario del alta, pero con los datos del usuario cargados.
+ *
+ * Reemplazó al botón que solo cambiaba la contraseña: ese caso sigue estando
+ * —es el campo de abajo— y ahora además se puede corregir un email mal
+ * tipeado, cambiarle el rol o moverlo de cuenta sin tener que tocar la base.
+ */
+export function EditUserDialog({
+  usuario,
+  accounts,
+  esVos,
 }: {
-  userId: string;
-  email: string;
+  usuario: UsuarioEditable;
+  accounts: AccountOption[];
+  /** true si es el usuario con la sesión abierta. */
+  esVos: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [listo, setListo] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -160,12 +247,12 @@ export function ResetPasswordButton({
     setError(null);
 
     startTransition(async () => {
-      const resultado = await resetUserPassword(formData);
+      const resultado = await updateUser(formData);
       if (!resultado.ok) {
         setError(resultado.error);
         return;
       }
-      setListo(true);
+      setOpen(false);
     });
   }
 
@@ -174,61 +261,61 @@ export function ResetPasswordButton({
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (!next) {
-          setError(null);
-          setListo(false);
-        }
+        if (!next) setError(null);
       }}
     >
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title="Cambiar contraseña"
-        aria-label="Cambiar contraseña"
+        title={`Editar a ${usuario.name}`}
+        aria-label={`Editar a ${usuario.name}`}
         className="inline-flex h-7 w-7 items-center justify-center rounded-control border
                    border-ex-border text-ex-text-muted transition-colors
                    hover:border-ex-blue/40 hover:text-ex-text active:scale-[0.98]"
       >
-        <KeyRound className="size-3.5" />
+        <Settings2 className="size-3.5" />
       </button>
 
       <DialogContent>
-        <form onSubmit={handleSubmit}>
+        {/* Al reabrir, los campos vuelven a los valores guardados: si alguien
+            editó, cerró sin guardar y volvió a entrar, no se encuentra con lo
+            que había escrito la vez anterior. */}
+        <form onSubmit={handleSubmit} key={open ? "abierto" : "cerrado"}>
           <DialogHeader>
-            <DialogTitle>Cambiar contraseña</DialogTitle>
-            <DialogDescription>{email}</DialogDescription>
+            <DialogTitle>Editar usuario</DialogTitle>
+            <DialogDescription>{usuario.email}</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
-            <input type="hidden" name="userId" value={userId} />
+            <input type="hidden" name="userId" value={usuario.id} />
 
-            <div className="space-y-1.5">
-              <Label htmlFor={`p-${userId}`}>Contraseña nueva</Label>
-              <Input
-                id={`p-${userId}`}
-                name="password"
-                type="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-              />
-            </div>
+            <CamposDeUsuario
+              idPrefijo={`e-${usuario.id}`}
+              accounts={accounts}
+              usuario={usuario}
+            />
 
-            {error ? <ErrorBox message={error} /> : null}
-            {listo ? (
-              <p className="rounded-control border border-ex-success/25 bg-ex-success/10 px-3 py-2 text-xs text-ex-success">
-                Contraseña cambiada. Las sesiones abiertas siguen activas hasta
-                que venzan.
+            {esVos ? (
+              <p className="rounded-control border border-ex-warning/25 bg-ex-warning/10 px-3 py-2 text-[11px] leading-relaxed text-ex-text">
+                Es tu propio usuario. Podés cambiar tus datos, pero no tu rol:
+                sacarte el admin te dejaría afuera de la administración.
               </p>
             ) : null}
+
+            {error ? <ErrorBox message={error} /> : null}
           </DialogBody>
 
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              {listo ? "Cerrar" : "Cancelar"}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+            >
+              Cancelar
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Guardando…" : "Cambiar"}
+              {pending ? "Guardando…" : "Guardar"}
             </Button>
           </DialogFooter>
         </form>

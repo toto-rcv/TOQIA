@@ -310,6 +310,18 @@ cuenta que va a ver. También se cambia la contraseña de cualquiera.
 **No hay registro público.** El endpoint está deshabilitado del lado del
 servidor: todos los accesos salen de acá.
 
+**El ingreso tiene freno.** Después de **7 contraseñas mal seguidas**, ese
+cliente no puede volver a intentar durante **un minuto**: el servidor le
+responde 429 y el formulario deshabilita los campos con una cuenta regresiva.
+Sin eso, `/api/auth/sign-in/email` acepta todos los pedidos que le manden y un
+script prueba miles de contraseñas por minuto contra una cuenta.
+
+El contador es por **IP + email**, no por una sola de las dos. Contar solo por
+IP dejaría afuera a todo un restaurante que sale por el mismo router cuando un
+empleado se equivoca siete veces; contar solo por email dejaría que cualquiera
+bloquee la cuenta ajena a propósito. Un ingreso correcto borra el contador, y
+los fallos sueltos se olvidan a los 15 minutos.
+
 ### Mantenimiento — `/admin/mantenimiento`
 
 Dos herramientas que antes solo existían por consola y que en producción no se

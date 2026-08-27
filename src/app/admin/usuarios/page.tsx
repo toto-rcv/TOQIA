@@ -6,7 +6,7 @@ import { listAccountOptions } from "@/db/queries/accounts";
 import { listUsers } from "@/db/queries/users";
 import { requireAdmin } from "@/lib/session";
 import { formatDate } from "@/lib/utils";
-import { NewUserDialog, ResetPasswordButton } from "./user-dialogs";
+import { EditUserDialog, NewUserDialog } from "./user-dialogs";
 
 export const metadata = { title: "Usuarios · Toqia Admin" };
 export const dynamic = "force-dynamic";
@@ -77,9 +77,16 @@ export default async function AdminUsersPage() {
                     <Td className="num text-[11px]">{formatDate(usuario.createdAt)}</Td>
                     <Td>
                       <div className="flex justify-end">
-                        <ResetPasswordButton
-                          userId={usuario.id}
-                          email={usuario.email}
+                        <EditUserDialog
+                          usuario={{
+                            id: usuario.id,
+                            name: usuario.name,
+                            email: usuario.email,
+                            role: usuario.role,
+                            accountId: usuario.accountId,
+                          }}
+                          accounts={cuentas}
+                          esVos={usuario.id === actual.id}
                         />
                       </div>
                     </Td>
@@ -93,8 +100,7 @@ export default async function AdminUsersPage() {
 
       <p className="mt-4 text-[11px] text-ex-text-muted">
         Un usuario con rol restaurante sin cuenta asignada no puede ver nada: si
-        ves una fila así, asignale la cuenta creándolo de nuevo o corrigiéndolo
-        en la base.
+        ves una fila así, editala y asignale la cuenta.
       </p>
     </>
   );
