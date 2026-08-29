@@ -1,4 +1,8 @@
+import { getTableColumns, getTableName, is } from "drizzle-orm";
+import { MySqlTable } from "drizzle-orm/mysql-core";
 import type mysql from "mysql2/promise";
+
+import * as esquema from "@/db/schema";
 
 /**
  * Puesta al día del esquema de una base que ya tiene datos.
@@ -86,6 +90,7 @@ async function recorrer(
   await ensancharEnums(ctx);
   await convertirUrlsATexto(ctx);
   await normalizarFechas(ctx);
+  await verificarContraElEsquema(ctx);
 
   const pendientes = ctx.pasos.filter((p) => p.estado === "pendiente").length;
   const aplicados = ctx.pasos.filter((p) => p.estado === "aplicado").length;
@@ -615,4 +620,87 @@ async function normalizarFechas(ctx: Contexto) {
       );
     }
   }
+}
+
+/* ── 5. Red de seguridad: la base contra lo que el código espera ──────────── */
+
+/**
+ * Compara cada columna declarada en `src/db/schema.ts` con lo que hay en la
+ * base, y agrega las que falten.
+ *
+ * Los pasos de arriba son una lista escrita a mano, y una lista se olvida: si
+ * alguien agrega una columna al esquema y no la anota ahí, la migración dice
+ * "al día" mientras producción se cae con `Unknown column`. Eso ya pasó más de
+ * una vez, y el síntoma —`Application error` sin explicación— cuesta horas.
+ *
+ * Este paso no depende de que nadie se acuerde de nada: la fuente de verdad es
+ * el propio esquema de Drizzle. Solo mira columnas, que es de lejos lo que más
+ * cambia; índices y foreign keys siguen a cargo de los pasos de arriba.
+ *
+ * Agrega sola las columnas que puede agregar sin riesgo —las que aceptan NULL
+ * o traen valor por defecto—. Una columna obligatoria y sin default no se
+ * puede agregar a una tabla con filas sin inventar un valor, así que esas se
+ * reportan y se dejan para una migración escrita a mano.
+ */
+async function verificarContraElEsquema(ctx: Contexto) {
+  ctx.grupo = "Columnas que el código espera";
+
+  for (const valor of Object.values(esquema)) {
+    if (!is(valor, MySqlTable)) continue;
+
+    const tabla = getTableName(valor);
+    if (!(await ctx.existeTabla(tabla))) {
+      ctx.anotar(`tabla ${tabla} (no existe)`, "no-aplica");
+      continue;
+    }
+
+    const existentes = await columnasDe(ctx, tabla);
+
+    for (const columna of Object.values(getTableColumns(valor))) {
+      const nombre = columna.name;
+      if (existentes.has(nombre)) continue;
+
+      // En modo diagnóstico los pasos de arriba no llegaron a aplicarse, así
+      // que una columna que ya está en la lista escrita a mano aparecería dos
+      // veces y el contador de pendientes diría de más.
+      if (yaReportada(ctx, tabla, nombre)) continue;
+
+      const tipo = columna.getSQLType();
+      const obligatoriaSinDefault = columna.notNull && !columna.hasDefault;
+
+      if (obligatoriaSinDefault) {
+        ctx.anotar(
+          `${tabla}.${nombre} falta y es obligatoria sin valor por defecto: hay que agregarla a mano (${tipo})`,
+          "no-aplica"
+        );
+        continue;
+      }
+
+      // Se agrega siempre como nullable aunque el esquema la declare NOT NULL
+      // con default: MySQL rellena las filas existentes con el default, pero
+      // el orden de los pasos anteriores ya puede haberla creado de otra forma
+      // y no queremos pelearnos con eso. Lo que importa es que la columna
+      // exista y las consultas dejen de romperse.
+      await ctx.correr(
+        `${tabla}.${nombre} (faltaba en la base)`,
+        `ALTER TABLE \`${tabla}\` ADD \`${nombre}\` ${tipo}`
+      );
+    }
+  }
+}
+
+/** ¿Algún paso anterior ya se hizo cargo de esta columna? */
+function yaReportada(ctx: Contexto, tabla: string, columna: string): boolean {
+  const prefijo = `${tabla}.${columna}`;
+  return ctx.pasos.some((paso) => paso.descripcion.startsWith(prefijo));
+}
+
+/** Nombres de las columnas que hoy tiene una tabla. */
+async function columnasDe(ctx: Contexto, tabla: string): Promise<Set<string>> {
+  const filas = await ctx.consulta<mysql.RowDataPacket[]>(
+    `SELECT COLUMN_NAME FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?`,
+    [ctx.base, tabla]
+  );
+  return new Set(filas.map((fila) => String(fila.COLUMN_NAME)));
 }
