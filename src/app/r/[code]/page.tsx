@@ -3,12 +3,14 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { LandingView } from "@/components/landing/landing-view";
-import { resolveBraceletByCode, type ResolvedBracelet } from "@/db/queries/landing";
 import { hasVisibleMenu } from "@/db/queries/menu";
 import { hashIp } from "@/lib/hash";
-import { destinoDeCodigoSinLocal } from "@/lib/pulsera-sin-local";
-import { getCached, setCached } from "@/lib/redirect-cache";
 import { getClientIp } from "@/lib/request-ip";
+import {
+  destinoDeCodigoNoResuelto,
+  normalizeCode,
+  resolverPulsera,
+} from "@/lib/resolver-pulsera";
 import { recordScan } from "@/lib/scan-logger";
 import { safeUrl } from "@/lib/url";
 
@@ -37,8 +39,13 @@ export async function generateMetadata({
   params: Promise<{ code: string }>;
 }): Promise<Metadata> {
   const { code } = await params;
-  const resolved = await resolveCached(normalizeCode(code));
-  const nombre = resolved?.landing.displayName || resolved?.landing.name;
+  const normalizado = normalizeCode(code);
+  const resolucion = normalizado
+    ? await resolverPulsera(normalizado, "landing")
+    : ({ estado: "no-existe" } as const);
+
+  const landing = resolucion.estado === "ok" ? resolucion.datos.landing : null;
+  const nombre = landing?.displayName || landing?.name;
 
   return {
     title: nombre ?? "Toqia",
@@ -57,8 +64,11 @@ export default async function LandingPage({
 
   if (!code) redirect("/pulsera/no-reconocida");
 
-  const resolved = await resolveCached(code);
-  if (!resolved) redirect(await destinoDeCodigoSinLocal(code));
+  const resolucion = await resolverPulsera(code, "landing");
+  if (resolucion.estado !== "ok") {
+    redirect(await destinoDeCodigoNoResuelto(code, resolucion.estado));
+  }
+  const resolved = resolucion.datos;
 
   // La cuenta manda sobre todo lo demás: si está dada de baja o cancelada, no
   // importa el estado del local ni el de la pulsera.
@@ -97,48 +107,4 @@ export default async function LandingPage({
       hasMenu={conCarta}
     />
   );
-}
-
-/** Resuelve el código usando el caché en memoria. */
-async function resolveCached(
-  code: string | null
-): Promise<ResolvedBracelet | null> {
-  if (!code) return null;
-
-  const cached = getCached(code);
-  if (cached !== undefined) return cached;
-
-  try {
-    const resolved = await resolveBraceletByCode(code);
-    setCached(code, resolved);
-    return resolved;
-  } catch (error) {
-    // Sin base no podemos resolver nada. No cacheamos el fallo: la próxima
-    // vuelve a intentar.
-    console.error("[landing] falló la resolución de la pulsera", {
-      code,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return null;
-  }
-}
-
-/**
- * Toleramos que el código llegue con espacios o url-encodeado, pero se compara
- * tal cual está en la base.
- */
-function normalizeCode(raw: string | undefined): string | null {
-  if (!raw) return null;
-
-  let decoded = raw;
-  try {
-    decoded = decodeURIComponent(raw);
-  } catch {
-    // Un % suelto rompe decodeURIComponent; seguimos con el valor original.
-  }
-
-  const trimmed = decoded.trim();
-  // Límite defensivo: la columna es varchar(50).
-  if (trimmed === "" || trimmed.length > 50) return null;
-  return trimmed;
 }

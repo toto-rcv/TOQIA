@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { MenuView } from "@/components/landing/menu-view";
-import { resolveBraceletByCode } from "@/db/queries/landing";
+
 import { getLocationById } from "@/db/queries/locations";
 import { getMenu } from "@/db/queries/menu";
-import { destinoDeCodigoSinLocal } from "@/lib/pulsera-sin-local";
-import { getCached, setCached } from "@/lib/redirect-cache";
+import {
+  destinoDeCodigoNoResuelto,
+  normalizeCode,
+  resolverPulsera,
+} from "@/lib/resolver-pulsera";
 
 /**
  * La carta del local — `/r/B001/carta`.
@@ -28,8 +31,13 @@ export async function generateMetadata({
   params: Promise<{ code: string }>;
 }): Promise<Metadata> {
   const { code } = await params;
-  const resolved = await resolver(code);
-  const nombre = resolved?.landing.displayName || resolved?.landing.name;
+  const normalizado = normalizeCode(code);
+  const resolucion = normalizado
+    ? await resolverPulsera(normalizado, "carta")
+    : ({ estado: "no-existe" } as const);
+
+  const landing = resolucion.estado === "ok" ? resolucion.datos.landing : null;
+  const nombre = landing?.displayName || landing?.name;
 
   return {
     title: nombre ? `Carta · ${nombre}` : "Carta",
@@ -47,8 +55,11 @@ export default async function CartaPage({
 
   if (!code) redirect("/pulsera/no-reconocida");
 
-  const resolved = await resolver(code);
-  if (!resolved) redirect(await destinoDeCodigoSinLocal(code));
+  const resolucion = await resolverPulsera(code, "carta");
+  if (resolucion.estado !== "ok") {
+    redirect(await destinoDeCodigoNoResuelto(code, resolucion.estado));
+  }
+  const resolved = resolucion.datos;
 
   const cuentaHabilitada =
     resolved.accountActive && resolved.subscriptionStatus !== "cancelled";
@@ -71,40 +82,4 @@ export default async function CartaPage({
       backHref={`/r/${encodeURIComponent(code)}`}
     />
   );
-}
-
-/** Misma resolución que la landing, con el mismo caché en memoria. */
-async function resolver(rawCode: string) {
-  const code = normalizeCode(rawCode);
-  if (!code) return null;
-
-  const cached = getCached(code);
-  if (cached !== undefined) return cached;
-
-  try {
-    const resolved = await resolveBraceletByCode(code);
-    setCached(code, resolved);
-    return resolved;
-  } catch (error) {
-    console.error("[carta] falló la resolución de la pulsera", {
-      code,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return null;
-  }
-}
-
-function normalizeCode(raw: string | undefined): string | null {
-  if (!raw) return null;
-
-  let decoded = raw;
-  try {
-    decoded = decodeURIComponent(raw);
-  } catch {
-    // Un % suelto rompe decodeURIComponent; seguimos con el valor original.
-  }
-
-  const trimmed = decoded.trim();
-  if (trimmed === "" || trimmed.length > 50) return null;
-  return trimmed;
 }

@@ -23,6 +23,12 @@ const ESTADOS = {
       "La pulsera existe pero está desactivada en este momento, así que no tiene un destino al que llevarte.",
     accion: "Avisale al personal del local para que la reactiven.",
   },
+  error: {
+    titulo: "No pudimos cargar la página",
+    detalle:
+      "Hubo un problema momentáneo al buscar los datos de esta pulsera. No es tu teléfono ni el chip: los dos están bien.",
+    accion: "Probá de nuevo en un minuto. Si sigue igual, avisale al personal del local.",
+  },
   "sin-asignar": {
     titulo: "Esta pulsera todavía no está en uso",
     detalle:
