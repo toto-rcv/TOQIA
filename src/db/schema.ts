@@ -137,6 +137,14 @@ export const locations = mysqlTable(
     menuHeaderImageUrl: text("menu_header_image_url"),
     // Cuál de las dos cartas se muestra. Ver `menuModes`.
     menuMode: mysqlEnum("menu_mode", menuModes).notNull().default("toqia"),
+
+    /* Qué dice el botón que abre la carta.
+       Vacío = "Ver menú". Es nullable a propósito y no un NOT NULL con ese
+       texto por defecto: escribírselo a cada local congelaría la etiqueta, y
+       el día que el default cambie no le llegaría a ninguno de los que ya
+       existen. Además deja a Toqia salir de gastronomía sin tocar código: un
+       comercio pone "Catálogo", una peluquería "Lista de precios". */
+    menuButtonLabel: varchar("menu_button_label", { length: 40 }),
     // Moneda con la que se muestran los precios de la carta.
     currency: varchar("currency", { length: 8 }).notNull().default("€"),
 

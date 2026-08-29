@@ -327,6 +327,7 @@ async function agregarColumnas(ctx: Contexto) {
     ["locations", "closing_message", "varchar(200)"],
     ["locations", "closing_image_url", "text"],
     ["locations", "currency", "varchar(8) NOT NULL DEFAULT '€'"],
+    ["locations", "menu_button_label", "varchar(40)"],
   ];
 
   for (const [tabla, columna, definicion] of nuevas) {

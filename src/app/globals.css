@@ -191,20 +191,21 @@
   }
 
   /* ── La carta del cliente ─────────────────────────────────────────────────
-     Carta de pizarra: fondo negro grisáceo, títulos y precios en naranja, y
-     ninguna caja. Cada plato es una fila separada de la siguiente por un
-     filete fino, con el precio alineado a la derecha — el mismo recurso que
-     usa una carta impresa para que el ojo salte del nombre al precio.
+     Carta de pizarra: fondo casi negro, títulos y precios en champagne
+     apagado, y ninguna caja. Cada plato es una fila separada de la siguiente
+     por un filete fino, con el precio alineado a la derecha — el mismo recurso
+     que usa una carta impresa para que el ojo salte del nombre al precio.
      La jerarquía es: categoría → nombre → precio → descripción. */
   .tq-menu-page {
     @apply min-h-dvh bg-tq-night text-tq-night-ink;
   }
 
-  /* Título de categoría: suelto sobre el fondo, sin caja. Va en el naranja
-     claro del degradado — un escalón más brillante que el de los platos, para
-     que la jerarquía se lea también en blanco y negro, no solo por tamaño. */
+  /* Título de categoría: suelto sobre el fondo, sin caja. Con un solo acento
+     la jerarquía frente al nombre del plato la hacen el tamaño y la
+     tipografía condensada, que a 22px contra 14,5px ya es diferencia de
+     sobra. */
   .tq-cat-title {
-    @apply text-[22px] uppercase leading-none tracking-[0.06em] text-tq-flame-light
+    @apply text-[22px] uppercase leading-none tracking-[0.06em] text-tq-champagne
            lg:text-[26px];
     font-family: var(--tq-display);
   }
@@ -216,16 +217,16 @@
     @apply flex items-baseline gap-4 border-b border-tq-night-line py-3;
   }
 
-  /* El precio, a la derecha y en naranja. `tabular-nums` para que las columnas
-     de cifras queden a plomo entre sí y no bailen renglón a renglón. */
+  /* El precio, a la derecha y en champagne. `tabular-nums` para que las
+     columnas de cifras queden a plomo entre sí y no bailen renglón a renglón. */
   .tq-price {
-    @apply shrink-0 text-[17px] font-bold tabular-nums text-tq-flame lg:text-[18px];
+    @apply shrink-0 text-[17px] font-bold tabular-nums text-tq-champagne lg:text-[18px];
   }
 
-  /* Nombre en naranja y mayúsculas, como en la referencia. El interletrado
-     abierto es lo que evita que una mayúscula sostenida se lea apelmazada. */
+  /* Nombre en champagne y mayúsculas. El interletrado abierto es lo que evita
+     que una mayúscula sostenida se lea apelmazada. */
   .tq-dish-name {
-    @apply text-[14.5px] font-bold uppercase leading-tight tracking-[0.03em] text-tq-flame;
+    @apply text-[14.5px] font-bold uppercase leading-tight tracking-[0.03em] text-tq-champagne;
   }
 
   .tq-dish-desc {

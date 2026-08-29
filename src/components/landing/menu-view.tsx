@@ -8,13 +8,13 @@ import type { LandingData } from "./landing-view";
 /**
  * La carta del local, tal como la ve el cliente.
  *
- * Es una carta de pizarra: fondo negro grisáceo, títulos y precios en naranja,
+ * Es una carta de pizarra: fondo casi negro, títulos y precios en champagne,
  * y nada de cajas. Cada plato es una fila separada de la siguiente por un
  * filete fino — el mismo recurso que usa una carta impresa para que el ojo
  * salte del nombre al precio sin perderse.
  *
  * Jerarquía, de más a menos peso visual:
- *   categoría (naranja, condensada) → nombre del plato → precio → descripción
+ *   categoría (champagne, condensada) → nombre del plato → precio → descripción
  *
  * Una sola columna que se ensancha con la pantalla:
  *
@@ -110,7 +110,7 @@ export function MenuView({
         )}
 
         <p className="mt-12 text-center text-[11px] font-semibold uppercase tracking-[0.16em] text-tq-night-muted">
-          Powered by <span className="text-tq-flame">Toqia</span>
+          Powered by <span className="text-tq-champagne">Toqia</span>
         </p>
       </div>
     </main>
@@ -203,9 +203,9 @@ function BotonVolver({
       className={
         "inline-flex w-fit items-center gap-2 text-[13px] font-semibold transition-colors " +
         (sobreFoto
-          ? // Píldora naranja: sobre una foto cualquiera, un texto suelto puede
-            // quedar ilegible.
-            "rounded-pill bg-tq-flame px-4 py-2 text-tq-night shadow-sm hover:bg-tq-flame-light"
+          ? // Píldora champagne: sobre una foto cualquiera, un texto suelto
+            // puede quedar ilegible.
+            "rounded-pill bg-tq-champagne px-4 py-2 text-tq-night shadow-sm hover:bg-tq-champagne-light"
           : "text-tq-night-soft hover:text-tq-night-ink")
       }
     >
@@ -232,7 +232,7 @@ function Categoria({
       <div className="flex items-center gap-2.5">
         <MenuIcon
           name={categoria.icon}
-          className="size-[26px] shrink-0 text-tq-flame lg:size-[28px]"
+          className="size-[26px] shrink-0 text-tq-champagne lg:size-[28px]"
         />
         <h2 className="tq-cat-title">{categoria.name}</h2>
       </div>

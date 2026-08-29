@@ -29,6 +29,7 @@ type Location = {
   closingMessage: string | null;
   closingImageUrl: string | null;
   menuMode: string;
+  menuButtonLabel: string | null;
   currency: string;
 };
 
@@ -219,6 +220,7 @@ export function LandingForm({
       </Seccion>
 
       <SelectorDeCarta
+        etiquetaInicial={location.menuButtonLabel ?? ""}
         modoInicial={location.menuMode === "pdf" ? "pdf" : "toqia"}
         pdfActual={location.menuUrl}
         tieneCartaToqia={tieneCartaToqia}
@@ -317,23 +319,53 @@ function Seccion({
  * forma de entender por qué. Ahora elige el restaurante.
  */
 function SelectorDeCarta({
+  etiquetaInicial,
   modoInicial,
   pdfActual,
   tieneCartaToqia,
 }: {
+  etiquetaInicial: string;
   modoInicial: "toqia" | "pdf";
   pdfActual: string | null;
   tieneCartaToqia: boolean;
 }) {
   const [modo, setModo] = React.useState(modoInicial);
+  const [etiqueta, setEtiqueta] = React.useState(etiquetaInicial);
+
+  // Lo que va a decir el botón de verdad. Se usa en todos los textos de esta
+  // sección: si el local lo llamó "Catálogo", leer instrucciones que hablan de
+  // “Ver menú” obliga a traducir mentalmente en cada frase.
+  const comoSeLlama = etiqueta.trim() || "Ver menú";
 
   return (
     <section className="rounded-card border border-ex-border bg-ex-surface shadow-card">
       <div className="border-b border-ex-border-subtle px-4 py-3.5 sm:px-5">
         <h3 className="text-[15px] font-semibold tracking-tight text-ex-text">Carta</h3>
         <p className="mt-0.5 text-[12.5px] text-ex-text-muted">
-          Qué se abre cuando el cliente toca “Ver menú”.
+          Cómo se llama el botón de tu página y qué se abre al tocarlo.
         </p>
+      </div>
+
+      <div className="border-b border-ex-border-subtle px-4 py-4 sm:px-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="menuButtonLabel">Texto del botón</Label>
+          <Input
+            id="menuButtonLabel"
+            name="menuButtonLabel"
+            value={etiqueta}
+            onChange={(event) => setEtiqueta(event.target.value)}
+            maxLength={40}
+            placeholder="Ver menú"
+            autoComplete="off"
+          />
+          <p className="text-[11px] leading-relaxed text-ex-text-muted">
+            Poné lo que corresponda a tu negocio: “Lista de precios”,
+            “Catálogo”, “Ver servicios”. Si lo dejás vacío dice{" "}
+            <span className="font-medium text-ex-text">Ver menú</span>. Entran
+            hasta 40 caracteres, pero de dos o tres palabras no pasés: el botón
+            es chico y el texto se parte.
+          </p>
+        </div>
       </div>
 
       <div className="space-y-3 px-4 py-4 sm:px-5">
@@ -346,7 +378,7 @@ function SelectorDeCarta({
           aviso={
             tieneCartaToqia
               ? null
-              : "Todavía no cargaste ningún plato: hasta que lo hagas, el botón “Ver menú” no aparece en tu página."
+              : `Todavía no cargaste ningún plato: hasta que lo hagas, el botón “${comoSeLlama}” no aparece en tu página.`
           }
         />
 
@@ -358,7 +390,7 @@ function SelectorDeCarta({
           detalle="Tu propio archivo. Cada vez que cambien los precios hay que subir el PDF de nuevo."
           aviso={
             modo === "pdf" && !pdfActual
-              ? "Subí el archivo acá abajo, o el botón “Ver menú” no va a aparecer."
+              ? `Subí el archivo acá abajo, o el botón “${comoSeLlama}” no va a aparecer.`
               : null
           }
         />
@@ -373,7 +405,7 @@ function SelectorDeCarta({
             label="Archivo de la carta"
             actual={pdfActual}
             formato="pdf"
-            hint="Un PDF. Se abre en una pestaña nueva cuando el cliente toca “Ver menú”."
+            hint={`Un PDF. Se abre en una pestaña nueva cuando el cliente toca “${comoSeLlama}”.`}
           />
         </div>
       ) : null}

@@ -41,6 +41,8 @@ export type LandingData = {
   menuHeaderImageUrl: string | null;
   /** "toqia" (la carta del panel) o "pdf" (el archivo que subió el local). */
   menuMode: string;
+  /** Qué dice el botón que abre la carta. Vacío = "Ver menú". */
+  menuButtonLabel: string | null;
 };
 
 /** Un botón de la grilla de accesos rápidos. */
@@ -104,7 +106,9 @@ export function LandingView({
       // El PDF abre en una pestaña nueva; la carta de Toqia navega dentro de
       // la misma página, así el botón "Volver" trae de vuelta a la reseña.
       interno: !usaPdf && Boolean(menuHref),
-      title: "Ver menú",
+      // El local puede llamarlo como quiera: "Catálogo", "Lista de precios",
+      // "Ver servicios". Vacío cae en el default de siempre.
+      title: landing.menuButtonLabel?.trim() || "Ver menú",
       sub: "Nuestra carta",
       icon: <UtensilsCrossed className="size-6 text-tq-ink" aria-hidden />,
     },

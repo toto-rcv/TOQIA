@@ -86,38 +86,24 @@ const config: Config = {
           "text-muted": "#9A937F",
 
           /* ── La carta ──────────────────────────────────────────────────
-             Ambiente nocturno: negro grisáceo cálido, naranja en degradado y
-             texto blanco. Es la estética de pizarra de restaurante — lo que el
-             cliente ya asocia con una carta — y de paso el fondo oscuro hace
-             que las fotos de los platos salten. */
-          night: "#1B1A18", // fondo de la carta
-          "night-raised": "#252220", // fila de plato
-          "night-sunken": "#121110", // ficha de precio
-          "night-line": "#332F2C",
-          "night-ink": "#FFFFFF",
-          "night-soft": "#C2BAB3",
-          "night-muted": "#8E8781",
+             Ambiente nocturno y sobrio: fondo casi negro, champagne apagado
+             como único acento y blanco roto para el texto. El dorado mate no
+             compite con la comida como competía el naranja, y sobre el fondo
+             oscuro da 9:1 de contraste: se lee igual con la luz del mediodía
+             pegando en la pantalla. */
+          night: "#181817", // fondo de la carta
+          "night-raised": "#20201F", // superficies sobre el fondo
+          "night-line": "#353432", // filete entre platos
+          "night-ink": "#F2EFE8", // blanco roto: nombres y textos
+          "night-soft": "#A9A6A0", // descripciones
+          "night-muted": "#8C8A84", // firmas y avisos, un escalón más abajo
 
-          flame: "#F59B23", // el naranja de la marca
-          "flame-light": "#FBB040", // arranque del degradado
-          "flame-deep": "#E8730A", // final del degradado
-          "flame-soft": "#FFD08A",
-
-          /* ── Paleta arena (quedó de la versión anterior) ────────────────
-             Ambiente propio, en arena cálida. Se separa a propósito de la
-             portada negra: la carta se lee sentado, con luz de sala, y un
-             fondo claro cansa menos que texto claro sobre negro. */
-          sand: "#F0E3D3", // fondo de la carta
-          "sand-deep": "#E7D6C2", // separadores y chips
-          "sand-card": "#F8EFE4", // fila de plato
-          "sand-line": "#DFCDB6",
-          terracotta: "#C0543A", // banda de categoría (impar)
-          "terracotta-dark": "#A8452F",
-          espresso: "#4A4038", // banda de categoría (par)
-          "espresso-dark": "#3A322C",
-          "sand-ink": "#2E2721", // texto de la carta
-          "sand-soft": "#6B5F54",
-          "sand-muted": "#948577",
+          /* El acento. `light` y `deep` solo existen para los estados de un
+             botón (reposo / hover); el color que manda en toda la carta es
+             `champagne` a secas. */
+          champagne: "#C9B88A",
+          "champagne-light": "#D8CBA5",
+          "champagne-deep": "#B3A075",
         },
         // ── minimalist-ui ────────────────────────────────────────────────
         mn: {

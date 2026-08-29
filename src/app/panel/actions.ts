@@ -174,6 +174,7 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
   const welcomeKicker = readString(formData.get("welcomeKicker"));
   const welcomeTitle = readString(formData.get("welcomeTitle"));
   const closingMessage = readString(formData.get("closingMessage"));
+  const menuButtonLabel = readString(formData.get("menuButtonLabel"));
   const currency = readString(formData.get("currency")) || "€";
 
   // Qué carta se muestra. Cualquier cosa que no sea "pdf" cae en "toqia":
@@ -239,6 +240,7 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
     [welcomeKicker, "El texto de bienvenida", 120],
     [welcomeTitle, "El título de la reseña", 200],
     [closingMessage, "El mensaje de cierre", 200],
+    [menuButtonLabel, "El texto del botón de la carta", 40],
   ];
 
   for (const [valor, etiqueta, tope] of TOPES) {
@@ -315,6 +317,7 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
         closingMessage: vacioANull(closingMessage),
         currency,
         menuMode,
+        menuButtonLabel: vacioANull(menuButtonLabel),
         googleReviewUrl: porClave.googleReviewUrl,
         instagramUrl: porClave.instagramUrl,
         websiteUrl: porClave.websiteUrl,

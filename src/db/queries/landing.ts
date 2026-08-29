@@ -40,6 +40,7 @@ export type ResolvedBracelet = {
     closingImageUrl: string | null;
     menuHeaderImageUrl: string | null;
     menuMode: string;
+    menuButtonLabel: string | null;
   };
 };
 
@@ -80,6 +81,7 @@ export async function resolveBraceletByCode(
       closingImageUrl: locations.closingImageUrl,
       menuHeaderImageUrl: locations.menuHeaderImageUrl,
       menuMode: locations.menuMode,
+      menuButtonLabel: locations.menuButtonLabel,
     })
     .from(bracelets)
     .innerJoin(locations, eq(bracelets.locationId, locations.id))
@@ -121,6 +123,7 @@ export async function resolveBraceletByCode(
       closingImageUrl: row.closingImageUrl,
       menuHeaderImageUrl: row.menuHeaderImageUrl,
       menuMode: row.menuMode,
+      menuButtonLabel: row.menuButtonLabel,
     },
   };
 }
