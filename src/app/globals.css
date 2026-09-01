@@ -304,3 +304,83 @@
     system-ui, -apple-system, "Helvetica Neue", sans-serif;
   letter-spacing: -0.005em;
 }
+
+/* ── Sitio público de Toqia ("/") ────────────────────────────────────────────
+   El degradado de marca no se repite a mano en cada componente: son estas tres
+   clases. Si mañana cambia la paleta, cambia `bg-mk-brand` en tailwind.config
+   y no hay que buscar veinte `from-… via-… to-…` sueltos por el código.
+
+   Nota: `* { @apply border-ex-border }` en la base pinta el borde por defecto
+   con el gris del panel claro, que sobre este fondo se ve como suciedad. Por
+   eso cada elemento con borde de este sitio declara `border-mk-border`. */
+@layer components {
+  /* Texto con el degradado. Necesita ser inline-block: si el texto parte en
+     dos líneas, un inline con background-clip corta el degradado en cada
+     fragmento y se ve como dos degradados distintos. */
+  .mk-gradient-text {
+    @apply inline-block bg-mk-brand bg-clip-text text-transparent;
+  }
+
+  /* El botón principal. 44px de alto: es el mínimo cómodo para el pulgar. */
+  .mk-btn {
+    @apply inline-flex min-h-[48px] items-center justify-center gap-2.5
+           rounded-pill bg-mk-brand px-7 text-[15px] font-semibold text-white
+           shadow-[0_10px_30px_-12px_rgba(0,184,200,0.55)]
+           transition-[transform,box-shadow,filter] duration-200
+           hover:-translate-y-0.5 hover:brightness-110
+           hover:shadow-[0_16px_40px_-12px_rgba(0,184,200,0.75)]
+           focus-visible:outline-none focus-visible:ring-2
+           focus-visible:ring-mk-turquoise focus-visible:ring-offset-2
+           focus-visible:ring-offset-mk-bg active:translate-y-0;
+  }
+
+  /* El secundario: el mismo degradado, pero solo en el borde. Se hace con dos
+     fondos y `padding-box`/`border-box` porque `border-image` no admite
+     esquinas redondeadas. */
+  .mk-btn-outline {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-pill
+           px-5 text-[14px] font-medium text-mk-text
+           transition-[filter,transform] duration-200
+           hover:-translate-y-0.5 hover:brightness-125
+           focus-visible:outline-none focus-visible:ring-2
+           focus-visible:ring-mk-turquoise focus-visible:ring-offset-2
+           focus-visible:ring-offset-mk-bg;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(#050b12, #050b12) padding-box,
+      linear-gradient(90deg, #1677ff, #00b8c8, #00d084) border-box;
+  }
+
+  /* El filete corto debajo de cada título de sección. */
+  .mk-rule {
+    @apply mx-auto mt-4 h-[3px] w-14 rounded-pill bg-mk-brand;
+  }
+
+  .mk-card {
+    @apply rounded-card border border-mk-border bg-mk-surface
+           transition-colors duration-200 hover:border-mk-turquoise/35
+           hover:bg-mk-elevated;
+  }
+}
+
+/* La barra de scroll del sitio, en oscuro: la clara del panel salta. */
+.mk-scope ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.mk-scope ::-webkit-scrollbar-track {
+  background: #050b12;
+}
+.mk-scope ::-webkit-scrollbar-thumb {
+  background: #1c2935;
+  border-radius: 999px;
+}
+.mk-scope ::-webkit-scrollbar-thumb:hover {
+  background: #2a3b4b;
+}
+
+/* El ancla de una sección queda tapada por la barra fija si no se le deja
+   aire arriba. */
+.mk-scope :target {
+  scroll-margin-top: 96px;
+}

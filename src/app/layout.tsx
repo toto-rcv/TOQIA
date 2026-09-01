@@ -8,10 +8,25 @@ import { GeistSans } from "geist/font/sans";
 import "@fontsource/anton/latin-400.css";
 import "./globals.css";
 
+import { sitioUrl } from "@/lib/utils";
+
+const SITIO_URL = sitioUrl();
+
 export const metadata: Metadata = {
-  title: "Toqia",
-  description: "Tu negocio a un toque",
-  robots: { index: false, follow: false },
+  // `template` deja que cada página ponga solo su nombre. La raíz usa
+  // `default`, que es el título del sitio público.
+  title: {
+    default: "Toqia · Tu negocio, a un toque",
+    template: "%s · Toqia",
+  },
+  description:
+    "Pulseras, tarjetas y placas NFC para que tus clientes accedan a tu menú, " +
+    "tus promociones y tus reseñas de Google con un solo toque.",
+  // Base para las URLs absolutas de og:image y del canonical.
+  metadataBase: new URL(SITIO_URL),
+  // El noindex global se sacó a propósito: "/" es la web comercial de Toqia.
+  // Lo que no se indexa (paneles, login, landings de pulsera) lo declara cada
+  // sección en su propio layout y src/app/robots.ts.
 };
 
 export const viewport: Viewport = {

@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { getSessionUser, homeForRole } from "@/lib/session";
 import { LoginForm } from "./login-form";
 
-export const metadata = { title: "Ingresar · Toqia" };
+export const metadata = {
+  title: "Ingresar",
+  robots: { index: false, follow: false },
+};
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage({

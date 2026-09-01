@@ -58,7 +58,7 @@ export async function generateMetadata({
   const { estado } = await params;
   const contenido = isEstado(estado) ? ESTADOS[estado] : null;
   return {
-    title: contenido ? contenido.titulo : "Toqia",
+    title: { absolute: contenido ? contenido.titulo : "Toqia" },
     robots: { index: false, follow: false },
   };
 }

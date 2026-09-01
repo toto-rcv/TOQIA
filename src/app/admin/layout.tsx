@@ -5,6 +5,9 @@ export const dynamic = "force-dynamic";
 
 import type { NavItem } from "@/components/layout/panel-shell";
 
+/** El panel de Toqia: nunca en un buscador. */
+export const metadata = { robots: { index: false, follow: false } };
+
 const ITEMS: NavItem[] = [
   { href: "/admin", label: "Panel", exact: true, icon: "estadisticas" },
   { href: "/admin/cuentas", label: "Cuentas", icon: "cuentas" },

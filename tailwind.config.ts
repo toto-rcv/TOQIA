@@ -13,11 +13,16 @@ import tailwindcssAnimate from "tailwindcss-animate";
  *            (surface, border, text…), así que el mismo `bg-ex-surface`
  *            siguió funcionando cuando el panel pasó de oscuro a claro.
  *
- *  - `tq-*`  → la landing pública y la carta que ve el cliente en el celular.
+ *  - `tq-*`  → la landing del restaurante y la carta que ve su cliente.
  *            Dos ambientes: la portada negra con dorado, y la carta en tonos
  *            arena, cálida y liviana.
  *
  *  - `mn-*`  → las páginas de estado de /pulsera (no reconocida, inactiva).
+ *
+ *  - `mk-*`  → el sitio público de Toqia en `/`: la web comercial que ve el
+ *            dueño de un restaurante antes de ser cliente. Oscuro y
+ *            minimalista, con el degradado de marca solo en logo, botones y
+ *            detalles destacados.
  *
  * El prefijo evita que un token del panel se cuele en la página pública.
  */
@@ -120,6 +125,23 @@ const config: Config = {
           green: "#EDF3EC",
           yellow: "#FBF3DB",
         },
+        // ── Sitio público de Toqia (la web comercial, "/") ───────────────
+        // Oscuro, limpio y minimalista. El degradado azul → turquesa → verde
+        // es la marca y se reserva para el logo, los botones y los detalles
+        // destacados; el resto de la página es fondo oscuro y tipografía.
+        mk: {
+          bg: "#050B12",        // fondo principal
+          surface: "#0B141D",   // tarjetas y bandas
+          elevated: "#101B26",  // hover sobre una tarjeta
+          border: "#1C2935",    // bordes y divisores
+
+          text: "#F5F7FA",      // texto principal
+          muted: "#A7B0BA",     // texto secundario
+
+          blue: "#1677FF",
+          turquoise: "#00B8C8",
+          green: "#00D084",
+        },
       },
       fontFamily: {
         // Geist se sirve local vía next/font (paquete `geist`), sin pedidos de red.
@@ -127,6 +149,14 @@ const config: Config = {
         mono: ["var(--font-geist-mono)", "JetBrains Mono", "monospace"],
         // Serif editorial solo para las páginas públicas.
         serif: ["Ivy Text", "Newsreader", "Playfair Display", "Georgia", "serif"],
+      },
+      backgroundImage: {
+        // El degradado principal de Toqia. Vive acá y no repetido en cada
+        // componente para que un cambio de marca sea una línea.
+        "mk-brand":
+          "linear-gradient(90deg, #1677FF 0%, #00B8C8 50%, #00D084 100%)",
+        "mk-brand-diag":
+          "linear-gradient(135deg, #1677FF 0%, #00B8C8 50%, #00D084 100%)",
       },
       borderRadius: {
         // Redondeo generoso: es lo que le da el aire de producto moderno.

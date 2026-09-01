@@ -48,7 +48,9 @@ export async function generateMetadata({
   const nombre = landing?.displayName || landing?.name;
 
   return {
-    title: nombre ?? "Toqia",
+    // `absolute` esquiva el template del layout raíz: esta pestaña es del
+    // restaurante, no de Toqia.
+    title: { absolute: nombre ?? "Toqia" },
     description: nombre ? `Dejanos tu opinión sobre ${nombre}.` : undefined,
     robots: { index: false, follow: false },
   };

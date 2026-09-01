@@ -43,9 +43,19 @@ export function formatNumber(value: number): string {
  * IP de la LAN y probar con el celular de verdad.
  */
 export function braceletUrl(code: string): string {
-  const base = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(
+  return `${sitioUrl()}/r/${code}`;
+}
+
+/**
+ * La URL pública del sitio, sin barra final.
+ *
+ * La usan `braceletUrl`, el sitemap y el `metadataBase` del layout. Que salga
+ * de un solo lugar evita que el chip se grabe apuntando a un dominio y el
+ * canonical declare otro.
+ */
+export function sitioUrl(): string {
+  return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(
     /\/+$/,
     ""
   );
-  return `${base}/r/${code}`;
 }

@@ -7,6 +7,9 @@ export const dynamic = "force-dynamic";
 
 import type { NavItem } from "@/components/layout/panel-shell";
 
+/** El panel del restaurante: nunca en un buscador. */
+export const metadata = { robots: { index: false, follow: false } };
+
 /**
  * El orden importa: en el celular las cuatro primeras van a la barra inferior
  * y el resto al cajón de "Más". Adelante queda lo que se mira todos los días.

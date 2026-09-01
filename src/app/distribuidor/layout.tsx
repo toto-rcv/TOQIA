@@ -1,6 +1,9 @@
 import { PanelShell, type NavItem } from "@/components/layout/panel-shell";
 import { requireDistributor } from "@/lib/session";
 
+/** El panel del distribuidor: nunca en un buscador. */
+export const metadata = { robots: { index: false, follow: false } };
+
 export const dynamic = "force-dynamic";
 
 const ITEMS: NavItem[] = [

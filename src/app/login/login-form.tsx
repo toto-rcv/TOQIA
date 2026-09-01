@@ -71,7 +71,8 @@ export function LoginForm() {
 
       // La raíz redirige según el rol, así el formulario no necesita saber
       // a dónde va cada tipo de usuario.
-      router.push("/");
+      // A /empresa, no a "/": la raíz es ahora el sitio público de Toqia.
+      router.push("/empresa");
       router.refresh();
     } catch (cause) {
       // Un "Failed to fetch" no es una contraseña mal puesta: es que el pedido
