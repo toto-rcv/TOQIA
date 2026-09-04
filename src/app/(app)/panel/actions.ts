@@ -18,6 +18,7 @@ import {
 import { invalidateBracelet } from "@/lib/redirect-cache";
 import { mensajeDeError } from "@/lib/errores-db";
 import { requireRestaurantUser } from "@/lib/session";
+import { traducirYGuardar } from "@/lib/traduccion/contenido";
 import {
   fail,
   ok,
@@ -360,6 +361,16 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
         menuUrl,
       })
       .where(eq(locations.id, locationId));
+
+    // Los textos que lee el cliente, a los siete idiomas. No se traducen el
+    // nombre del local ni la dirección: una marca y una calle no se traducen.
+    await traducirYGuardar("location", locationId, {
+      tagline: vacioANull(tagline),
+      welcomeKicker: vacioANull(welcomeKicker),
+      welcomeTitle: vacioANull(welcomeTitle),
+      closingMessage: vacioANull(closingMessage),
+      menuButtonLabel: vacioANull(menuButtonLabel),
+    });
 
     // El caché de la landing guarda estos datos: hay que invalidar todas las
     // pulseras del local o el cambio tardaría hasta que venza el TTL.

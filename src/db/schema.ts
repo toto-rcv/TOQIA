@@ -12,6 +12,7 @@ import {
   smallint,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/mysql-core";
 
@@ -56,6 +57,19 @@ export const accounts = mysqlTable(
     id: int("id").autoincrement().primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
     slug: varchar("slug", { length: 100 }).notNull().unique(),
+
+    /* Cómo se llama el rubro de esta empresa: "Ferretería", "Peluquería",
+       "Restaurante". Lo escribe quien la da de alta y reemplaza a la palabra
+       genérica "Empresa" donde el panel muestra de qué tipo de negocio se
+       trata.
+
+       Es texto libre y no una lista cerrada a propósito: Toqia no sabe de
+       antemano a qué rubros va a llegar, y una lista fija obliga a tocar
+       código —y siete archivos de traducción— cada vez que entra uno nuevo.
+
+       Nullable: las cuentas que ya existen no tienen rubro cargado y siguen
+       mostrando "Empresa" hasta que alguien se lo ponga. */
+    businessType: varchar("business_type", { length: 60 }),
 
     // Distribuidor asignado. Es un usuario con rol "distributor".
     // Se usa en la etapa 2; el campo ya queda listo para no migrar dos veces.
@@ -300,6 +314,71 @@ export const menuItems = mysqlTable(
   (table) => [
     index("menu_items_category_idx").on(table.categoryId),
     index("menu_items_location_idx").on(table.locationId),
+  ]
+);
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Traducciones del contenido que carga cada local
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Lo que el local escribe —el nombre de un plato, su descripción, el título de
+ * bienvenida— traducido a los idiomas de la app.
+ *
+ * Por qué una tabla aparte y no una columna `name_en`, `name_fr`, … por cada
+ * texto: son siete idiomas y crecerán. Una columna por idioma y por campo son
+ * decenas de columnas, una migración cada vez que se agrega un idioma, y
+ * ninguna forma de saber si una traducción quedó vieja. Acá agregar un idioma
+ * no toca el esquema.
+ *
+ * Es una tabla polimórfica (`entity` + `entity_id`) y por eso no tiene foreign
+ * key: no se puede apuntar a tres tablas distintas desde la misma columna. El
+ * precio es que borrar un plato no borra solas sus traducciones; de eso se
+ * encarga `src/lib/traduccion/contenido.ts`, y una fila huérfana no se muestra
+ * en ningún lado porque siempre se consulta por el id de algo que existe.
+ */
+export const contentTranslations = mysqlTable(
+  "content_translations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+
+    /** "menu_category" | "menu_item" | "location". */
+    entity: varchar("entity", { length: 24 }).notNull(),
+    entityId: int("entity_id").notNull(),
+    /** Nombre del campo en el modelo: "name", "description", "welcomeTitle"… */
+    field: varchar("field", { length: 32 }).notNull(),
+    locale: varchar("locale", { length: 5 }).notNull(),
+
+    value: text("value").notNull(),
+
+    /**
+     * Huella del texto original del que salió esta traducción.
+     *
+     * Es lo que evita pagarle a DeepL dos veces por lo mismo: al guardar, si el
+     * original no cambió, la huella coincide y no se traduce nada. Y al revés,
+     * si cambió, la traducción vieja se borra en vez de quedar mostrando el
+     * plato anterior en francés.
+     */
+    sourceHash: varchar("source_hash", { length: 40 }).notNull(),
+
+    updatedAt: datetime("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`)
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    uniqueIndex("content_translations_unico").on(
+      table.entity,
+      table.entityId,
+      table.field,
+      table.locale
+    ),
+    // Cómo lo lee la carta pública: todo lo de un idioma para un puñado de ids.
+    index("content_translations_lectura_idx").on(
+      table.entity,
+      table.entityId,
+      table.locale
+    ),
   ]
 );
 
@@ -587,3 +666,5 @@ export type MenuCategory = typeof menuCategories.$inferSelect;
 export type NewMenuCategory = typeof menuCategories.$inferInsert;
 export type MenuItem = typeof menuItems.$inferSelect;
 export type NewMenuItem = typeof menuItems.$inferInsert;
+export type ContentTranslation = typeof contentTranslations.$inferSelect;
+export type NewContentTranslation = typeof contentTranslations.$inferInsert;

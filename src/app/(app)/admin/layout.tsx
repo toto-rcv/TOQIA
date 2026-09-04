@@ -31,7 +31,7 @@ export default async function AdminLayout({
     { href: "/admin/cuentas", label: t("cuentas"), icon: "cuentas" },
     { href: "/admin/locales", label: t("locales"), icon: "locales" },
     { href: "/admin/pulseras", label: t("pulseras"), icon: "pulseras" },
-    { href: "/admin/camareros", label: t("camareros"), icon: "camareros" },
+    { href: "/admin/camareros", label: t("empleados"), icon: "camareros" },
     { href: "/admin/escaneos", label: t("escaneos"), icon: "escaneos" },
     { href: "/admin/usuarios", label: t("usuarios"), icon: "usuarios" },
     { href: "/admin/mantenimiento", label: t("mantenimiento"), icon: "mantenimiento" },

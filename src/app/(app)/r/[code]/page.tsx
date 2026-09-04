@@ -12,8 +12,10 @@ import {
   normalizeCode,
   resolverPulsera,
 } from "@/lib/resolver-pulsera";
+import { idiomaActual } from "@/i18n/actual";
 import { PARAM_CAMBIO_DE_IDIOMA } from "@/i18n/locales";
 import { recordScan } from "@/lib/scan-logger";
+import { landingTraducida } from "@/lib/traduccion/contenido";
 import { safeUrl } from "@/lib/url";
 
 /**
@@ -109,13 +111,19 @@ export default async function LandingPage({
   // Si el local cargó carta propia, el botón del menú va a la carta de Toqia
   // en vez de al PDF externo. Se consulta acá y no dentro del componente para
   // que el render no dispare una query por su cuenta.
-  const conCarta = await hasVisibleMenu(resolved.locationId);
+  // Y en paralelo, los textos del local en el idioma de quien escanea. La
+  // consulta es por índice y sobre un solo id; lo caro de traducir ya se hizo
+  // en el panel, al guardar.
+  const [conCarta, landing] = await Promise.all([
+    hasVisibleMenu(resolved.locationId),
+    landingTraducida(resolved.locationId, resolved.landing, await idiomaActual()),
+  ]);
 
   const rutaPropia = `/r/${encodeURIComponent(code)}`;
 
   return (
     <LandingView
-      landing={resolved.landing}
+      landing={landing}
       token={token}
       code={code}
       hasMenu={conCarta}

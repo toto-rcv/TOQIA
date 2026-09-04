@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 const ROLES: Record<string, { clave: string; tone: "accent" | "warning" | "inactive" }> = {
   admin: { clave: "rolAdmin", tone: "accent" },
   distributor: { clave: "rolDistribuidor", tone: "warning" },
-  restaurant: { clave: "rolRestaurante", tone: "inactive" },
+  restaurant: { clave: "rolEmpresa", tone: "inactive" },
 };
 
 export default async function AdminUsersPage() {

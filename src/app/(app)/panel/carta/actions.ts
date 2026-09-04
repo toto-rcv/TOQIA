@@ -25,6 +25,10 @@ import { invalidateBracelet } from "@/lib/redirect-cache";
 import { mensajeDeError } from "@/lib/errores-db";
 import { requireRestaurantUser } from "@/lib/session";
 import {
+  olvidarTraducciones,
+  traducirYGuardar,
+} from "@/lib/traduccion/contenido";
+import {
   fail,
   ok,
   readInt,
@@ -82,13 +86,22 @@ export async function createCategory(formData: FormData): Promise<ActionResult> 
     const local = await getLocationForAccount(locationId, user.accountId);
     if (!local) return fail(t("localNoExiste"));
 
-    await db.insert(menuCategories).values({
+    const descripcion = description === "" ? null : description.slice(0, 255);
+
+    const [insercion] = await db.insert(menuCategories).values({
       locationId,
       name,
-      description: description === "" ? null : description.slice(0, 255),
+      description: descripcion,
       icon,
       position: await nextCategoryPosition(locationId),
       active: true,
+    });
+
+    // Se traduce acá y no en la página pública: el costo cae en el panel, que
+    // es donde alguien ya está esperando a que un formulario responda.
+    await traducirYGuardar("menu_category", insercion.insertId, {
+      name,
+      description: descripcion,
     });
 
     revalidar();
@@ -119,14 +132,17 @@ export async function updateCategory(formData: FormData): Promise<ActionResult> 
     const actual = await getCategoryForLocation(id, locationId);
     if (!actual) return fail(t("categoriaNoExiste"));
 
+    const descripcion = description === "" ? null : description.slice(0, 255);
+
     await db
       .update(menuCategories)
-      .set({
-        name,
-        description: description === "" ? null : description.slice(0, 255),
-        icon,
-      })
+      .set({ name, description: descripcion, icon })
       .where(eq(menuCategories.id, id));
+
+    await traducirYGuardar("menu_category", id, {
+      name,
+      description: descripcion,
+    });
 
     revalidar();
     return ok();
@@ -184,8 +200,22 @@ export async function deleteCategory(
     const actual = await getCategoryForLocation(id, locationId);
     if (!actual) return fail(t("categoriaNoExiste"));
 
+    // Los ids de los platos se leen antes de borrar: después de la cascada ya
+    // no hay forma de saber cuáles eran para limpiar sus traducciones.
+    const platos = await db
+      .select({ id: menuItems.id })
+      .from(menuItems)
+      .where(eq(menuItems.categoryId, id));
+
     // Los platos caen por la clave foránea en cascada.
     await db.delete(menuCategories).where(eq(menuCategories.id, id));
+
+    // La tabla de traducciones es polimórfica y no tiene clave foránea, así
+    // que la cascada de MySQL no la alcanza (ver src/db/schema.ts).
+    await Promise.all([
+      olvidarTraducciones("menu_category", id),
+      ...platos.map((plato) => olvidarTraducciones("menu_item", plato.id)),
+    ]);
 
     revalidar();
     return ok();
@@ -292,16 +322,23 @@ export async function createItem(formData: FormData): Promise<ActionResult> {
       etiqueta: "fotoPlato",
     });
 
-    await db.insert(menuItems).values({
+    const descripcion = description === "" ? null : description.slice(0, 500);
+
+    const [insercion] = await db.insert(menuItems).values({
       categoryId,
       locationId,
       name,
-      description: description === "" ? null : description.slice(0, 500),
+      description: descripcion,
       price: precio,
       imageUrl,
       position: await nextItemPosition(categoryId),
       available: true,
       active: true,
+    });
+
+    await traducirYGuardar("menu_item", insercion.insertId, {
+      name,
+      description: descripcion,
     });
 
     revalidar();
@@ -351,16 +388,22 @@ export async function updateItem(formData: FormData): Promise<ActionResult> {
       etiqueta: "fotoPlato",
     });
 
+    const descripcion = description === "" ? null : description.slice(0, 500);
+
     await db
       .update(menuItems)
       .set({
         categoryId,
         name,
-        description: description === "" ? null : description.slice(0, 500),
+        description: descripcion,
         price: precio,
         imageUrl,
       })
       .where(eq(menuItems.id, id));
+
+    // Cambiar solo el precio no gasta una traducción: `traducirYGuardar`
+    // compara la huella del texto y se va sin llamar a nadie.
+    await traducirYGuardar("menu_item", id, { name, description: descripcion });
 
     revalidar();
     return ok();
@@ -412,8 +455,9 @@ export async function deleteItem(
     if (!actual) return fail(t("platoNoExiste"));
 
     await db.delete(menuItems).where(eq(menuItems.id, id));
-    // La foto no sirve para nada sin su plato.
+    // La foto no sirve para nada sin su plato. Las traducciones tampoco.
     await borrarArchivoDeUrl(actual.imageUrl, locationId);
+    await olvidarTraducciones("menu_item", id);
 
     revalidar();
     return ok();

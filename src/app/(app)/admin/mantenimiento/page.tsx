@@ -7,8 +7,14 @@ import { pool } from "@/db";
 import { revisarEsquema, type InformeMigracion } from "@/lib/migraciones";
 import { contarDatos } from "@/lib/reset-datos";
 import { requireAdmin } from "@/lib/session";
+import { contarPendientes } from "@/lib/traduccion/backfill";
+import { hayTraductor } from "@/lib/traduccion/proveedor";
 import { formatNumber } from "@/lib/utils";
-import { BorrarTodoDialog, MigrarBoton } from "./mantenimiento-client";
+import {
+  BorrarTodoDialog,
+  MigrarBoton,
+  TraducirBoton,
+} from "./mantenimiento-client";
 
 /**
  * El título de la pestaña también viaja por las traducciones: el panel está en
@@ -35,9 +41,12 @@ export default async function MantenimientoPage() {
   const admin = await requireAdmin();
   const t = await getTranslations("Mantenimiento");
 
-  const [esquema, datos] = await Promise.all([
+  const [esquema, datos, traducciones] = await Promise.all([
     revisarEsquema(pool).catch((error: unknown) => errorDe(error)),
     contarDatos(pool, admin.id).catch((error: unknown) => errorDe(error)),
+    // Si la tabla de traducciones todavía no existe (base sin migrar), esta
+    // tarjeta no puede tumbar la página: justo se viene acá a arreglar eso.
+    contarPendientes().catch((error: unknown) => errorDe(error)),
   ]);
 
   return (
@@ -87,6 +96,42 @@ export default async function MantenimientoPage() {
 
                 <MigrarBoton alDia={esquema.alDia} />
               </>
+            )}
+          </CardBody>
+        </Card>
+
+        {/* ── Traducción del contenido ─────────────────────────────────── */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("traduccion")}</CardTitle>
+            {!hayTraductor() ? (
+              <Badge tone="warning">{t("sinTraductor")}</Badge>
+            ) : "error" in traducciones ? (
+              <Badge tone="danger">{t("noSePudoRevisar")}</Badge>
+            ) : traducciones.pendientes === 0 ? (
+              <Badge tone="active">{t("alDia")}</Badge>
+            ) : (
+              <Badge tone="warning">
+                {t("pendientes", { n: traducciones.pendientes })}
+              </Badge>
+            )}
+          </CardHeader>
+
+          <CardBody className="space-y-4">
+            <p className="text-[13px] leading-relaxed text-ex-text-muted">
+              {t("traduccionDesc")}
+            </p>
+
+            {"error" in traducciones ? (
+              <p className="text-[13px] leading-relaxed text-ex-danger">
+                {traducciones.error}
+              </p>
+            ) : !hayTraductor() ? (
+              <p className="text-[13px] leading-relaxed text-ex-text-muted">
+                {t("sinTraductorDesc")}
+              </p>
+            ) : (
+              <TraducirBoton pendientes={traducciones.pendientes} />
             )}
           </CardBody>
         </Card>

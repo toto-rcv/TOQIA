@@ -1,6 +1,8 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 
 import { db, menuCategories, menuItems } from "@/db";
+import type { Idioma } from "@/i18n/locales";
+import { conTraduccion, traduccionesDe } from "@/lib/traduccion/contenido";
 
 export type MenuItemRow = {
   id: number;
@@ -31,10 +33,16 @@ export type MenuCategoryRow = {
  * `soloVisibles` es lo que usa la página pública: deja afuera lo desactivado.
  * El panel la pide con todo, porque el restaurante tiene que poder ver y
  * reactivar lo que apagó.
+ *
+ * `idioma` reemplaza los nombres y descripciones por su traducción guardada
+ * (ver `src/lib/traduccion/contenido.ts`). Lo pide la carta pública; el panel
+ * no, porque ahí el local tiene que ver y editar lo que él escribió, no una
+ * traducción. Donde no haya traducción queda el original: una carta a medio
+ * traducir se lee, una carta vacía no.
  */
 export async function getMenu(
   locationId: number,
-  options: { soloVisibles?: boolean } = {}
+  options: { soloVisibles?: boolean; idioma?: Idioma | null } = {}
 ): Promise<MenuCategoryRow[]> {
   const soloVisibles = options.soloVisibles ?? false;
 
@@ -63,25 +71,45 @@ export async function getMenu(
       .orderBy(asc(menuItems.position), asc(menuItems.id)),
   ]);
 
+  // Dos consultas más, no una por plato: se piden todas las traducciones del
+  // idioma de una sola vez, con los ids que ya tenemos.
+  const [deCategorias, dePlatos] = options.idioma
+    ? await Promise.all([
+        traduccionesDe(
+          "menu_category",
+          categorias.map((c) => c.id),
+          options.idioma
+        ),
+        traduccionesDe(
+          "menu_item",
+          platos.map((p) => p.id),
+          options.idioma
+        ),
+      ])
+    : [new Map<string, string>(), new Map<string, string>()];
+
   // Se agrupa en memoria en vez de con un join: son decenas de filas, no
   // miles, y así cada categoría conserva su orden sin pelear con el ORDER BY
   // combinado.
   const porCategoria = new Map<number, MenuItemRow[]>();
   for (const plato of platos) {
     const lista = porCategoria.get(plato.categoryId) ?? [];
-    lista.push(plato);
+    lista.push(conTraduccion("menu_item", plato, dePlatos));
     porCategoria.set(plato.categoryId, lista);
   }
 
-  return categorias.map((categoria) => ({
-    id: categoria.id,
-    name: categoria.name,
-    description: categoria.description,
-    icon: categoria.icon,
-    position: categoria.position,
-    active: categoria.active,
-    items: porCategoria.get(categoria.id) ?? [],
-  }));
+  return categorias.map((categoria) => {
+    const traducida = conTraduccion("menu_category", categoria, deCategorias);
+    return {
+      id: traducida.id,
+      name: traducida.name,
+      description: traducida.description,
+      icon: traducida.icon,
+      position: traducida.position,
+      active: traducida.active,
+      items: porCategoria.get(traducida.id) ?? [],
+    };
+  });
 }
 
 /**

@@ -31,20 +31,32 @@ export default async function PanelLayout({
   const items: NavItem[] = [
     { href: "/panel", label: t("resumen"), exact: true, icon: "estadisticas" },
     { href: "/panel/pulseras", label: t("pulseras"), icon: "pulseras" },
-    { href: "/panel/carta", label: t("carta"), icon: "carta" },
+    { href: "/panel/carta", label: t("catalogo"), icon: "carta" },
     { href: "/panel/escaneos", label: t("escaneos"), icon: "escaneos" },
-    { href: "/panel/camareros", label: t("camareros"), icon: "camareros" },
+    { href: "/panel/camareros", label: t("empleados"), icon: "camareros" },
     { href: "/panel/configuracion", label: t("pagina"), icon: "pagina" },
   ];
 
-  // Un admin puede entrar al panel de cualquier restaurante desde /admin/cuentas.
+  // Un admin puede entrar al panel de cualquier empresa desde /admin/cuentas.
   // La chapa de arriba cambia para que no se confunda con su propio panel.
   const comoAdmin = user.role === "admin";
+
+  /**
+   * Qué dice la chapa debajo del nombre.
+   *
+   * Si la empresa tiene rubro cargado, ese: una ferretería quiere leer
+   * "Ferretería" y no "Empresa". Sin rubro cae en la palabra genérica, que es
+   * lo que ven todas las cuentas que existían antes de que el campo apareciera.
+   *
+   * El rubro lo escribe quien da de alta la empresa, así que no pasa por las
+   * traducciones: se muestra tal cual en los siete idiomas.
+   */
+  const rubro = account?.businessType?.trim() || t("empresa");
 
   return (
     <PanelShell
       title={account?.name ?? "Toqia"}
-      badge={comoAdmin ? t("admin") : t("restaurante")}
+      badge={comoAdmin ? t("admin") : rubro}
       email={user.email}
       items={items}
     >

@@ -79,7 +79,7 @@ function CamposDeUsuario({
             value={role}
             onChange={(event) => setRole(event.target.value)}
           >
-            <option value="restaurant">{t("opcionRestaurante")}</option>
+            <option value="restaurant">{t("opcionEmpresa")}</option>
             <option value="distributor">{t("opcionDistribuidor")}</option>
             <option value="admin">{t("opcionAdmin")}</option>
           </Select>

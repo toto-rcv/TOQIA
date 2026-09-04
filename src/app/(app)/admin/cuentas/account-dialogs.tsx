@@ -30,6 +30,7 @@ type AccountRow = {
   id: number;
   name: string;
   slug: string;
+  businessType: string | null;
   active: boolean;
   subscriptionStatus: string;
   subscriptionPrice: string | null;
@@ -102,6 +103,17 @@ export function NewAccountDialog() {
                 required
                 placeholder={t("nombrePlaceholder")}
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="account-business-type">{t("rubro")}</Label>
+              <Input
+                id="account-business-type"
+                name="businessType"
+                maxLength={60}
+                placeholder={t("rubroPlaceholder")}
+              />
+              <p className="text-[12px] text-ex-text-muted">{t("rubroAyuda")}</p>
             </div>
 
             <div className="space-y-1.5">
@@ -271,6 +283,18 @@ function EditAccountDialog({
                   className="font-mono text-xs"
                 />
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor={`a-rubro-${account.id}`}>{t("rubro")}</Label>
+              <Input
+                id={`a-rubro-${account.id}`}
+                name="businessType"
+                defaultValue={account.businessType ?? ""}
+                maxLength={60}
+                placeholder={t("rubroPlaceholder")}
+              />
+              <p className="text-[12px] text-ex-text-muted">{t("rubroAyuda")}</p>
             </div>
 
             <div className="grid grid-cols-3 gap-3">

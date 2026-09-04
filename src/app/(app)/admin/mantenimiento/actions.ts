@@ -12,6 +12,10 @@ import {
   type ResultadoBorrado,
 } from "@/lib/reset-datos";
 import { requireAdmin } from "@/lib/session";
+import {
+  traducirTodoElContenido,
+  type ResultadoBackfill,
+} from "@/lib/traduccion/backfill";
 import { fail, ok, readString, type ActionResult } from "@/lib/validation";
 
 /**
@@ -42,6 +46,35 @@ export async function ejecutarMigraciones(): Promise<
     const detalle = error instanceof Error ? error.message : String(error);
     const t = await getTranslations("Errores");
     return fail(t("noSePudoMigrar", { detalle }));
+  }
+}
+
+/* ── Traducción del contenido ─────────────────────────────────────────────── */
+
+/**
+ * Traduce a los siete idiomas todo lo que los locales cargaron antes de que
+ * existiera la traducción automática.
+ *
+ * Puede tardar: son siete pedidos a DeepL por plato y van en serie para no
+ * comerse un 429. No hay confirmación porque no destruye nada; correrlo dos
+ * veces la segunda vez no hace ni un pedido.
+ */
+export async function traducirContenido(): Promise<
+  ActionResult<ResultadoBackfill>
+> {
+  await requireAdmin();
+
+  try {
+    const resultado = await traducirTodoElContenido();
+
+    // Las cartas públicas son force-dynamic, pero el panel sí cachea.
+    revalidatePath("/admin", "layout");
+
+    return ok(resultado);
+  } catch (error) {
+    const detalle = error instanceof Error ? error.message : String(error);
+    const t = await getTranslations("Errores");
+    return fail(t("noSePudoTraducir", { detalle }));
   }
 }
 

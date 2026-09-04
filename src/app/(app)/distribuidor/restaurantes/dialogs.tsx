@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input, Label } from "@/components/ui/input";
-import { crearRestaurante } from "../actions";
+import { crearEmpresa } from "../actions";
 
 /**
  * Alta de un restaurante nuevo.
@@ -58,7 +58,7 @@ export function NuevoRestauranteDialog() {
     const password = String(formData.get("password") ?? "");
 
     startTransition(async () => {
-      const resultado = await crearRestaurante(formData);
+      const resultado = await crearEmpresa(formData);
       if (!resultado.ok) {
         setError(resultado.error);
         return;
@@ -96,6 +96,18 @@ export function NuevoRestauranteDialog() {
                   placeholder={t("nombreRestaurantePlaceholder")}
                   autoComplete="off"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="r-rubro">{t("rubro")}</Label>
+                <Input
+                  id="r-rubro"
+                  name="rubro"
+                  maxLength={60}
+                  placeholder={t("rubroPlaceholder")}
+                  autoComplete="off"
+                />
+                <p className="text-[12px] text-ex-text-muted">{t("rubroAyuda")}</p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">

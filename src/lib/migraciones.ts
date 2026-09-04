@@ -84,6 +84,7 @@ async function recorrer(
 
   await crearTablasDeCarta(ctx);
   await crearTablaDeArchivos(ctx);
+  await crearTablaDeTraducciones(ctx);
   await agregarColumnas(ctx);
   await configurarModoDeCarta(ctx);
   await habilitarStockDePulseras(ctx);
@@ -315,6 +316,64 @@ async function crearTablaDeArchivos(ctx: Contexto) {
   }
 }
 
+/* ── 1c. Traducciones del contenido ───────────────────────────────────────── */
+
+/**
+ * La tabla donde se guarda cada texto del local traducido a los siete idiomas.
+ *
+ * Sin foreign key a propósito: `entity_id` apunta a `menu_items`,
+ * `menu_categories` o `locations` según la fila, y una columna no puede
+ * referenciar tres tablas. El borrado en cascada lo hace el código.
+ */
+async function crearTablaDeTraducciones(ctx: Contexto) {
+  ctx.grupo = "Traducciones del contenido";
+
+  if (await ctx.existeTabla("content_translations")) {
+    ctx.anotar("tabla content_translations", "ya-estaba");
+  } else {
+    await ctx.correr(
+      "tabla content_translations",
+      `CREATE TABLE \`content_translations\` (
+        \`id\` int AUTO_INCREMENT NOT NULL,
+        \`entity\` varchar(24) NOT NULL,
+        \`entity_id\` int NOT NULL,
+        \`field\` varchar(32) NOT NULL,
+        \`locale\` varchar(5) NOT NULL,
+        \`value\` text NOT NULL,
+        \`source_hash\` varchar(40) NOT NULL,
+        \`updated_at\` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT \`content_translations_id\` PRIMARY KEY(\`id\`)
+      )`
+    );
+  }
+
+  const indices: Array<[string, string, string]> = [
+    // El único que importa de verdad: es el que hace que guardar dos veces no
+    // duplique filas, porque el INSERT usa ON DUPLICATE KEY.
+    [
+      "content_translations_unico",
+      "CREATE UNIQUE INDEX",
+      "(`entity`, `entity_id`, `field`, `locale`)",
+    ],
+    [
+      "content_translations_lectura_idx",
+      "CREATE INDEX",
+      "(`entity`, `entity_id`, `locale`)",
+    ],
+  ];
+
+  for (const [indice, comando, columnas] of indices) {
+    if (await ctx.existeIndice("content_translations", indice)) {
+      ctx.anotar(`índice ${indice}`, "ya-estaba");
+    } else {
+      await ctx.correr(
+        `índice ${indice}`,
+        `${comando} \`${indice}\` ON \`content_translations\` ${columnas}`
+      );
+    }
+  }
+}
+
 /* ── 2. Columnas nuevas ───────────────────────────────────────────────────── */
 
 async function agregarColumnas(ctx: Contexto) {
@@ -333,6 +392,7 @@ async function agregarColumnas(ctx: Contexto) {
     ["locations", "closing_image_url", "text"],
     ["locations", "currency", "varchar(8) NOT NULL DEFAULT '€'"],
     ["locations", "menu_button_label", "varchar(40)"],
+    ["accounts", "business_type", "varchar(60)"],
   ];
 
   for (const [tabla, columna, definicion] of nuevas) {

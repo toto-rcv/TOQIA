@@ -8,7 +8,7 @@ import { bracelets, db } from "@/db";
 import { getBraceletForDistributor } from "@/db/queries/bracelets";
 import { getLocationById } from "@/db/queries/locations";
 import { listAccountIdsOfDistributor } from "@/db/queries/accounts";
-import { altaDeRestaurante } from "@/lib/alta-restaurante";
+import { altaDeEmpresa } from "@/lib/alta-empresa";
 import { invalidateBracelet } from "@/lib/redirect-cache";
 import { mensajeDeError } from "@/lib/errores-db";
 import { requireDistributor } from "@/lib/session";
@@ -31,29 +31,30 @@ import {
 
 function revalidar() {
   revalidatePath("/distribuidor");
-  revalidatePath("/distribuidor/restaurantes");
+  revalidatePath("/distribuidor/empresas");
   revalidatePath("/distribuidor/pulseras");
 }
 
-/* ── Alta de restaurante ──────────────────────────────────────────────────── */
+/* ── Alta de empresa ──────────────────────────────────────────────────── */
 
 /**
  * Crea la cuenta, su primer local y el usuario que entra al panel, todo
  * asociado a este distribuidor.
  */
-export async function crearRestaurante(
+export async function crearEmpresa(
   formData: FormData
 ): Promise<ActionResult> {
   const distribuidor = await requireDistributor();
 
-  const resultado = await altaDeRestaurante({
+  const resultado = await altaDeEmpresa({
     nombre: readString(formData.get("nombre")),
     email: readString(formData.get("email")),
     password: readString(formData.get("password")),
     nombreUsuario: readString(formData.get("nombreUsuario")),
+    rubro: readString(formData.get("rubro")),
     googleReviewUrl: readString(formData.get("googleReviewUrl")),
     // Sale de la sesión, no del formulario: un distribuidor no puede dar de
-    // alta un restaurante a nombre de otro.
+    // alta una empresa a nombre de otro.
     distributorId: distribuidor.id,
   });
 
@@ -110,7 +111,7 @@ export async function colocarPulsera(
 
     // La comprobación que importa: el local tiene que ser de una cuenta de
     // este distribuidor. Sin esto, cambiar el número del formulario alcanzaría
-    // para meter una pulsera en el restaurante de otro.
+    // para meter una pulsera en el empresa de otro.
     const cuentas = await listAccountIdsOfDistributor(distribuidor.id);
     if (!cuentas.includes(local.accountId)) {
       return fail(t("localDeOtroDistribuidor"));

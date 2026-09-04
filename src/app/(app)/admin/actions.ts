@@ -92,6 +92,7 @@ export async function createAccount(formData: FormData): Promise<ActionResult> {
 
   const name = readString(formData.get("name"));
   const slug = readString(formData.get("slug")) || slugify(name);
+  const businessType = readString(formData.get("businessType"));
 
   const errorNombre = validateName(name);
   if (errorNombre) return fail(await textoDeError(errorNombre));
@@ -104,7 +105,14 @@ export async function createAccount(formData: FormData): Promise<ActionResult> {
       return fail(t("cuentaConEseSlug", { slug }));
     }
 
-    await db.insert(accounts).values({ name, slug, active: true });
+    await db.insert(accounts).values({
+      name,
+      slug,
+      // Vacío queda en null y no en cadena vacía: así "sin rubro cargado" es
+      // un solo valor y el `??` del panel alcanza para decidir qué mostrar.
+      businessType: businessType || null,
+      active: true,
+    });
 
     revalidarAdmin();
     return ok();
@@ -124,6 +132,7 @@ export async function updateAccount(formData: FormData): Promise<ActionResult> {
   const id = readInt(formData.get("id"));
   const name = readString(formData.get("name"));
   const slug = readString(formData.get("slug"));
+  const businessType = readString(formData.get("businessType"));
   const subscriptionStatus = readString(formData.get("subscriptionStatus"));
   const subscriptionPrice = readString(formData.get("subscriptionPrice"));
   const subscriptionExpiresAt = readString(formData.get("subscriptionExpiresAt"));
@@ -165,6 +174,7 @@ export async function updateAccount(formData: FormData): Promise<ActionResult> {
       .set({
         name,
         slug,
+        businessType: businessType || null,
         subscriptionStatus: subscriptionStatus as "trial",
         subscriptionPrice: precio,
         subscriptionExpiresAt: vence,
@@ -617,7 +627,7 @@ export async function entrarAlPanelDe(accountId: number): Promise<ActionResult> 
 }
 
 /** Cierra el panel del restaurante y devuelve al admin a lo suyo. */
-export async function salirDelPanelDelRestaurante(): Promise<ActionResult> {
+export async function salirDelPanelDeLaEmpresa(): Promise<ActionResult> {
   await requireAdmin();
   const t = await getTranslations("Errores");
 

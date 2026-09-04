@@ -6,6 +6,8 @@ export type AccountListItem = {
   id: number;
   name: string;
   slug: string;
+  /** El rubro: "Ferretería", "Peluquería". Vacío = se muestra "Empresa". */
+  businessType: string | null;
   active: boolean;
   subscriptionStatus: string;
   subscriptionPrice: string | null;
@@ -27,6 +29,7 @@ export async function listAccounts(options?: {
       id: accounts.id,
       name: accounts.name,
       slug: accounts.slug,
+      businessType: accounts.businessType,
       active: accounts.active,
       subscriptionStatus: accounts.subscriptionStatus,
       subscriptionPrice: accounts.subscriptionPrice,

@@ -6,11 +6,13 @@ import { MenuView } from "@/components/landing/menu-view";
 
 import { getLocationById } from "@/db/queries/locations";
 import { getMenu } from "@/db/queries/menu";
+import { idiomaActual } from "@/i18n/actual";
 import {
   destinoDeCodigoNoResuelto,
   normalizeCode,
   resolverPulsera,
 } from "@/lib/resolver-pulsera";
+import { landingTraducida } from "@/lib/traduccion/contenido";
 
 /**
  * La carta del local — `/r/B001/carta`.
@@ -72,17 +74,24 @@ export default async function CartaPage({
     redirect(`/pulsera/inactiva?c=${encodeURIComponent(code)}`);
   }
 
+  // La carta se pide ya traducida al idioma que resolvió next-intl (cookie o
+  // Accept-Language: en estas páginas el idioma no puede ir en la URL, ver
+  // src/i18n/request.ts). Lo que no tenga traducción viene como lo escribió el
+  // local.
+  const idioma = await idiomaActual();
+
   // La moneda no viaja en el caché de la landing, así que se lee del local.
-  const [categorias, local] = await Promise.all([
-    getMenu(resolved.locationId, { soloVisibles: true }),
+  const [categorias, local, landing] = await Promise.all([
+    getMenu(resolved.locationId, { soloVisibles: true, idioma }),
     getLocationById(resolved.locationId),
+    landingTraducida(resolved.locationId, resolved.landing, idioma),
   ]);
 
   const rutaPropia = `/r/${encodeURIComponent(code)}/carta`;
 
   return (
     <MenuView
-      landing={resolved.landing}
+      landing={landing}
       categories={categorias}
       currency={local?.currency ?? "€"}
       backHref={`/r/${encodeURIComponent(code)}`}

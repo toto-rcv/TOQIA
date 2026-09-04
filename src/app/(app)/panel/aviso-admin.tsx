@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Eye } from "lucide-react";
 import * as React from "react";
 
-import { salirDelPanelDelRestaurante } from "../admin/actions";
+import { salirDelPanelDeLaEmpresa } from "../admin/actions";
 
 /**
  * La franja que ve el admin cuando está operando el panel de un restaurante.
@@ -23,7 +23,7 @@ export function AvisoDeAdmin({ nombreDeCuenta }: { nombreDeCuenta: string }) {
 
   function salir() {
     startTransition(async () => {
-      await salirDelPanelDelRestaurante();
+      await salirDelPanelDeLaEmpresa();
       router.push("/admin/cuentas");
     });
   }
