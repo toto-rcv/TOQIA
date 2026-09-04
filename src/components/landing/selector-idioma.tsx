@@ -6,6 +6,8 @@ import { BANDERAS } from "@/components/ui/banderas";
 import { cambiarIdioma } from "@/i18n/acciones";
 import { IDIOMAS, NOMBRE_DE_IDIOMA, type Idioma } from "@/i18n/locales";
 
+import { VolverAInput } from "@/components/landing/volver-a-input";
+
 export async function SelectorIdioma({
   volverA,
   tono = "landing",
@@ -16,26 +18,10 @@ export async function SelectorIdioma({
   tono?: "landing" | "carta";
   align?: "left" | "right";
 }) {
-  const [actual, t, reqHeaders] = await Promise.all([
+  const [actual, t] = await Promise.all([
     getLocale(),
     getTranslations("Idioma"),
-    headers(),
   ]);
-
-  let targetUrl = volverA;
-  if (!targetUrl) {
-    const referer = reqHeaders.get("referer");
-    if (referer) {
-      try {
-        const parsed = new URL(referer);
-        targetUrl = parsed.pathname + parsed.search;
-      } catch {
-        targetUrl = "/";
-      }
-    } else {
-      targetUrl = "/";
-    }
-  }
 
   const BanderaActual = BANDERAS[actual as Idioma] ?? BANDERAS.es;
 
@@ -74,7 +60,7 @@ export async function SelectorIdioma({
         action={cambiarIdioma}
         className={`absolute ${align === "right" ? "right-0" : "left-0"} top-[calc(100%+8px)] z-50 min-w-[190px] overflow-hidden rounded-2xl border py-1 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.8)] ${panel}`}
       >
-        <input type="hidden" name="volverA" value={targetUrl} />
+        <VolverAInput initialVolverA={volverA} />
 
         {IDIOMAS.map((idioma) => {
           const esActual = idioma === (actual as Idioma);
