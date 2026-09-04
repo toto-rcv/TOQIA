@@ -36,14 +36,21 @@ export function PanelShell({
         badge={badge}
         email={email}
         items={items}
-        selectorIdioma={<SelectorIdioma volverA="/empresa" tono="carta" align="left" />}
+        selectorIdioma={<SelectorIdioma volverA="/empresa" tono="carta" align="right" />}
       />
+
+      {/* Selector de idioma global, siempre arriba a la derecha.
+          En celular ya está en la barra superior del PanelNav, así que acá
+          solo se muestra de tablet para arriba. */}
+      <div className="fixed right-4 top-4 z-40 hidden sm:block">
+        <SelectorIdioma volverA="/empresa" tono="carta" />
+      </div>
 
       {/* pl en escritorio deja lugar a la lateral fija; pb en celular, a la
           barra inferior, para que el último botón de la página no quede
-          tapado. */}
+          tapado. pt-16 deja espacio para el selector de idioma flotante. */}
       <div className="lg:pl-[244px] sm:pl-[68px]">
-        <main className="mx-auto max-w-[1240px] px-4 pb-28 pt-4 sm:px-6 sm:pb-10 sm:pt-6">
+        <main className="mx-auto max-w-[1240px] px-4 pb-28 pt-4 sm:px-6 sm:pb-10 sm:pt-16">
           {children}
         </main>
       </div>

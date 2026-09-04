@@ -143,11 +143,6 @@ export function PanelNav({
         </nav>
 
         <div className="border-t border-ex-border-subtle p-3 lg:p-4">
-          {selectorIdioma ? (
-            <div className="mb-4 flex justify-center lg:justify-start">
-              {selectorIdioma}
-            </div>
-          ) : null}
           <p className="mb-2 hidden truncate text-[11px] text-ex-text-muted lg:block">
             {email}
           </p>
