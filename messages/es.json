@@ -1,0 +1,145 @@
+{
+  "Landing": {
+    "kicker": "Gracias por visitarnos",
+    "titulo": "Tu opinión nos ayuda a seguir mejorando",
+    "invitacion": "Dejanos tu reseña en Google",
+    "boton": "Dejar mi reseña",
+    "aviso": "Te va a llevar a Google para dejar tu reseña",
+    "sinEnlace": "Este local todavía no configuró su enlace de reseñas.",
+    "descubrirMas": "Descubrí más",
+    "cierre": "Gracias por ser parte de nuestra experiencia",
+    "descripcion": "Dejanos tu opinión sobre {nombre}."
+  },
+  "Accesos": {
+    "menu": "Ver menú",
+    "menuSub": "Nuestra carta",
+    "comoLlegar": "Cómo llegar",
+    "comoLlegarSub": "Abrir mapa",
+    "llamar": "Llamar",
+    "llamarSub": "Contactanos",
+    "whatsapp": "WhatsApp",
+    "whatsappSub": "Escribinos",
+    "instagram": "Instagram",
+    "instagramSub": "Seguinos",
+    "reservar": "Reservar",
+    "reservarSub": "Reservá tu mesa",
+    "sitioWeb": "Sitio web",
+    "sitioWebSub": "Conocenos",
+    "mensajeReserva": "Hola, quisiera reservar una mesa"
+  },
+  "Carta": {
+    "titulo": "Carta",
+    "volver": "Volver",
+    "vacia": "La carta todavía no está cargada.",
+    "noDisponible": "Hoy no disponible"
+  },
+  "Idioma": {
+    "etiqueta": "Idioma",
+    "elegir": "Elegí tu idioma"
+  },
+  "Pulsera": {
+    "codigo": "Código",
+    "nadaMas": "No hace falta que hagas nada más.",
+    "no-reconocida": {
+      "titulo": "Pulsera no reconocida",
+      "detalle": "Esta pulsera no figura en el sistema. Puede que haya sido dada de baja o que el código esté mal grabado.",
+      "accion": "Avisale al personal del local para que la revisen."
+    },
+    "inactiva": {
+      "titulo": "Esta pulsera no está activa",
+      "detalle": "La pulsera existe pero está desactivada en este momento, así que no tiene un destino al que llevarte.",
+      "accion": "Avisale al personal del local para que la reactiven."
+    },
+    "error": {
+      "titulo": "No pudimos cargar la página",
+      "detalle": "Hubo un problema momentáneo al buscar los datos de esta pulsera. No es tu teléfono ni el chip: los dos están bien.",
+      "accion": "Probá de nuevo en un minuto. Si sigue igual, avisale al personal del local."
+    },
+    "sin-asignar": {
+      "titulo": "Esta pulsera todavía no está en uso",
+      "detalle": "La pulsera existe pero todavía no fue asignada a ningún local, así que no tiene un destino al que llevarte.",
+      "accion": "Si sos del local, avisale a tu distribuidor para que la active."
+    },
+    "sin-destino": {
+      "titulo": "Destino no configurado",
+      "detalle": "La pulsera está activa pero todavía no tiene cargado a dónde llevarte.",
+      "accion": "Avisale al personal del local para que terminen de configurarla."
+    }
+  },
+  "Sitio": {
+    "meta": {
+      "titulo": "Toqia · Tu negocio, a un toque",
+      "descripcion": "Pulseras, tarjetas y placas NFC para que tus clientes accedan a tu menú, tus promociones y tus reseñas de Google con un solo toque."
+    },
+    "nav": {
+      "principal": "Principal",
+      "abrir": "Abrir menú",
+      "cerrar": "Cerrar menú",
+      "inicio": "Inicio",
+      "comoFunciona": "Cómo funciona",
+      "planes": "Planes",
+      "contacto": "Contacto"
+    },
+    "cta": "Quiero Toqia",
+    "mensajeWhatsapp": "Hola, quiero saber más sobre Toqia para mi negocio.",
+    "hero": {
+      "kicker": "Cómo funciona",
+      "titulo": "Tu negocio,<salto></salto>a un <destacado>toque.</destacado>",
+      "texto": "Conecta a tus clientes con lo más importante de tu negocio de forma rápida, moderna y sin complicaciones.",
+      "altPulsera": "Pulsera NFC negra de Toqia, con el símbolo de contacto sin contacto en el disco central."
+    },
+    "pasos": {
+      "titulo": "Así funciona",
+      "numero": "Paso {n}:",
+      "1": {
+        "titulo": "Toca o escanea",
+        "texto": "El cliente acerca su móvil a tu pulsera, tarjeta o soporte con tecnología NFC."
+      },
+      "2": {
+        "titulo": "Accede al instante",
+        "texto": "Se abre tu página personalizada al momento, sin necesidad de aplicaciones."
+      },
+      "3": {
+        "titulo": "Interactúa",
+        "texto": "El cliente consulta tu menú, lista de precios, servicios, promociones o deja su reseña."
+      }
+    },
+    "muestra": {
+      "titulo": "Qué puede mostrar tu página",
+      "menu": "Menú digital",
+      "precios": "Lista de precios",
+      "servicios": "Servicios",
+      "promociones": "Promociones",
+      "resenas": "Reseñas"
+    },
+    "beneficios": {
+      "titulo": "Beneficios para tu negocio",
+      "visibilidad": {
+        "titulo": "Más visibilidad",
+        "texto": "Aumenta reseñas y recomendaciones."
+      },
+      "tiempo": {
+        "titulo": "Ahorra tiempo",
+        "texto": "Información siempre actualizada."
+      },
+      "experiencia": {
+        "titulo": "Mejor experiencia",
+        "texto": "Tus clientes acceden a todo de forma rápida y cómoda."
+      },
+      "imagen": {
+        "titulo": "Imagen profesional",
+        "texto": "Tecnología moderna que potencia tu marca."
+      }
+    },
+    "cierre": {
+      "titulo": "¿Listo para llevar tu negocio<salto></salto>al <destacado>siguiente nivel</destacado>?",
+      "texto": "Un toque, infinitas posibilidades."
+    },
+    "pie": {
+      "texto": "Un toque y ya. Pulseras, tarjetas y placas NFC para conectar a tus clientes con lo que importa de tu negocio.",
+      "nav": "Pie de página",
+      "derechos": "© {año} Toqia. Todos los derechos reservados.",
+      "hechoPor": "Hecho por"
+    }
+  }
+}

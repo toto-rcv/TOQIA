@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
 
 import type { MenuCategoryRow, MenuItemRow } from "@/db/queries/menu";
 import { MenuIcon } from "./menu-icons";
 import type { LandingData } from "./landing-view";
+import { SelectorIdioma } from "./selector-idioma";
 
 /**
  * La carta del local, tal como la ve el cliente.
@@ -25,53 +27,68 @@ import type { LandingData } from "./landing-view";
  * No hay estado ni eventos: es un componente de servidor, así que la página
  * no le manda JavaScript de la carta al celular del cliente.
  */
-export function MenuView({
+export async function MenuView({
   landing,
   categories,
   currency,
   backHref,
+  /** A dónde vuelve el selector de idioma. Sin esto no se dibuja. */
+  volverA,
 }: {
   landing: LandingData;
   categories: MenuCategoryRow[];
   currency: string;
   /** A dónde vuelve el botón de atrás: siempre la página de esa pulsera. */
   backHref: string;
+  volverA?: string;
 }) {
+  const [idioma, t] = await Promise.all([getLocale(), getTranslations("Carta")]);
+
   const nombre = landing.displayName?.trim() || landing.name;
 
   // Una categoría sin platos visibles no aporta nada y deja un título huérfano.
   const conPlatos = categories.filter((categoria) => categoria.items.length > 0);
 
   return (
-    <main className="tq-menu-page tq-menu">
+    <main className="tq-menu-page tq-menu" lang={idioma}>
       {/* El hero va fuera del contenedor centrado para poder ocupar todo el
           ancho de la ventana, de borde a borde. */}
-      <Hero landing={landing} nombre={nombre} backHref={backHref} />
+      <Hero
+        landing={landing}
+        nombre={nombre}
+        backHref={backHref}
+        volver={t("volver")}
+        volverA={volverA}
+      />
 
       {/* ── Cabecera (celular) ─────────────────────────────────────────
           Va con su propio padding, fuera del contenedor de la carta: la foto
           de abajo tiene que llegar a los bordes de la pantalla y no podía
           compartir el `px-8`. */}
-      <header className="mx-auto flex w-full max-w-[560px] items-center gap-2 px-8 py-2 md:max-w-[680px] lg:hidden">
-        <Link
-          href={backHref}
-          aria-label="Volver"
-          className="grid size-10 shrink-0 place-items-center rounded-full
-                     text-tq-night-ink transition-colors active:bg-tq-night-raised"
-        >
-          <ArrowLeft className="size-5" aria-hidden />
-        </Link>
+      <header className="mx-auto w-full max-w-[560px] px-8 py-2 md:max-w-[680px] lg:hidden">
+        {/* Dos filas y no una: los controles arriba, el nombre abajo con todo
+            el ancho para él. Con la flecha a la izquierda y tres banderas a la
+            derecha en la misma línea, al nombre le quedaban 150px y un local
+            con nombre largo entraba cortado y descentrado. */}
+        <div className="flex items-center justify-between gap-3">
+          <Link
+            href={backHref}
+            aria-label={t("volver")}
+            className="-ml-2 grid size-10 shrink-0 place-items-center rounded-full
+                       text-tq-night-ink transition-colors active:bg-tq-night-raised"
+          >
+            <ArrowLeft className="size-5" aria-hidden />
+          </Link>
+
+          {volverA ? <SelectorIdioma volverA={volverA} tono="carta" /> : null}
+        </div>
 
         {/* A 20px un nombre largo ya no entra en una línea. Antes que cortarlo
             con puntos suspensivos —el nombre del local es lo último que se
             recorta— pasa a dos líneas. */}
-        <h1 className="min-w-0 flex-1 text-balance tq-display text-center text-[20px] uppercase leading-tight tracking-[0.03em] text-tq-night-ink">
+        <h1 className="tq-display mt-1 text-balance text-center text-[20px] uppercase leading-tight tracking-[0.03em] text-tq-night-ink">
           {nombre}
         </h1>
-
-        {/* Contrapeso de la flecha, para que el nombre quede centrado de
-            verdad y no corrido hacia la derecha. */}
-        <span className="size-10 shrink-0" aria-hidden />
       </header>
 
       {/* ── Imagen de cabecera ───────────────────────────────────────────
@@ -95,7 +112,7 @@ export function MenuView({
         {/* ── Categorías y platos ──────────────────────────────────────── */}
         {conPlatos.length === 0 ? (
           <p className="py-16 text-center text-[14px] font-medium text-tq-night-muted">
-            La carta todavía no está cargada.
+            {t("vacia")}
           </p>
         ) : (
           <div className="space-y-9">
@@ -104,6 +121,8 @@ export function MenuView({
                 key={categoria.id}
                 categoria={categoria}
                 currency={currency}
+                idioma={idioma}
+                textoNoDisponible={t("noDisponible")}
               />
             ))}
           </div>
@@ -134,17 +153,25 @@ function Hero({
   landing,
   nombre,
   backHref,
+  volver,
+  volverA,
 }: {
   landing: LandingData;
   nombre: string;
   backHref: string;
+  /** El texto del botón de atrás, ya traducido. */
+  volver: string;
+  volverA?: string;
 }) {
   const foto = landing.menuHeaderImageUrl;
 
   if (!foto) {
     return (
       <div className="mx-auto hidden w-full max-w-[1140px] px-8 pt-9 lg:block">
-        <BotonVolver backHref={backHref} />
+        <div className="flex items-center justify-between gap-4">
+          <BotonVolver backHref={backHref} texto={volver} />
+          {volverA ? <SelectorIdioma volverA={volverA} tono="carta" /> : null}
+        </div>
         <h1 className="tq-display mt-5 text-[38px] uppercase leading-none tracking-[0.04em] text-tq-night-ink">
           {nombre}
         </h1>
@@ -173,7 +200,10 @@ function Hero({
       />
 
       <div className="relative mx-auto flex h-full max-w-[1140px] flex-col justify-between px-8 pb-8 pt-7">
-        <BotonVolver backHref={backHref} sobreFoto />
+        <div className="flex items-start justify-between gap-4">
+          <BotonVolver backHref={backHref} texto={volver} sobreFoto />
+          {volverA ? <SelectorIdioma volverA={volverA} tono="carta" /> : null}
+        </div>
 
         <div>
           <h1 className="tq-display text-[38px] uppercase leading-none tracking-[0.04em] text-tq-night-ink">
@@ -192,9 +222,11 @@ function Hero({
 
 function BotonVolver({
   backHref,
+  texto,
   sobreFoto = false,
 }: {
   backHref: string;
+  texto: string;
   sobreFoto?: boolean;
 }) {
   return (
@@ -210,7 +242,7 @@ function BotonVolver({
       }
     >
       <ArrowLeft className="size-4" aria-hidden />
-      Volver
+      {texto}
     </Link>
   );
 }
@@ -220,9 +252,13 @@ function BotonVolver({
 function Categoria({
   categoria,
   currency,
+  idioma,
+  textoNoDisponible,
 }: {
   categoria: MenuCategoryRow;
   currency: string;
+  idioma: string;
+  textoNoDisponible: string;
 }) {
   return (
     <section>
@@ -250,7 +286,12 @@ function Categoria({
       <ul className="mt-3.5 lg:grid lg:grid-cols-2 lg:gap-x-10">
         {categoria.items.map((plato) => (
           <li key={plato.id}>
-            <Plato plato={plato} currency={currency} />
+            <Plato
+              plato={plato}
+              currency={currency}
+              idioma={idioma}
+              textoNoDisponible={textoNoDisponible}
+            />
           </li>
         ))}
       </ul>
@@ -260,7 +301,17 @@ function Categoria({
 
 /* ── Plato ────────────────────────────────────────────────────────────────── */
 
-function Plato({ plato, currency }: { plato: MenuItemRow; currency: string }) {
+function Plato({
+  plato,
+  currency,
+  idioma,
+  textoNoDisponible,
+}: {
+  plato: MenuItemRow;
+  currency: string;
+  idioma: string;
+  textoNoDisponible: string;
+}) {
   return (
     <div className={"tq-dish " + (plato.available ? "" : "opacity-55")}>
       <div className="min-w-0 flex-1">
@@ -274,7 +325,7 @@ function Plato({ plato, currency }: { plato: MenuItemRow; currency: string }) {
 
         {!plato.available ? (
           <p className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.08em] text-tq-night-muted">
-            Hoy no disponible
+            {textoNoDisponible}
           </p>
         ) : null}
       </div>
@@ -282,7 +333,9 @@ function Plato({ plato, currency }: { plato: MenuItemRow; currency: string }) {
       {/* Sin precio no se dibuja nada: mejor un renglón sin número que un
           hueco vacío que parece un error de carga. */}
       {plato.price ? (
-        <span className="tq-price">{formatPrice(plato.price, currency)}</span>
+        <span className="tq-price">
+          {formatPrice(plato.price, currency, idioma)}
+        </span>
       ) : null}
     </div>
   );
@@ -294,14 +347,23 @@ function Plato({ plato, currency }: { plato: MenuItemRow; currency: string }) {
  * El precio llega como string desde MySQL (columna decimal) para no perder
  * centavos en el camino. Se le saca el ".00" cuando es redondo, que es como lo
  * escribe una carta de verdad.
+ *
+ * El separador decimal lo pone `Intl`, no nosotros: castellano e italiano
+ * escriben 12,50 y el inglés 12.50. Antes estaba fijo en coma, lo que a un
+ * turista inglés le mostraba un precio que en su cabeza no es el mismo número.
+ *
+ * `currency` es el símbolo que cargó el local ("€", "$"), no un código ISO, así
+ * que no se puede usar `style: "currency"` — el formateo es del número y el
+ * símbolo se antepone aparte.
  */
-function formatPrice(price: string, currency: string): string {
+function formatPrice(price: string, currency: string, idioma: string): string {
   const numero = Number(price);
   if (!Number.isFinite(numero)) return `${price} ${currency}`;
 
-  const texto = Number.isInteger(numero)
-    ? String(numero)
-    : numero.toFixed(2).replace(".", ",");
+  const texto = new Intl.NumberFormat(idioma, {
+    minimumFractionDigits: Number.isInteger(numero) ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(numero);
 
   return `${currency}${texto}`;
 }

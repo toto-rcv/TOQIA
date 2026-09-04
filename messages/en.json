@@ -1,0 +1,145 @@
+{
+  "Landing": {
+    "kicker": "Thanks for visiting us",
+    "titulo": "Your feedback helps us keep getting better",
+    "invitacion": "Leave us a review on Google",
+    "boton": "Leave my review",
+    "aviso": "This will take you to Google to write your review",
+    "sinEnlace": "This venue hasn't set up its review link yet.",
+    "descubrirMas": "Discover more",
+    "cierre": "Thank you for being part of our experience",
+    "descripcion": "Tell us what you thought of {nombre}."
+  },
+  "Accesos": {
+    "menu": "View menu",
+    "menuSub": "Our menu",
+    "comoLlegar": "Directions",
+    "comoLlegarSub": "Open map",
+    "llamar": "Call",
+    "llamarSub": "Get in touch",
+    "whatsapp": "WhatsApp",
+    "whatsappSub": "Message us",
+    "instagram": "Instagram",
+    "instagramSub": "Follow us",
+    "reservar": "Book",
+    "reservarSub": "Reserve a table",
+    "sitioWeb": "Website",
+    "sitioWebSub": "About us",
+    "mensajeReserva": "Hi, I'd like to book a table"
+  },
+  "Carta": {
+    "titulo": "Menu",
+    "volver": "Back",
+    "vacia": "The menu isn't available yet.",
+    "noDisponible": "Unavailable today"
+  },
+  "Idioma": {
+    "etiqueta": "Language",
+    "elegir": "Choose your language"
+  },
+  "Pulsera": {
+    "codigo": "Code",
+    "nadaMas": "There's nothing else you need to do.",
+    "no-reconocida": {
+      "titulo": "Bracelet not recognized",
+      "detalle": "This bracelet isn't in the system. It may have been deactivated, or its code may have been written incorrectly.",
+      "accion": "Let the staff know so they can check it."
+    },
+    "inactiva": {
+      "titulo": "This bracelet isn't active",
+      "detalle": "The bracelet exists but is switched off right now, so there's nowhere for it to take you.",
+      "accion": "Let the staff know so they can turn it back on."
+    },
+    "error": {
+      "titulo": "We couldn't load the page",
+      "detalle": "Something went wrong for a moment while looking up this bracelet. It isn't your phone or the chip — both are fine.",
+      "accion": "Try again in a minute. If it keeps happening, let the staff know."
+    },
+    "sin-asignar": {
+      "titulo": "This bracelet isn't in use yet",
+      "detalle": "The bracelet exists but hasn't been assigned to a venue yet, so there's nowhere for it to take you.",
+      "accion": "If you work here, ask your distributor to activate it."
+    },
+    "sin-destino": {
+      "titulo": "Destination not set up",
+      "detalle": "The bracelet is active but doesn't have a destination configured yet.",
+      "accion": "Let the staff know so they can finish setting it up."
+    }
+  },
+  "Sitio": {
+    "meta": {
+      "titulo": "Toqia · Your business, one tap away",
+      "descripcion": "NFC bands, cards and plaques so your customers reach your menu, your offers and your Google reviews with a single tap."
+    },
+    "nav": {
+      "principal": "Main",
+      "abrir": "Open menu",
+      "cerrar": "Close menu",
+      "inicio": "Home",
+      "comoFunciona": "How it works",
+      "planes": "Pricing",
+      "contacto": "Contact"
+    },
+    "cta": "I want Toqia",
+    "mensajeWhatsapp": "Hi, I'd like to know more about Toqia for my business.",
+    "hero": {
+      "kicker": "How it works",
+      "titulo": "Your business,<salto></salto>one <destacado>tap</destacado> away.",
+      "texto": "Connect your customers with what matters most about your business — fast, modern and hassle-free.",
+      "altPulsera": "Black Toqia NFC band, with the contactless symbol on the central disc."
+    },
+    "pasos": {
+      "titulo": "How it works",
+      "numero": "Step {n}:",
+      "1": {
+        "titulo": "Tap or scan",
+        "texto": "Your customer holds their phone near your NFC band, card or stand."
+      },
+      "2": {
+        "titulo": "Open instantly",
+        "texto": "Your own page opens right away — no app to install."
+      },
+      "3": {
+        "titulo": "Interact",
+        "texto": "They browse your menu, prices, services and offers, or leave a review."
+      }
+    },
+    "muestra": {
+      "titulo": "What your page can show",
+      "menu": "Digital menu",
+      "precios": "Price list",
+      "servicios": "Services",
+      "promociones": "Offers",
+      "resenas": "Reviews"
+    },
+    "beneficios": {
+      "titulo": "What your business gets",
+      "visibilidad": {
+        "titulo": "More visibility",
+        "texto": "More reviews and more word of mouth."
+      },
+      "tiempo": {
+        "titulo": "Time saved",
+        "texto": "Information that's always up to date."
+      },
+      "experiencia": {
+        "titulo": "Better experience",
+        "texto": "Your customers reach everything quickly and easily."
+      },
+      "imagen": {
+        "titulo": "A professional look",
+        "texto": "Modern technology that lifts your brand."
+      }
+    },
+    "cierre": {
+      "titulo": "Ready to take your business<salto></salto>to the <destacado>next level</destacado>?",
+      "texto": "One tap, endless possibilities."
+    },
+    "pie": {
+      "texto": "One tap and done. NFC bands, cards and plaques that connect your customers with what matters about your business.",
+      "nav": "Footer",
+      "derechos": "© {año} Toqia. All rights reserved.",
+      "hechoPor": "Made by"
+    }
+  }
+}

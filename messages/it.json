@@ -1,0 +1,145 @@
+{
+  "Landing": {
+    "kicker": "Grazie per la tua visita",
+    "titulo": "La tua opinione ci aiuta a migliorare",
+    "invitacion": "Lasciaci una recensione su Google",
+    "boton": "Lascia la recensione",
+    "aviso": "Ti porteremo su Google per lasciare la recensione",
+    "sinEnlace": "Questo locale non ha ancora configurato il link alle recensioni.",
+    "descubrirMas": "Scopri di più",
+    "cierre": "Grazie per aver fatto parte della nostra esperienza",
+    "descripcion": "Raccontaci com'è andata da {nombre}."
+  },
+  "Accesos": {
+    "menu": "Menu",
+    "menuSub": "Il nostro menu",
+    "comoLlegar": "Come arrivare",
+    "comoLlegarSub": "Apri mappa",
+    "llamar": "Chiama",
+    "llamarSub": "Contattaci",
+    "whatsapp": "WhatsApp",
+    "whatsappSub": "Scrivici",
+    "instagram": "Instagram",
+    "instagramSub": "Seguici",
+    "reservar": "Prenota",
+    "reservarSub": "Prenota un tavolo",
+    "sitioWeb": "Sito web",
+    "sitioWebSub": "Chi siamo",
+    "mensajeReserva": "Ciao, vorrei prenotare un tavolo"
+  },
+  "Carta": {
+    "titulo": "Menu",
+    "volver": "Indietro",
+    "vacia": "Il menu non è ancora disponibile.",
+    "noDisponible": "Non disponibile oggi"
+  },
+  "Idioma": {
+    "etiqueta": "Lingua",
+    "elegir": "Scegli la lingua"
+  },
+  "Pulsera": {
+    "codigo": "Codice",
+    "nadaMas": "Non devi fare altro.",
+    "no-reconocida": {
+      "titulo": "Braccialetto non riconosciuto",
+      "detalle": "Questo braccialetto non risulta nel sistema. Potrebbe essere stato disattivato o il codice potrebbe essere stato scritto male.",
+      "accion": "Segnalalo al personale del locale così possono controllarlo."
+    },
+    "inactiva": {
+      "titulo": "Questo braccialetto non è attivo",
+      "detalle": "Il braccialetto esiste ma in questo momento è disattivato, quindi non ha una destinazione a cui portarti.",
+      "accion": "Segnalalo al personale del locale così possono riattivarlo."
+    },
+    "error": {
+      "titulo": "Non siamo riusciti a caricare la pagina",
+      "detalle": "C'è stato un problema momentaneo nel recuperare i dati di questo braccialetto. Non è il tuo telefono né il chip: funzionano entrambi.",
+      "accion": "Riprova tra un minuto. Se il problema persiste, segnalalo al personale del locale."
+    },
+    "sin-asignar": {
+      "titulo": "Questo braccialetto non è ancora in uso",
+      "detalle": "Il braccialetto esiste ma non è ancora stato assegnato a nessun locale, quindi non ha una destinazione a cui portarti.",
+      "accion": "Se lavori nel locale, chiedi al tuo distributore di attivarlo."
+    },
+    "sin-destino": {
+      "titulo": "Destinazione non configurata",
+      "detalle": "Il braccialetto è attivo ma non ha ancora una destinazione configurata.",
+      "accion": "Segnalalo al personale del locale così possono finire di configurarlo."
+    }
+  },
+  "Sitio": {
+    "meta": {
+      "titulo": "Toqia · La tua attività, a un tocco",
+      "descripcion": "Braccialetti, tessere e targhe NFC perché i tuoi clienti raggiungano il menu, le promozioni e le recensioni su Google con un solo tocco."
+    },
+    "nav": {
+      "principal": "Principale",
+      "abrir": "Apri il menu",
+      "cerrar": "Chiudi il menu",
+      "inicio": "Home",
+      "comoFunciona": "Come funziona",
+      "planes": "Prezzi",
+      "contacto": "Contatti"
+    },
+    "cta": "Voglio Toqia",
+    "mensajeWhatsapp": "Ciao, vorrei sapere di più su Toqia per la mia attività.",
+    "hero": {
+      "kicker": "Come funziona",
+      "titulo": "La tua attività,<salto></salto>a un <destacado>tocco.</destacado>",
+      "texto": "Collega i tuoi clienti a ciò che conta della tua attività: veloce, moderno e senza complicazioni.",
+      "altPulsera": "Braccialetto NFC nero di Toqia, con il simbolo contactless sul disco centrale."
+    },
+    "pasos": {
+      "titulo": "Come funziona",
+      "numero": "Passo {n}:",
+      "1": {
+        "titulo": "Tocca o scansiona",
+        "texto": "Il cliente avvicina il telefono al braccialetto, alla tessera o alla targa NFC."
+      },
+      "2": {
+        "titulo": "Accede subito",
+        "texto": "Si apre la tua pagina personalizzata all'istante, senza scaricare nessuna app."
+      },
+      "3": {
+        "titulo": "Interagisce",
+        "texto": "Consulta il menu, il listino, i servizi e le promozioni, oppure lascia una recensione."
+      }
+    },
+    "muestra": {
+      "titulo": "Cosa può mostrare la tua pagina",
+      "menu": "Menu digitale",
+      "precios": "Listino prezzi",
+      "servicios": "Servizi",
+      "promociones": "Promozioni",
+      "resenas": "Recensioni"
+    },
+    "beneficios": {
+      "titulo": "I vantaggi per la tua attività",
+      "visibilidad": {
+        "titulo": "Più visibilità",
+        "texto": "Più recensioni e più passaparola."
+      },
+      "tiempo": {
+        "titulo": "Meno tempo perso",
+        "texto": "Informazioni sempre aggiornate."
+      },
+      "experiencia": {
+        "titulo": "Esperienza migliore",
+        "texto": "I tuoi clienti trovano tutto in modo rapido e comodo."
+      },
+      "imagen": {
+        "titulo": "Immagine professionale",
+        "texto": "Tecnologia moderna che valorizza il tuo marchio."
+      }
+    },
+    "cierre": {
+      "titulo": "Pronto a portare la tua attività<salto></salto>al <destacado>livello successivo</destacado>?",
+      "texto": "Un tocco, infinite possibilità."
+    },
+    "pie": {
+      "texto": "Un tocco e via. Braccialetti, tessere e targhe NFC per collegare i tuoi clienti a ciò che conta della tua attività.",
+      "nav": "Piè di pagina",
+      "derechos": "© {año} Toqia. Tutti i diritti riservati.",
+      "hechoPor": "Realizzato da"
+    }
+  }
+}

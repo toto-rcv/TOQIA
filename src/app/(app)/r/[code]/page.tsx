@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 
 import { LandingView } from "@/components/landing/landing-view";
@@ -11,6 +12,7 @@ import {
   normalizeCode,
   resolverPulsera,
 } from "@/lib/resolver-pulsera";
+import { PARAM_CAMBIO_DE_IDIOMA } from "@/i18n/locales";
 import { recordScan } from "@/lib/scan-logger";
 import { safeUrl } from "@/lib/url";
 
@@ -29,6 +31,7 @@ import { safeUrl } from "@/lib/url";
  * antes de que existiera el escaneo al que atribuirlo.
  */
 
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const runtime = "nodejs";
@@ -46,22 +49,25 @@ export async function generateMetadata({
 
   const landing = resolucion.estado === "ok" ? resolucion.datos.landing : null;
   const nombre = landing?.displayName || landing?.name;
+  const t = await getTranslations("Landing");
 
   return {
     // `absolute` esquiva el template del layout raíz: esta pestaña es del
     // restaurante, no de Toqia.
     title: { absolute: nombre ?? "Toqia" },
-    description: nombre ? `Dejanos tu opinión sobre ${nombre}.` : undefined,
+    description: nombre ? t("descripcion", { nombre }) : undefined,
     robots: { index: false, follow: false },
   };
 }
 
 export default async function LandingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ code: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { code: rawCode } = await params;
+  const [{ code: rawCode }, query] = await Promise.all([params, searchParams]);
   const code = normalizeCode(rawCode);
 
   if (!code) redirect("/pulsera/no-reconocida");
@@ -81,15 +87,19 @@ export default async function LandingPage({
     redirect(`/pulsera/inactiva?c=${encodeURIComponent(code)}`);
   }
 
+  const vueltaDelSelector = query[PARAM_CAMBIO_DE_IDIOMA] === "1";
+
   const requestHeaders = await headers();
-  const token = await recordScan({
-    braceletId: resolved.braceletId,
-    locationId: resolved.locationId,
-    accountId: resolved.accountId,
-    waiterId: resolved.waiterId,
-    userAgent: requestHeaders.get("user-agent"),
-    ipHash: hashIp(getClientIp(requestHeaders)),
-  });
+  const token = vueltaDelSelector
+    ? null
+    : await recordScan({
+        braceletId: resolved.braceletId,
+        locationId: resolved.locationId,
+        accountId: resolved.accountId,
+        waiterId: resolved.waiterId,
+        userAgent: requestHeaders.get("user-agent"),
+        ipHash: hashIp(getClientIp(requestHeaders)),
+      });
 
   // Excepción configurable: esta pulsera saltea la landing y va derecho a otro
   // lado. El escaneo ya quedó registrado.
@@ -101,12 +111,15 @@ export default async function LandingPage({
   // que el render no dispare una query por su cuenta.
   const conCarta = await hasVisibleMenu(resolved.locationId);
 
+  const rutaPropia = `/r/${encodeURIComponent(code)}`;
+
   return (
     <LandingView
       landing={resolved.landing}
       token={token}
       code={code}
       hasMenu={conCarta}
+      volverA={`${rutaPropia}?${PARAM_CAMBIO_DE_IDIOMA}=1`}
     />
   );
 }

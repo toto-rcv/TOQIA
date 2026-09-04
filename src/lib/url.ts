@@ -53,7 +53,12 @@ export function whatsappUrl(
   return mensaje ? `${base}?text=${encodeURIComponent(mensaje)}` : base;
 }
 
-/** Lo que aparece escrito en WhatsApp al tocar "Reservar". */
+/**
+ * Lo que aparece escrito en WhatsApp al tocar "Reservar", cuando quien llama
+ * no pasa nada. Es el respaldo: el texto de verdad sale de las traducciones
+ * (`Accesos.mensajeReserva`), porque lo lee el cliente del restaurante y puede
+ * estar en inglés o italiano.
+ */
 export const MENSAJE_RESERVA = "Hola, quisiera reservar una mesa";
 
 /**
@@ -66,11 +71,10 @@ export const MENSAJE_RESERVA = "Hola, quisiera reservar una mesa";
  */
 export function reservationUrlFor(
   reservationUrl: string | null | undefined,
-  whatsappPhone: string | null | undefined
+  whatsappPhone: string | null | undefined,
+  mensaje: string = MENSAJE_RESERVA
 ): string | null {
-  return (
-    safeUrl(reservationUrl) ?? whatsappUrl(whatsappPhone, MENSAJE_RESERVA)
-  );
+  return safeUrl(reservationUrl) ?? whatsappUrl(whatsappPhone, mensaje);
 }
 
 /**

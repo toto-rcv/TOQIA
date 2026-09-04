@@ -1,4 +1,6 @@
-import Link from "next/link";
+import { getLocale } from "next-intl/server";
+
+import { inicioDelSitio } from "@/i18n/rutas";
 
 import { cn } from "@/lib/utils";
 
@@ -41,11 +43,20 @@ export function Marca({
   );
 }
 
-/** La marca enlazando al inicio. La barra y el pie usan esta. */
-export function MarcaLink({ className }: { className?: string }) {
+/**
+ * La marca enlazando al inicio.
+ *
+ * El destino se calcula en el servidor y sale como un `<a>` común: el `Link`
+ * de next-intl es un componente cliente que lee el idioma de un contexto, y
+ * ese contexto obligaría a montar `NextIntlClientProvider` —con el diccionario
+ * entero serializado al navegador— para resolver un `href` que ya sabemos.
+ */
+export async function MarcaLink({ className }: { className?: string }) {
+  const locale = await getLocale();
+
   return (
-    <Link
-      href="/"
+    <a
+      href={inicioDelSitio(locale)}
       aria-label="Toqia, inicio"
       className={cn(
         "rounded-control transition-opacity hover:opacity-80",
@@ -55,6 +66,6 @@ export function MarcaLink({ className }: { className?: string }) {
       )}
     >
       <Marca />
-    </Link>
+    </a>
   );
 }

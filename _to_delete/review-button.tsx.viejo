@@ -22,11 +22,19 @@ import * as React from "react";
 export function ReviewButton({
   href,
   token,
+  label,
 }: {
   href: string;
   /** Puede ser null si el registro del escaneo falló: el botón sigue andando,
    *  solo que ese clic no se contabiliza. */
   token: string | null;
+  /**
+   * El texto del botón, ya traducido. Llega como prop y no se resuelve acá
+   * adentro para no mandarle el diccionario de traducciones al celular del
+   * cliente: este es el único componente cliente de la página y no tiene por
+   * qué arrastrar next-intl consigo.
+   */
+  label: string;
 }) {
   const yaAvisado = React.useRef(false);
 
@@ -70,7 +78,7 @@ export function ReviewButton({
       className="tq-btn-review"
     >
       <GoogleGlyph />
-      Dejar mi reseña
+      {label}
     </a>
   );
 }

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { SelectorIdioma } from "@/components/landing/selector-idioma";
 import { getSessionUser, homeForRole } from "@/lib/session";
 import { LoginForm } from "./login-form";
 
@@ -21,7 +22,14 @@ export default async function LoginPage({
   const { error } = await searchParams;
 
   return (
-    <main className="ex-scope flex min-h-dvh items-center justify-center bg-ex-black px-6 py-16">
+    <main className="ex-scope relative flex min-h-dvh items-center justify-center bg-ex-black px-6 py-16">
+      {/* El selector vive en la esquina superior derecha de la pantalla, no
+          del formulario: así no pelea con el logo ni con el título. El idioma
+          que elija acá se guarda en cookie y persiste en los paneles. */}
+      <div className="absolute right-5 top-5">
+        <SelectorIdioma volverA="/login" tono="carta" />
+      </div>
+
       <div className="w-full max-w-sm animate-fade-up">
         <div className="mb-8">
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-ex-text-muted">

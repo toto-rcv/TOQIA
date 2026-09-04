@@ -63,6 +63,9 @@ export default async function VistaPreviaPage({
         token={null}
         code={codigos[0]}
         hasMenu={tieneCarta}
+        /* El selector también acá: es la forma que tiene el local de ver cómo
+           le queda su página en cada idioma antes de que la vea un cliente. */
+        volverA={`/vista-previa?local=${location.id}`}
       />
     </>
   );

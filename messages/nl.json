@@ -1,0 +1,145 @@
+{
+  "Landing": {
+    "kicker": "Bedankt voor je bezoek",
+    "titulo": "Jouw mening helpt ons beter te worden",
+    "invitacion": "Laat een review achter op Google",
+    "boton": "Review achterlaten",
+    "aviso": "Je wordt doorgestuurd naar Google om je review te schrijven",
+    "sinEnlace": "Deze zaak heeft haar reviewlink nog niet ingesteld.",
+    "descubrirMas": "Meer ontdekken",
+    "cierre": "Bedankt dat je deel uitmaakt van onze ervaring",
+    "descripcion": "Vertel ons wat je van {nombre} vond."
+  },
+  "Accesos": {
+    "menu": "Menukaart",
+    "menuSub": "Onze kaart",
+    "comoLlegar": "Route",
+    "comoLlegarSub": "Kaart openen",
+    "llamar": "Bellen",
+    "llamarSub": "Neem contact op",
+    "whatsapp": "WhatsApp",
+    "whatsappSub": "Stuur ons een bericht",
+    "instagram": "Instagram",
+    "instagramSub": "Volg ons",
+    "reservar": "Reserveren",
+    "reservarSub": "Reserveer een tafel",
+    "sitioWeb": "Website",
+    "sitioWebSub": "Over ons",
+    "mensajeReserva": "Hallo, ik wil graag een tafel reserveren"
+  },
+  "Carta": {
+    "titulo": "Menukaart",
+    "volver": "Terug",
+    "vacia": "De menukaart is nog niet beschikbaar.",
+    "noDisponible": "Vandaag niet beschikbaar"
+  },
+  "Idioma": {
+    "etiqueta": "Taal",
+    "elegir": "Kies je taal"
+  },
+  "Pulsera": {
+    "codigo": "Code",
+    "nadaMas": "Je hoeft verder niets te doen.",
+    "no-reconocida": {
+      "titulo": "Armband niet herkend",
+      "detalle": "Deze armband staat niet in het systeem. Mogelijk is hij gedeactiveerd of is de code verkeerd geschreven.",
+      "accion": "Laat het het personeel weten zodat zij het kunnen nakijken."
+    },
+    "inactiva": {
+      "titulo": "Deze armband is niet actief",
+      "detalle": "De armband bestaat wel, maar staat nu uit en heeft dus geen bestemming.",
+      "accion": "Laat het het personeel weten zodat zij hem weer aanzetten."
+    },
+    "error": {
+      "titulo": "We konden de pagina niet laden",
+      "detalle": "Er ging even iets mis bij het ophalen van de gegevens van deze armband. Het ligt niet aan je telefoon of aan de chip — die werken allebei.",
+      "accion": "Probeer het over een minuut opnieuw. Blijft het misgaan, laat het dan het personeel weten."
+    },
+    "sin-asignar": {
+      "titulo": "Deze armband is nog niet in gebruik",
+      "detalle": "De armband bestaat wel, maar is nog aan geen enkele zaak toegewezen en heeft dus geen bestemming.",
+      "accion": "Werk je hier? Vraag je distributeur om hem te activeren."
+    },
+    "sin-destino": {
+      "titulo": "Bestemming niet ingesteld",
+      "detalle": "De armband is actief, maar er is nog geen bestemming ingesteld.",
+      "accion": "Laat het het personeel weten zodat zij de instelling afmaken."
+    }
+  },
+  "Sitio": {
+    "meta": {
+      "titulo": "Toqia · Je zaak, één tik verwijderd",
+      "descripcion": "NFC-armbanden, -kaarten en -plaatjes zodat je klanten met één tik bij je menukaart, je acties en je Google-reviews komen."
+    },
+    "nav": {
+      "principal": "Hoofdmenu",
+      "abrir": "Menu openen",
+      "cerrar": "Menu sluiten",
+      "inicio": "Home",
+      "comoFunciona": "Hoe het werkt",
+      "planes": "Prijzen",
+      "contacto": "Contact"
+    },
+    "cta": "Ik wil Toqia",
+    "mensajeWhatsapp": "Hallo, ik wil graag meer weten over Toqia voor mijn zaak.",
+    "hero": {
+      "kicker": "Hoe het werkt",
+      "titulo": "Je zaak,<salto></salto>één <destacado>tik</destacado> verwijderd.",
+      "texto": "Verbind je klanten met wat er echt toe doet in je zaak — snel, modern en zonder gedoe.",
+      "altPulsera": "Zwarte NFC-armband van Toqia, met het contactloos-symbool op de middelste schijf."
+    },
+    "pasos": {
+      "titulo": "Hoe het werkt",
+      "numero": "Stap {n}:",
+      "1": {
+        "titulo": "Tikken of scannen",
+        "texto": "Je klant houdt de telefoon bij je NFC-armband, -kaart of -plaatje."
+      },
+      "2": {
+        "titulo": "Meteen open",
+        "texto": "Je eigen pagina opent direct — geen app nodig."
+      },
+      "3": {
+        "titulo": "Klant doet de rest",
+        "texto": "Hij bekijkt je kaart, prijzen, diensten en acties, of laat een review achter."
+      }
+    },
+    "muestra": {
+      "titulo": "Wat je pagina kan laten zien",
+      "menu": "Digitale kaart",
+      "precios": "Prijslijst",
+      "servicios": "Diensten",
+      "promociones": "Acties",
+      "resenas": "Reviews"
+    },
+    "beneficios": {
+      "titulo": "Wat je zaak eraan heeft",
+      "visibilidad": {
+        "titulo": "Meer zichtbaarheid",
+        "texto": "Meer reviews en meer mond-tot-mondreclame."
+      },
+      "tiempo": {
+        "titulo": "Tijdwinst",
+        "texto": "Informatie die altijd klopt."
+      },
+      "experiencia": {
+        "titulo": "Betere ervaring",
+        "texto": "Je klanten vinden alles snel en makkelijk."
+      },
+      "imagen": {
+        "titulo": "Professionele uitstraling",
+        "texto": "Moderne techniek die je merk versterkt."
+      }
+    },
+    "cierre": {
+      "titulo": "Klaar om je zaak<salto></salto>naar het <destacado>volgende niveau</destacado> te tillen?",
+      "texto": "Eén tik, eindeloze mogelijkheden."
+    },
+    "pie": {
+      "texto": "Eén tik en klaar. NFC-armbanden, -kaarten en -plaatjes die je klanten verbinden met wat er echt toe doet in je zaak.",
+      "nav": "Voettekst",
+      "derechos": "© {año} Toqia. Alle rechten voorbehouden.",
+      "hechoPor": "Gemaakt door"
+    }
+  }
+}

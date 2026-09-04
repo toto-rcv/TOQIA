@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   // 'standalone' empaqueta el server + solo las dependencias que realmente se usan
@@ -23,4 +24,12 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * next-intl. El plugin encuentra solo `src/i18n/request.ts`, que es donde se
+ * resuelve el idioma de cada pedido (cookie → Accept-Language). No hay routing
+ * por URL: la dirección de la landing está grabada en el chip y no puede
+ * llevar el idioma adentro.
+ */
+const withNextIntl = createNextIntlPlugin();
+
+export default withNextIntl(nextConfig);

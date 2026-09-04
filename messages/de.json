@@ -1,0 +1,145 @@
+{
+  "Landing": {
+    "kicker": "Danke für Ihren Besuch",
+    "titulo": "Ihre Meinung hilft uns, besser zu werden",
+    "invitacion": "Hinterlassen Sie uns eine Google-Bewertung",
+    "boton": "Bewertung schreiben",
+    "aviso": "Sie werden zu Google weitergeleitet, um Ihre Bewertung zu schreiben",
+    "sinEnlace": "Dieser Betrieb hat seinen Bewertungslink noch nicht eingerichtet.",
+    "descubrirMas": "Mehr entdecken",
+    "cierre": "Danke, dass Sie Teil unseres Erlebnisses sind",
+    "descripcion": "Sagen Sie uns, wie es Ihnen bei {nombre} gefallen hat."
+  },
+  "Accesos": {
+    "menu": "Speisekarte",
+    "menuSub": "Unsere Karte",
+    "comoLlegar": "Anfahrt",
+    "comoLlegarSub": "Karte öffnen",
+    "llamar": "Anrufen",
+    "llamarSub": "Kontakt aufnehmen",
+    "whatsapp": "WhatsApp",
+    "whatsappSub": "Schreiben Sie uns",
+    "instagram": "Instagram",
+    "instagramSub": "Folgen Sie uns",
+    "reservar": "Reservieren",
+    "reservarSub": "Tisch reservieren",
+    "sitioWeb": "Webseite",
+    "sitioWebSub": "Über uns",
+    "mensajeReserva": "Hallo, ich möchte gerne einen Tisch reservieren"
+  },
+  "Carta": {
+    "titulo": "Speisekarte",
+    "volver": "Zurück",
+    "vacia": "Die Speisekarte ist noch nicht verfügbar.",
+    "noDisponible": "Heute nicht verfügbar"
+  },
+  "Idioma": {
+    "etiqueta": "Sprache",
+    "elegir": "Sprache wählen"
+  },
+  "Pulsera": {
+    "codigo": "Code",
+    "nadaMas": "Sie müssen nichts weiter tun.",
+    "no-reconocida": {
+      "titulo": "Armband nicht erkannt",
+      "detalle": "Dieses Armband ist nicht im System. Möglicherweise wurde es deaktiviert oder sein Code falsch beschrieben.",
+      "accion": "Sagen Sie dem Personal Bescheid, damit es das prüfen kann."
+    },
+    "inactiva": {
+      "titulo": "Dieses Armband ist nicht aktiv",
+      "detalle": "Das Armband existiert, ist aber gerade deaktiviert und hat daher kein Ziel.",
+      "accion": "Sagen Sie dem Personal Bescheid, damit es wieder aktiviert wird."
+    },
+    "error": {
+      "titulo": "Die Seite konnte nicht geladen werden",
+      "detalle": "Beim Abrufen der Daten dieses Armbands gab es kurz ein Problem. Es liegt weder an Ihrem Telefon noch am Chip — beide funktionieren.",
+      "accion": "Versuchen Sie es in einer Minute erneut. Wenn es weiterhin nicht klappt, sagen Sie dem Personal Bescheid."
+    },
+    "sin-asignar": {
+      "titulo": "Dieses Armband ist noch nicht im Einsatz",
+      "detalle": "Das Armband existiert, wurde aber noch keinem Betrieb zugeordnet und hat daher kein Ziel.",
+      "accion": "Wenn Sie hier arbeiten, bitten Sie Ihren Händler, es zu aktivieren."
+    },
+    "sin-destino": {
+      "titulo": "Ziel nicht eingerichtet",
+      "detalle": "Das Armband ist aktiv, hat aber noch kein Ziel hinterlegt.",
+      "accion": "Sagen Sie dem Personal Bescheid, damit die Einrichtung abgeschlossen wird."
+    }
+  },
+  "Sitio": {
+    "meta": {
+      "titulo": "Toqia · Ihr Betrieb, nur ein Antippen entfernt",
+      "descripcion": "NFC-Armbänder, -Karten und -Schilder, damit Ihre Gäste mit einem Antippen zu Ihrer Karte, Ihren Angeboten und Ihren Google-Bewertungen kommen."
+    },
+    "nav": {
+      "principal": "Hauptmenü",
+      "abrir": "Menü öffnen",
+      "cerrar": "Menü schließen",
+      "inicio": "Start",
+      "comoFunciona": "So funktioniert es",
+      "planes": "Preise",
+      "contacto": "Kontakt"
+    },
+    "cta": "Ich will Toqia",
+    "mensajeWhatsapp": "Hallo, ich hätte gerne mehr Informationen zu Toqia für meinen Betrieb.",
+    "hero": {
+      "kicker": "So funktioniert es",
+      "titulo": "Ihr Betrieb,<salto></salto>nur ein <destacado>Antippen</destacado> entfernt.",
+      "texto": "Verbinden Sie Ihre Gäste mit dem Wichtigsten Ihres Betriebs — schnell, modern und unkompliziert.",
+      "altPulsera": "Schwarzes NFC-Armband von Toqia mit dem Kontaktlos-Symbol auf der mittleren Scheibe."
+    },
+    "pasos": {
+      "titulo": "So funktioniert es",
+      "numero": "Schritt {n}:",
+      "1": {
+        "titulo": "Antippen oder scannen",
+        "texto": "Ihr Gast hält das Handy an Ihr NFC-Armband, Ihre Karte oder Ihr Schild."
+      },
+      "2": {
+        "titulo": "Sofort geöffnet",
+        "texto": "Ihre eigene Seite öffnet sich sofort — ganz ohne App."
+      },
+      "3": {
+        "titulo": "Er tut, was er will",
+        "texto": "Er sieht Karte, Preise, Leistungen und Angebote — oder hinterlässt eine Bewertung."
+      }
+    },
+    "muestra": {
+      "titulo": "Was Ihre Seite zeigen kann",
+      "menu": "Digitale Karte",
+      "precios": "Preisliste",
+      "servicios": "Leistungen",
+      "promociones": "Angebote",
+      "resenas": "Bewertungen"
+    },
+    "beneficios": {
+      "titulo": "Was Ihr Betrieb davon hat",
+      "visibilidad": {
+        "titulo": "Mehr Sichtbarkeit",
+        "texto": "Mehr Bewertungen und mehr Empfehlungen."
+      },
+      "tiempo": {
+        "titulo": "Gesparte Zeit",
+        "texto": "Informationen, die immer aktuell sind."
+      },
+      "experiencia": {
+        "titulo": "Besseres Erlebnis",
+        "texto": "Ihre Gäste finden alles schnell und bequem."
+      },
+      "imagen": {
+        "titulo": "Professioneller Auftritt",
+        "texto": "Moderne Technik, die Ihre Marke stärkt."
+      }
+    },
+    "cierre": {
+      "titulo": "Bereit, Ihren Betrieb<salto></salto>auf die <destacado>nächste Stufe</destacado> zu bringen?",
+      "texto": "Ein Antippen, unendliche Möglichkeiten."
+    },
+    "pie": {
+      "texto": "Einmal antippen, fertig. NFC-Armbänder, -Karten und -Schilder, die Ihre Gäste mit dem Wichtigsten Ihres Betriebs verbinden.",
+      "nav": "Fußzeile",
+      "derechos": "© {año} Toqia. Alle Rechte vorbehalten.",
+      "hechoPor": "Umgesetzt von"
+    }
+  }
+}

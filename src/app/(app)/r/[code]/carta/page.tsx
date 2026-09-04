@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { MenuView } from "@/components/landing/menu-view";
 
@@ -39,8 +40,11 @@ export async function generateMetadata({
   const landing = resolucion.estado === "ok" ? resolucion.datos.landing : null;
   const nombre = landing?.displayName || landing?.name;
 
+  const t = await getTranslations("Carta");
+  const titulo = t("titulo");
+
   return {
-    title: nombre ? `Carta · ${nombre}` : "Carta",
+    title: { absolute: nombre ? `${titulo} · ${nombre}` : titulo },
     robots: { index: false, follow: false },
   };
 }
@@ -74,12 +78,18 @@ export default async function CartaPage({
     getLocationById(resolved.locationId),
   ]);
 
+  const rutaPropia = `/r/${encodeURIComponent(code)}/carta`;
+
   return (
     <MenuView
       landing={resolved.landing}
       categories={categorias}
       currency={local?.currency ?? "€"}
       backHref={`/r/${encodeURIComponent(code)}`}
+      /* La carta no registra escaneos, así que volver acá después de cambiar
+         de idioma no ensucia ninguna métrica: no necesita el parámetro que sí
+         lleva la landing. */
+      volverA={rutaPropia}
     />
   );
 }

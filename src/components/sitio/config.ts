@@ -6,7 +6,6 @@
  */
 export const CONTACTO = {
   whatsapp: "34678663434",
-  mensaje: "Hola, quiero saber más sobre Toqia para mi negocio.",
 } as const;
 
 /**
@@ -15,9 +14,12 @@ export const CONTACTO = {
  * Un solo lugar: los botones aparecen en la barra, en el hero, en el menú del
  * celular y en el cierre, y tres de ellos apuntando bien y uno mal es un error
  * que no se nota hasta que un cliente se pierde.
+ *
+ * El mensaje llega ya traducido: quien lo va a leer es quien escribe, y si
+ * llegó a la web en italiano el chat no tiene por qué abrirse en castellano.
  */
-export function enlaceDeContacto(): string {
-  return `https://wa.me/${CONTACTO.whatsapp}?text=${encodeURIComponent(CONTACTO.mensaje)}`;
+export function enlaceDeContacto(mensaje: string): string {
+  return `https://wa.me/${CONTACTO.whatsapp}?text=${encodeURIComponent(mensaje)}`;
 }
 
 /**
@@ -28,15 +30,16 @@ export function enlaceDeContacto(): string {
  * no recibe el array sino una referencia al componente. El build falla recién
  * al prerenderizar, con un `SECCIONES.map is not a function` que no dice nada.
  *
- * Hoy son anclas dentro de la misma página. Cuando "Planes" tenga su propia
- * ruta, se cambia el `href` acá y la barra, el menú del celular y el pie se
- * actualizan juntos.
+ * `clave` es la entrada en `Sitio.nav` de los archivos de traducción; `href`
+ * es un ancla dentro de la misma página y por eso no lleva prefijo de idioma.
+ * Cuando "Planes" tenga su propia ruta habrá que pasarla por el `Link` de
+ * next-intl para que el prefijo se mantenga.
  */
 export const SECCIONES = [
-  { id: "inicio", href: "#inicio", label: "Inicio" },
-  { id: "como-funciona", href: "#como-funciona", label: "Cómo funciona" },
+  { id: "inicio", href: "#inicio", clave: "inicio" },
+  { id: "como-funciona", href: "#como-funciona", clave: "comoFunciona" },
   // "Planes" todavía no tiene sección propia: mientras tanto lleva al cierre,
   // que es donde se pide presupuesto.
-  { id: "planes", href: "#contacto", label: "Planes" },
-  { id: "contacto", href: "#contacto", label: "Contacto" },
+  { id: "planes", href: "#contacto", clave: "planes" },
+  { id: "contacto", href: "#contacto", clave: "contacto" },
 ] as const;

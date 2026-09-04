@@ -1,0 +1,145 @@
+{
+  "Landing": {
+    "kicker": "Merci de votre visite",
+    "titulo": "Votre avis nous aide à nous améliorer",
+    "invitacion": "Laissez-nous un avis sur Google",
+    "boton": "Laisser mon avis",
+    "aviso": "Vous serez redirigé vers Google pour écrire votre avis",
+    "sinEnlace": "Cet établissement n'a pas encore configuré son lien d'avis.",
+    "descubrirMas": "En découvrir plus",
+    "cierre": "Merci de faire partie de notre expérience",
+    "descripcion": "Dites-nous ce que vous avez pensé de {nombre}."
+  },
+  "Accesos": {
+    "menu": "Voir la carte",
+    "menuSub": "Notre carte",
+    "comoLlegar": "Itinéraire",
+    "comoLlegarSub": "Ouvrir le plan",
+    "llamar": "Appeler",
+    "llamarSub": "Nous contacter",
+    "whatsapp": "WhatsApp",
+    "whatsappSub": "Nous écrire",
+    "instagram": "Instagram",
+    "instagramSub": "Nous suivre",
+    "reservar": "Réserver",
+    "reservarSub": "Réserver une table",
+    "sitioWeb": "Site web",
+    "sitioWebSub": "Nous découvrir",
+    "mensajeReserva": "Bonjour, je souhaiterais réserver une table"
+  },
+  "Carta": {
+    "titulo": "Carte",
+    "volver": "Retour",
+    "vacia": "La carte n'est pas encore disponible.",
+    "noDisponible": "Indisponible aujourd'hui"
+  },
+  "Idioma": {
+    "etiqueta": "Langue",
+    "elegir": "Choisissez votre langue"
+  },
+  "Pulsera": {
+    "codigo": "Code",
+    "nadaMas": "Vous n'avez rien d'autre à faire.",
+    "no-reconocida": {
+      "titulo": "Bracelet non reconnu",
+      "detalle": "Ce bracelet ne figure pas dans le système. Il a peut-être été désactivé, ou son code a été mal enregistré.",
+      "accion": "Signalez-le au personnel pour qu'il puisse vérifier."
+    },
+    "inactiva": {
+      "titulo": "Ce bracelet n'est pas actif",
+      "detalle": "Le bracelet existe mais il est désactivé pour le moment, il n'a donc aucune destination.",
+      "accion": "Signalez-le au personnel pour qu'il le réactive."
+    },
+    "error": {
+      "titulo": "Nous n'avons pas pu charger la page",
+      "detalle": "Un problème passager est survenu en cherchant les données de ce bracelet. Ce n'est ni votre téléphone ni la puce : les deux fonctionnent.",
+      "accion": "Réessayez dans une minute. Si cela persiste, signalez-le au personnel."
+    },
+    "sin-asignar": {
+      "titulo": "Ce bracelet n'est pas encore utilisé",
+      "detalle": "Le bracelet existe mais n'a pas encore été attribué à un établissement, il n'a donc aucune destination.",
+      "accion": "Si vous travaillez ici, demandez à votre distributeur de l'activer."
+    },
+    "sin-destino": {
+      "titulo": "Destination non configurée",
+      "detalle": "Le bracelet est actif mais sa destination n'a pas encore été renseignée.",
+      "accion": "Signalez-le au personnel pour qu'il termine la configuration."
+    }
+  },
+  "Sitio": {
+    "meta": {
+      "titulo": "Toqia · Votre établissement, en un geste",
+      "descripcion": "Bracelets, cartes et plaques NFC pour que vos clients accèdent à votre carte, vos offres et vos avis Google d'un simple geste."
+    },
+    "nav": {
+      "principal": "Principal",
+      "abrir": "Ouvrir le menu",
+      "cerrar": "Fermer le menu",
+      "inicio": "Accueil",
+      "comoFunciona": "Comment ça marche",
+      "planes": "Tarifs",
+      "contacto": "Contact"
+    },
+    "cta": "Je veux Toqia",
+    "mensajeWhatsapp": "Bonjour, j'aimerais en savoir plus sur Toqia pour mon établissement.",
+    "hero": {
+      "kicker": "Comment ça marche",
+      "titulo": "Votre établissement,<salto></salto>en un <destacado>geste.</destacado>",
+      "texto": "Reliez vos clients à l'essentiel de votre établissement : rapide, moderne et sans complications.",
+      "altPulsera": "Bracelet NFC noir de Toqia, avec le symbole sans contact sur le disque central."
+    },
+    "pasos": {
+      "titulo": "Comment ça marche",
+      "numero": "Étape {n} :",
+      "1": {
+        "titulo": "Approchez le téléphone",
+        "texto": "Le client approche son téléphone de votre bracelet, carte ou support NFC."
+      },
+      "2": {
+        "titulo": "Accès immédiat",
+        "texto": "Votre page personnalisée s'ouvre aussitôt, sans aucune application à installer."
+      },
+      "3": {
+        "titulo": "Il interagit",
+        "texto": "Il consulte votre carte, vos tarifs, vos services et vos offres, ou laisse un avis."
+      }
+    },
+    "muestra": {
+      "titulo": "Ce que votre page peut montrer",
+      "menu": "Carte numérique",
+      "precios": "Liste de prix",
+      "servicios": "Services",
+      "promociones": "Offres",
+      "resenas": "Avis"
+    },
+    "beneficios": {
+      "titulo": "Ce que votre établissement y gagne",
+      "visibilidad": {
+        "titulo": "Plus de visibilité",
+        "texto": "Plus d'avis et plus de bouche-à-oreille."
+      },
+      "tiempo": {
+        "titulo": "Du temps gagné",
+        "texto": "Des informations toujours à jour."
+      },
+      "experiencia": {
+        "titulo": "Une meilleure expérience",
+        "texto": "Vos clients trouvent tout rapidement et facilement."
+      },
+      "imagen": {
+        "titulo": "Une image professionnelle",
+        "texto": "Une technologie moderne qui valorise votre marque."
+      }
+    },
+    "cierre": {
+      "titulo": "Prêt à faire passer votre établissement<salto></salto>au <destacado>niveau supérieur</destacado> ?",
+      "texto": "Un geste, des possibilités infinies."
+    },
+    "pie": {
+      "texto": "Un geste et c'est tout. Bracelets, cartes et plaques NFC pour relier vos clients à l'essentiel de votre établissement.",
+      "nav": "Pied de page",
+      "derechos": "© {año} Toqia. Tous droits réservés.",
+      "hechoPor": "Réalisé par"
+    }
+  }
+}

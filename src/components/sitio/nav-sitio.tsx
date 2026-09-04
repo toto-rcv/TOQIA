@@ -4,10 +4,36 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { SECCIONES } from "./config";
-import { MarcaLink } from "./marca";
 
-export function NavSitio({ ctaHref }: { ctaHref: string }) {
+/**
+ * La barra del sitio comercial.
+ *
+ * Es el único componente cliente de la página —necesita estado para el menú
+ * del celular y para saber qué sección se está mirando— y por eso **recibe
+ * todos sus textos como props en vez de resolverlos con `useTranslations`**:
+ * así el diccionario de traducciones no viaja al navegador. Lo mismo con el
+ * selector de idioma, que llega ya renderizado desde el servidor.
+ */
+
+export type EnlaceNav = { id: string; href: string; label: string };
+
+export function NavSitio({
+  secciones,
+  inicioHref,
+  ctaHref,
+  ctaLabel,
+  etiquetas,
+  selector,
+}: {
+  secciones: EnlaceNav[];
+  /** El inicio en el idioma actual: "/", "/en" o "/it". */
+  inicioHref: string;
+  ctaHref: string;
+  ctaLabel: string;
+  etiquetas: { principal: string; abrir: string; cerrar: string };
+  /** El selector de idioma, renderizado en el servidor. */
+  selector: React.ReactNode;
+}) {
   const [abierto, setAbierto] = useState(false);
   const [activa, setActiva] = useState<string>("inicio");
   const [scrolleada, setScrolleada] = useState(false);
@@ -36,12 +62,12 @@ export function NavSitio({ ctaHref }: { ctaHref: string }) {
       { rootMargin: "-96px 0px -55% 0px", threshold: [0.01, 0.25, 0.5] }
     );
 
-    for (const { id } of SECCIONES) {
+    for (const { id } of secciones) {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     }
     return () => observer.disconnect();
-  }, []);
+  }, [secciones]);
 
   // Con el menú abierto no se scrollea el fondo, y Escape lo cierra.
   useEffect(() => {
@@ -66,22 +92,24 @@ export function NavSitio({ ctaHref }: { ctaHref: string }) {
           : "border-b border-transparent"
       )}
     >
-      <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between gap-6 px-5 lg:h-[92px] lg:px-8">
-        <MarcaLink />
+      <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between gap-3 px-5 lg:h-[92px] lg:gap-6 lg:px-8">
+        <MarcaSlot inicioHref={inicioHref} />
 
-        <nav aria-label="Principal" className="hidden lg:block">
+        <nav aria-label={etiquetas.principal} className="hidden lg:block">
           <ul className="flex items-center gap-9">
-            {SECCIONES.map((s) => (
+            {secciones.map((s) => (
               <li key={s.id}>
-                <EnlaceSeccion seccion={s} activa={activa === s.id} />
+                <EnlaceSeccion enlace={s} activa={activa === s.id} />
               </li>
             ))}
           </ul>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 lg:gap-3">
+          {selector}
+
           <a href={ctaHref} className="mk-btn-outline hidden lg:inline-flex">
-            Quiero Toqia
+            {ctaLabel}
           </a>
 
           <button
@@ -89,7 +117,7 @@ export function NavSitio({ ctaHref }: { ctaHref: string }) {
             onClick={() => setAbierto((v) => !v)}
             aria-expanded={abierto}
             aria-controls="menu-movil"
-            aria-label={abierto ? "Cerrar menú" : "Abrir menú"}
+            aria-label={abierto ? etiquetas.cerrar : etiquetas.abrir}
             className="-mr-2 inline-flex h-11 w-11 items-center justify-center rounded-control text-mk-text transition-colors hover:bg-mk-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mk-turquoise lg:hidden"
           >
             {abierto ? (
@@ -110,7 +138,7 @@ export function NavSitio({ ctaHref }: { ctaHref: string }) {
         className="border-t border-mk-border bg-mk-bg lg:hidden"
       >
         <ul className="mx-auto max-w-6xl px-5 py-3">
-          {SECCIONES.map((s) => (
+          {secciones.map((s) => (
             <li key={s.id}>
               <a
                 href={s.href}
@@ -133,7 +161,7 @@ export function NavSitio({ ctaHref }: { ctaHref: string }) {
             onClick={() => setAbierto(false)}
             className="mk-btn w-full"
           >
-            Quiero Toqia
+            {ctaLabel}
           </a>
         </div>
       </div>
@@ -141,16 +169,46 @@ export function NavSitio({ ctaHref }: { ctaHref: string }) {
   );
 }
 
+/**
+ * El hueco de la marca.
+ *
+ * `MarcaLink` es un componente de servidor y no puede importarse desde acá, así
+ * que se dibuja igual pero sin traducciones: es un logo y una palabra, no
+ * tiene nada que traducir.
+ */
+function MarcaSlot({ inicioHref }: { inicioHref: string }) {
+  return (
+    <a
+      href={inicioHref}
+      aria-label="Toqia"
+      className="inline-flex shrink-0 items-center gap-2.5 rounded-control transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mk-turquoise focus-visible:ring-offset-4 focus-visible:ring-offset-mk-bg"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/marca/toqia-isotipo.webp"
+        alt=""
+        aria-hidden
+        width={320}
+        height={227}
+        className="h-8 w-auto select-none"
+      />
+      <span className="text-[17px] font-medium leading-none tracking-[0.22em] text-mk-text lg:text-[19px]">
+        TOQIA
+      </span>
+    </a>
+  );
+}
+
 function EnlaceSeccion({
-  seccion,
+  enlace,
   activa,
 }: {
-  seccion: (typeof SECCIONES)[number];
+  enlace: EnlaceNav;
   activa: boolean;
 }) {
   return (
     <a
-      href={seccion.href}
+      href={enlace.href}
       aria-current={activa ? "true" : undefined}
       className={cn(
         "relative block py-2 text-[15px] transition-colors",
@@ -158,7 +216,7 @@ function EnlaceSeccion({
         activa ? "text-mk-text" : "text-mk-muted hover:text-mk-text"
       )}
     >
-      {seccion.label}
+      {enlace.label}
       {/* El subrayado del enlace activo. Va siempre en el DOM y solo cambia de
           opacidad: si apareciera y desapareciera, la línea saltaría sin
           transición. */}
