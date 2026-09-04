@@ -32,10 +32,12 @@ import { IDIOMAS, NOMBRE_DE_IDIOMA, type Idioma } from "@/i18n/locales";
 export async function SelectorIdioma({
   volverA,
   tono = "landing",
+  align = "right",
 }: {
   volverA: string;
   /** "landing" = dorado sobre la portada. "carta" = champagne sobre el negro. */
   tono?: "landing" | "carta";
+  align?: "left" | "right";
 }) {
   const [actual, t] = await Promise.all([
     getLocale(),
@@ -74,11 +76,9 @@ export async function SelectorIdioma({
         />
       </summary>
 
-      {/* Alineado a la derecha para que no se salga de la pantalla: el
-          selector vive pegado al borde derecho en las dos páginas. */}
       <form
         action={cambiarIdioma}
-        className={`absolute right-0 top-[calc(100%+8px)] z-50 min-w-[190px] overflow-hidden rounded-2xl border py-1 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.8)] ${panel}`}
+        className={`absolute ${align === "right" ? "right-0" : "left-0"} top-[calc(100%+8px)] z-50 min-w-[190px] overflow-hidden rounded-2xl border py-1 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.8)] ${panel}`}
       >
         <input type="hidden" name="volverA" value={volverA} />
 

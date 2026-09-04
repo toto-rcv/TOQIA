@@ -1,3 +1,4 @@
+import { SelectorIdioma } from "@/components/landing/selector-idioma";
 import { PanelNav, type NavItem } from "@/components/layout/panel-nav";
 
 /**
@@ -30,7 +31,13 @@ export function PanelShell({
 }) {
   return (
     <div className="ex-scope min-h-dvh bg-ex-black text-ex-text">
-      <PanelNav title={title} badge={badge} email={email} items={items} />
+      <PanelNav
+        title={title}
+        badge={badge}
+        email={email}
+        items={items}
+        selectorIdioma={<SelectorIdioma volverA="/empresa" tono="carta" align="left" />}
+      />
 
       {/* pl en escritorio deja lugar a la lateral fija; pb en celular, a la
           barra inferior, para que el último botón de la página no quede

@@ -60,11 +60,13 @@ export function PanelNav({
   badge,
   email,
   items,
+  selectorIdioma,
 }: {
   title: string;
   badge?: string;
   email: string;
   items: NavItem[];
+  selectorIdioma?: React.ReactNode;
 }) {
   const pathname = usePathname();
   const [menuAbierto, setMenuAbierto] = React.useState(false);
@@ -95,9 +97,12 @@ export function PanelNav({
                    bg-ex-surface/90 px-4 backdrop-blur sm:hidden"
       >
         <Marca title={title} badge={badge} compacta />
-        <span className="ml-auto truncate text-sm font-semibold text-ex-text">
-          {seccionActual}
-        </span>
+        <div className="ml-auto flex items-center gap-3">
+          <span className="truncate text-sm font-semibold text-ex-text">
+            {seccionActual}
+          </span>
+          {selectorIdioma}
+        </div>
       </header>
 
       {/* ── Barra lateral (tablet y escritorio) ────────────────────────── */}
@@ -138,6 +143,11 @@ export function PanelNav({
         </nav>
 
         <div className="border-t border-ex-border-subtle p-3 lg:p-4">
+          {selectorIdioma ? (
+            <div className="mb-4 flex justify-center lg:justify-start">
+              {selectorIdioma}
+            </div>
+          ) : null}
           <p className="mb-2 hidden truncate text-[11px] text-ex-text-muted lg:block">
             {email}
           </p>
