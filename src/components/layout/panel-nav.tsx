@@ -55,6 +55,8 @@ export type IconName = keyof typeof ICONOS;
 /** Cuántas secciones entran cómodas en la barra inferior del celular. */
 const MAX_EN_BARRA = 4;
 
+import { useTranslations } from "next-intl";
+
 export function PanelNav({
   title,
   badge,
@@ -69,6 +71,7 @@ export function PanelNav({
   selectorIdioma?: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const t = useTranslations("Nav");
   const [menuAbierto, setMenuAbierto] = React.useState(false);
 
   const esActivo = React.useCallback(
@@ -175,7 +178,7 @@ export function PanelNav({
               )}
             >
               <Ellipsis className="size-[22px]" aria-hidden />
-              Más
+              {t("mas")}
             </button>
           </li>
         </ul>
@@ -186,12 +189,12 @@ export function PanelNav({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Más secciones"
+          aria-label={t("masSecciones")}
           className="fixed inset-0 z-50 sm:hidden"
         >
           <button
             type="button"
-            aria-label="Cerrar"
+            aria-label={t("cerrar")}
             onClick={() => setMenuAbierto(false)}
             className="absolute inset-0 bg-ex-text/35 backdrop-blur-[1px]"
           />
@@ -202,12 +205,12 @@ export function PanelNav({
           >
             <div className="flex items-center justify-between px-5 pb-2 pt-4">
               <span className="text-sm font-semibold text-ex-text">
-                Más secciones
+                {t("masSecciones")}
               </span>
               <button
                 type="button"
                 onClick={() => setMenuAbierto(false)}
-                aria-label="Cerrar"
+                aria-label={t("cerrar")}
                 className="-mr-2 rounded-control p-2 text-ex-text-muted"
               >
                 <X className="size-5" aria-hidden />

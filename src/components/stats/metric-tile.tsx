@@ -91,6 +91,8 @@ export function MetricTile({
   );
 }
 
+import { useTranslations } from "next-intl";
+
 function VariationBadge({
   value,
   invert,
@@ -100,6 +102,8 @@ function VariationBadge({
   invert: boolean;
   highlight: boolean;
 }) {
+  const t = useTranslations("Stats");
+
   // Sin base de comparación no inventamos un porcentaje: "subió infinito" no
   // significa nada y confunde más de lo que informa.
   if (value === null) {
@@ -111,7 +115,7 @@ function VariationBadge({
         )}
       >
         <Minus className="size-3" aria-hidden />
-        sin datos del período anterior
+        {t("sinDatosPeriodoAnterior")}
       </p>
     );
   }
@@ -137,10 +141,10 @@ function VariationBadge({
         )}
       >
         <Icono className="size-3" aria-hidden />
-        {sinCambio ? "igual" : `${Math.abs(redondeado)}%`}
+        {sinCambio ? t("igual") : `${Math.abs(redondeado)}%`}
       </span>
       <span className={highlight ? "text-white/50" : "text-ex-text-muted"}>
-        vs. período anterior
+        {t("vsPeriodoAnterior")}
       </span>
     </p>
   );

@@ -13,8 +13,12 @@ import { salirDelPanelDelRestaurante } from "../admin/actions";
  * un cliente termina editándole la carta creyendo que es la suya. Por eso va
  * arriba de todo, ocupa el ancho completo y dice el nombre del restaurante.
  */
+import { useTranslations } from "next-intl";
+
 export function AvisoDeAdmin({ nombreDeCuenta }: { nombreDeCuenta: string }) {
   const router = useRouter();
+  const tStats = useTranslations("Stats");
+  const tNav = useTranslations("Nav");
   const [pending, startTransition] = React.useTransition();
 
   function salir() {
@@ -32,9 +36,7 @@ export function AvisoDeAdmin({ nombreDeCuenta }: { nombreDeCuenta: string }) {
       <p className="flex min-w-0 items-center gap-2 text-[12.5px] text-ex-text">
         <Eye className="size-4 shrink-0 text-ex-warning" aria-hidden />
         <span className="min-w-0">
-          Estás viendo el panel de{" "}
-          <span className="font-semibold">{nombreDeCuenta}</span> como
-          administrador. Lo que edites acá lo edita el restaurante.
+          {tStats("viendoComoAdmin", { nombre: nombreDeCuenta })}
         </span>
       </p>
 
@@ -48,7 +50,7 @@ export function AvisoDeAdmin({ nombreDeCuenta }: { nombreDeCuenta: string }) {
                    hover:text-ex-text disabled:opacity-40"
       >
         <ArrowLeft className="size-3.5" />
-        {pending ? "Saliendo…" : "Volver al admin"}
+        {pending ? tNav("saliendo") : tStats("volverAlAdmin")}
       </button>
     </div>
   );

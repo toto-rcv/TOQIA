@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { PanelShell } from "@/components/layout/panel-shell";
 import { getAccountById } from "@/db/queries/accounts";
 import { requireRestaurantUser } from "@/lib/session";
@@ -11,19 +12,6 @@ import type { NavItem } from "@/components/layout/panel-shell";
 export const metadata = { robots: { index: false, follow: false } };
 
 /**
- * El orden importa: en el celular las cuatro primeras van a la barra inferior
- * y el resto al cajón de "Más". Adelante queda lo que se mira todos los días.
- */
-const ITEMS: NavItem[] = [
-  { href: "/panel", label: "Resumen", exact: true, icon: "estadisticas" },
-  { href: "/panel/pulseras", label: "Pulseras", icon: "pulseras" },
-  { href: "/panel/carta", label: "Mi carta", icon: "carta" },
-  { href: "/panel/escaneos", label: "Escaneos", icon: "escaneos" },
-  { href: "/panel/camareros", label: "Camareros", icon: "camareros" },
-  { href: "/panel/configuracion", label: "Mi página", icon: "pagina" },
-];
-
-/**
  * Panel del restaurante.
  *
  * El guard vive acá y cubre todas las rutas de /panel. Cada Server Action
@@ -34,8 +22,20 @@ export default async function PanelLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await requireRestaurantUser();
+  const [user, t] = await Promise.all([
+    requireRestaurantUser(),
+    getTranslations("Nav"),
+  ]);
   const account = await getAccountById(user.accountId);
+
+  const items: NavItem[] = [
+    { href: "/panel", label: t("resumen"), exact: true, icon: "estadisticas" },
+    { href: "/panel/pulseras", label: t("pulseras"), icon: "pulseras" },
+    { href: "/panel/carta", label: t("carta"), icon: "carta" },
+    { href: "/panel/escaneos", label: t("escaneos"), icon: "escaneos" },
+    { href: "/panel/camareros", label: t("camareros"), icon: "camareros" },
+    { href: "/panel/configuracion", label: t("pagina"), icon: "pagina" },
+  ];
 
   // Un admin puede entrar al panel de cualquier restaurante desde /admin/cuentas.
   // La chapa de arriba cambia para que no se confunda con su propio panel.
@@ -44,9 +44,9 @@ export default async function PanelLayout({
   return (
     <PanelShell
       title={account?.name ?? "Toqia"}
-      badge={comoAdmin ? "Admin" : "Restaurante"}
+      badge={comoAdmin ? t("admin") : t("restaurante")}
       email={user.email}
-      items={ITEMS}
+      items={items}
     >
       {comoAdmin ? <AvisoDeAdmin nombreDeCuenta={account?.name ?? "este local"} /> : null}
       {children}

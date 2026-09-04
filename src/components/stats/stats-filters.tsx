@@ -31,6 +31,8 @@ const ETIQUETAS_PRESET: Record<string, string> = {
  * Los presets y el rango a medida son excluyentes: elegir uno borra el otro de
  * la URL, así nunca queda ambiguo qué período se está mirando.
  */
+import { useTranslations } from "next-intl";
+
 export function StatsFilters({
   locations,
   showLocation = true,
@@ -45,6 +47,7 @@ export function StatsFilters({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations("Stats");
   const [pending, startTransition] = React.useTransition();
 
   const desde = searchParams.get("desde") ?? "";
@@ -105,6 +108,12 @@ export function StatsFilters({
     navegar(params);
   }
 
+  const granularidades = [
+    { value: "day", label: t("dia") },
+    { value: "week", label: t("semana") },
+    { value: "month", label: t("mes") },
+  ];
+
   return (
     <div className="mb-4 space-y-2 sm:mb-5">
       {/* En celular los grupos de botones scrollean en horizontal dentro de su
@@ -112,28 +121,33 @@ export function StatsFilters({
       <div className="ex-nav-scroll flex items-center gap-2 overflow-x-auto pb-0.5">
         {/* Período: botones y no un select, porque es el control que más se toca. */}
         <div className="flex shrink-0 items-center rounded-pill border border-ex-border bg-ex-surface p-1 shadow-subtle">
-          {Object.keys(PERIOD_PRESETS).map((key) => (
-            <button
-              key={key}
-              type="button"
-              disabled={pending}
-              onClick={() => elegirPreset(key)}
-              className={cn(
-                "rounded-pill px-3 py-1.5 text-[12.5px] font-medium transition-colors duration-150",
-                periodo === key
-                  ? "bg-ex-blue text-white"
-                  : "text-ex-text-muted hover:text-ex-text"
-              )}
-            >
-              {ETIQUETAS_PRESET[key] ?? key}
-            </button>
-          ))}
+          {Object.keys(PERIOD_PRESETS).map((key) => {
+            const presetKey = `preset${key}`;
+            const label = t.has(presetKey as any) ? t(presetKey as any) : key;
+
+            return (
+              <button
+                key={key}
+                type="button"
+                disabled={pending}
+                onClick={() => elegirPreset(key)}
+                className={cn(
+                  "rounded-pill px-3 py-1.5 text-[12.5px] font-medium transition-colors duration-150",
+                  periodo === key
+                    ? "bg-ex-blue text-white"
+                    : "text-ex-text-muted hover:text-ex-text"
+                )}
+              >
+                {label}
+              </button>
+            );
+          })}
 
           <button
             type="button"
             disabled={pending}
             onClick={() => setAbierto((valor) => !valor)}
-            title="Elegir un día o un rango de fechas"
+            title={t("fechas")}
             className={cn(
               "flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-[12.5px] font-medium",
               "transition-colors duration-150",
@@ -145,12 +159,12 @@ export function StatsFilters({
             )}
           >
             <CalendarRange className="size-3.5" />
-            Fechas
+            {t("fechas")}
           </button>
         </div>
 
         <div className="flex shrink-0 items-center rounded-pill border border-ex-border bg-ex-surface p-1 shadow-subtle">
-          {GRANULARIDADES.map((item) => (
+          {granularidades.map((item) => (
             <button
               key={item.value}
               type="button"
@@ -175,10 +189,10 @@ export function StatsFilters({
             value={local}
             disabled={pending}
             onChange={(event) => actualizar("local", event.target.value)}
-            aria-label="Filtrar por local"
+            aria-label={t("todosLosLocales")}
             className="h-10 w-auto min-w-[170px] shrink-0 text-[13px]"
           >
-            <option value="">Todos los locales</option>
+            <option value="">{t("todosLosLocales")}</option>
             {locations.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.name}
@@ -197,7 +211,7 @@ export function StatsFilters({
               htmlFor="rango-desde"
               className="block text-[12px] font-semibold uppercase tracking-[0.04em] text-ex-text-muted"
             >
-              Desde
+              {t("desde")}
             </label>
             <Input
               id="rango-desde"
@@ -215,7 +229,7 @@ export function StatsFilters({
               htmlFor="rango-hasta"
               className="block text-[12px] font-semibold uppercase tracking-[0.04em] text-ex-text-muted"
             >
-              Hasta
+              {t("hasta")}
             </label>
             <Input
               id="rango-hasta"
@@ -243,7 +257,7 @@ export function StatsFilters({
             className="h-10 rounded-control border border-ex-border px-3 text-[13px] text-ex-text-muted
                        transition-colors duration-150 hover:border-ex-blue/40 hover:text-ex-text"
           >
-            Hoy
+            {t("hoy")}
           </button>
 
           {rangoActivo ? (
@@ -256,11 +270,11 @@ export function StatsFilters({
                          hover:border-ex-danger/40 hover:text-ex-danger"
             >
               <X className="size-3.5" />
-              Quitar rango
+              {t("quitarRango")}
             </button>
           ) : (
             <p className="pb-1.5 text-[11px] text-ex-text-muted">
-              Elegí las dos fechas para aplicar el rango.
+              {t("elegirRangoHint")}
             </p>
           )}
         </div>

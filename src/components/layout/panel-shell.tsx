@@ -22,12 +22,14 @@ export function PanelShell({
   email,
   items,
   children,
+  volverA,
 }: {
   title: string;
   badge?: string;
   email: string;
   items: NavItem[];
   children: React.ReactNode;
+  volverA?: string;
 }) {
   return (
     <div className="ex-scope min-h-dvh bg-ex-black text-ex-text">
@@ -36,14 +38,14 @@ export function PanelShell({
         badge={badge}
         email={email}
         items={items}
-        selectorIdioma={<SelectorIdioma volverA="/empresa" tono="carta" align="right" />}
+        selectorIdioma={<SelectorIdioma volverA={volverA} tono="carta" align="right" />}
       />
 
       {/* Selector de idioma global, siempre arriba a la derecha.
           En celular ya está en la barra superior del PanelNav, así que acá
           solo se muestra de tablet para arriba. */}
       <div className="fixed right-4 top-4 z-40 hidden sm:block">
-        <SelectorIdioma volverA="/empresa" tono="carta" />
+        <SelectorIdioma volverA={volverA} tono="carta" />
       </div>
 
       {/* pl en escritorio deja lugar a la lateral fija; pb en celular, a la

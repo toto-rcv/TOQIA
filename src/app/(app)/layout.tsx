@@ -41,17 +41,27 @@ export const viewport: Viewport = {
   themeColor: "#070A0F",
 };
 
-export default function AppLayout({
+import { getLocale, getMessages } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
+
+export default async function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="es" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang={locale} className={`${GeistSans.variable} ${GeistMono.variable}`}>
       {/* Varias extensiones de Chrome (ColorZilla, gestores de contraseñas,
           traductores) le agregan atributos al <body> antes de que React
           hidrate, y React lo reporta como un error de hidratación que no es
           culpa de la app y que el usuario no puede arreglar. Esto silencia la
           comparación en este nodo puntual, no en el resto del árbol. */}
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+        </NextIntlClientProvider>
+      </body>
     </html>
   );
 }

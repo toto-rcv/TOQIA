@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/admin/page-header";
 import { EvolutionChart } from "@/components/stats/evolution-chart";
 import { MetricTile } from "@/components/stats/metric-tile";
@@ -33,7 +34,10 @@ export default async function PanelStatsPage({
 }: {
   searchParams: Promise<StatsSearchParams>;
 }) {
-  const user = await requireRestaurantUser();
+  const [user, t] = await Promise.all([
+    requireRestaurantUser(),
+    getTranslations("Stats"),
+  ]);
   const params = parseStatsParams(await searchParams);
 
   const locations = await listLocationOptions(user.accountId);
@@ -59,11 +63,14 @@ export default async function PanelStatsPage({
         : Promise.resolve([]),
     ]);
 
+  const presetKey = `label${params.periodKey}`;
+  const periodLabel = t.has(presetKey as any) ? t(presetKey as any) : params.period.label;
+
   return (
     <>
       <PageHeader
-        title="Resumen"
-        subtitle={`${params.period.label} · las fechas se muestran en hora local.`}
+        title={t("resumen")}
+        subtitle={`${periodLabel} · ${t("fechasHoraLocal")}`}
       />
 
       <StatsFilters locations={locations} maxDate={todayLocalKey()} />
@@ -71,31 +78,31 @@ export default async function PanelStatsPage({
       <div className="mb-4 grid grid-cols-2 gap-3 sm:mb-5 sm:gap-4 lg:grid-cols-4">
         <MetricTile
           value={summary.scans}
-          label="Escaneos del período"
+          label={t("escaneosPeriodo")}
           variation={summary.variation.scans}
           highlight
         />
         <MetricTile
           value={summary.reviewClicks}
-          label="Fueron a dejar reseña"
+          label={t("fueronAResena")}
           variation={summary.variation.reviewClicks}
         />
         <MetricTile
           value={summary.conversionRate.toFixed(0)}
           suffix="%"
-          label="Tasa de conversión"
-          hint={`Período anterior: ${summary.previous.conversionRate.toFixed(0)}%`}
+          label={t("tasaConversion")}
+          hint={t("periodoAnterior", { val: summary.previous.conversionRate.toFixed(0) })}
         />
-        <MetricTile value={total} label="Escaneos históricos" />
+        <MetricTile value={total} label={t("escaneosHistoricos")} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         <Card>
           <CardHeader>
             <div>
-              <CardTitle>Evolución</CardTitle>
+              <CardTitle>{t("evolucion")}</CardTitle>
               <CardDescription className="mt-0.5">
-                Cuántos escanearon y cuántos llegaron a Google
+                {t("subtituloEvolucion")}
               </CardDescription>
             </div>
           </CardHeader>
@@ -106,7 +113,7 @@ export default async function PanelStatsPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Ranking de camareros</CardTitle>
+            <CardTitle>{t("rankingCamareros")}</CardTitle>
           </CardHeader>
           <RankingList
             medals
@@ -115,9 +122,12 @@ export default async function PanelStatsPage({
               title: fila.name,
               subtitle: locations.length > 1 ? fila.locationName : null,
               value: fila.scans,
-              detail: `${fila.reviewClicks} reseñas · ${fila.conversionRate.toFixed(0)}% de conversión`,
+              detail: t("resenasConConversion", {
+                resenas: fila.reviewClicks,
+                conversion: fila.conversionRate.toFixed(0),
+              }),
             }))}
-            emptyMessage="Ningún camarero tiene pulseras asignadas todavía."
+            emptyMessage={t("sinCamareros")}
           />
         </Card>
       </div>
@@ -125,7 +135,7 @@ export default async function PanelStatsPage({
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Pulseras más escaneadas</CardTitle>
+            <CardTitle>{t("pulserasMasEscaneadas")}</CardTitle>
           </CardHeader>
           <RankingList
             items={braceletRanking.map((fila) => ({
@@ -133,7 +143,7 @@ export default async function PanelStatsPage({
               title: fila.code,
               subtitle: fila.label ?? fila.waiterName,
               value: fila.scans,
-              detail: `${fila.reviewClicks} reseñas`,
+              detail: t("resenas", { n: fila.reviewClicks }),
             }))}
           />
         </Card>
@@ -141,14 +151,17 @@ export default async function PanelStatsPage({
         {breakdown.length > 1 ? (
           <Card>
             <CardHeader>
-              <CardTitle>Comparación entre locales</CardTitle>
+              <CardTitle>{t("comparacionLocales")}</CardTitle>
             </CardHeader>
             <RankingList
               items={breakdown.map((fila) => ({
                 id: fila.locationId,
                 title: fila.name,
                 value: fila.scans,
-                detail: `${formatNumber(fila.reviewClicks)} reseñas · ${fila.conversionRate.toFixed(0)}% de conversión`,
+                detail: t("resenasConConversion", {
+                  resenas: formatNumber(fila.reviewClicks),
+                  conversion: fila.conversionRate.toFixed(0),
+                }),
               }))}
             />
           </Card>

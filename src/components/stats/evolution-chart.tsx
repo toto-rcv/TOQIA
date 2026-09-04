@@ -32,7 +32,11 @@ const COLOR_REVIEWS = "#D97706";
 const GRID = "#E3E6F2";
 const AXIS_TEXT = "#787E9C";
 
+import { useTranslations } from "next-intl";
+
 export function EvolutionChart({ data }: { data: SeriesPoint[] }) {
+  const t = useTranslations("Stats");
+
   const maximo = React.useMemo(
     () => data.reduce((acc, punto) => Math.max(acc, punto.scans), 0),
     [data]
@@ -47,7 +51,7 @@ export function EvolutionChart({ data }: { data: SeriesPoint[] }) {
   if (data.length === 0 || maximo === 0) {
     return (
       <div className="flex h-[260px] items-center justify-center text-sm text-ex-text-muted">
-        Todavía no hay escaneos en este período.
+        {t("sinEscaneosPeriodo")}
       </div>
     );
   }
@@ -84,7 +88,7 @@ export function EvolutionChart({ data }: { data: SeriesPoint[] }) {
             {/* 2px de separación entre barras vecinas para que no se toquen. */}
             <Bar
               dataKey="scans"
-              name="Escaneos"
+              name={t("escaneosPeriodo")}
               fill={COLOR_SCANS}
               radius={[4, 4, 0, 0]}
               maxBarSize={16}
@@ -92,7 +96,7 @@ export function EvolutionChart({ data }: { data: SeriesPoint[] }) {
             />
             <Bar
               dataKey="reviewClicks"
-              name="Reseñas"
+              name={t("fueronAResena")}
               fill={COLOR_REVIEWS}
               radius={[4, 4, 0, 0]}
               maxBarSize={16}
@@ -106,10 +110,11 @@ export function EvolutionChart({ data }: { data: SeriesPoint[] }) {
 }
 
 function Leyenda() {
+  const t = useTranslations("Stats");
   return (
     <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-      <ItemLeyenda color={COLOR_SCANS} label="Escaneos" />
-      <ItemLeyenda color={COLOR_REVIEWS} label="Fueron a dejar reseña" />
+      <ItemLeyenda color={COLOR_SCANS} label={t("escaneosPeriodo")} />
+      <ItemLeyenda color={COLOR_REVIEWS} label={t("fueronAResena")} />
     </div>
   );
 }
@@ -133,6 +138,7 @@ type TooltipProps = {
 };
 
 function ChartTooltip({ active, payload }: TooltipProps) {
+  const t = useTranslations("Stats");
   if (!active || !payload || payload.length === 0) return null;
 
   const punto = payload[0].payload;
@@ -143,7 +149,9 @@ function ChartTooltip({ active, payload }: TooltipProps) {
     <div className="rounded-control border border-ex-border bg-ex-surface px-3 py-2 shadow-pop">
       <p className="text-[11px] font-medium text-ex-text-muted">{punto.label}</p>
       <p className="mt-1 text-sm font-semibold tabular-nums text-ex-text">
-        {punto.scans} {punto.scans === 1 ? "escaneo" : "escaneos"}
+        {punto.scans === 1
+          ? t("escaneoSingular", { n: punto.scans })
+          : t("escaneosPlural", { n: punto.scans })}
       </p>
       {/* El texto va en tinta; el color de la serie lo lleva el cuadradito. */}
       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ex-text-secondary">
@@ -152,7 +160,7 @@ function ChartTooltip({ active, payload }: TooltipProps) {
           className="inline-block h-2 w-2 rounded-[2px]"
           style={{ backgroundColor: COLOR_REVIEWS }}
         />
-        {punto.reviewClicks} a reseña · {tasa}%
+        {t("aResena", { n: punto.reviewClicks, tasa })}
       </p>
     </div>
   );

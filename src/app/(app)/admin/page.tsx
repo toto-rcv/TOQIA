@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import { PageHeader } from "@/components/admin/page-header";
 import { EvolutionChart } from "@/components/stats/evolution-chart";
@@ -27,7 +28,10 @@ export default async function AdminDashboardPage({
 }: {
   searchParams: Promise<StatsSearchParams>;
 }) {
-  await requireAdmin();
+  const [, t] = await Promise.all([
+    requireAdmin(),
+    getTranslations("Stats"),
+  ]);
   const params = parseStatsParams(await searchParams);
 
   // Alcance global: el admin ve el sistema entero.
@@ -50,11 +54,17 @@ export default async function AdminDashboardPage({
       new Date(cuenta.subscriptionExpiresAt).getTime() < Date.now()
   );
 
+  const presetKey = `label${params.periodKey}`;
+  const periodLabel = t.has(presetKey as any) ? t(presetKey as any) : params.period.label;
+
+  const listaCuentasVencidas = porVencer.slice(0, 4).map((cuenta) => cuenta.name).join(", ") +
+    (porVencer.length > 4 ? "…" : "");
+
   return (
     <>
       <PageHeader
-        title="Dashboard"
-        subtitle={`${params.period.label.toLowerCase()} · todo el sistema`}
+        title={t("dashboard")}
+        subtitle={`${periodLabel.toLowerCase()} · ${t("todoElSistema")}`}
       />
 
       <StatsFilters locations={[]} showLocation={false} maxDate={todayLocalKey()} />
@@ -62,39 +72,37 @@ export default async function AdminDashboardPage({
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
         <MetricTile
           value={summary.scans}
-          label="Escaneos del período"
+          label={t("escaneosPeriodo")}
           variation={summary.variation.scans}
           highlight
         />
         <MetricTile
           value={summary.reviewClicks}
-          label="Fueron a reseña"
+          label={t("fueronAResenaCorta")}
           variation={summary.variation.reviewClicks}
         />
         <MetricTile
           value={summary.conversionRate.toFixed(0)}
           suffix="%"
-          label="Conversión"
-          hint={`Antes: ${summary.previous.conversionRate.toFixed(0)}%`}
+          label={t("conversion")}
+          hint={t("antes", { val: summary.previous.conversionRate.toFixed(0) })}
         />
-        <MetricTile value={total} label="Escaneos históricos" />
+        <MetricTile value={total} label={t("escaneosHistoricos")} />
         <MetricTile
           value={activas}
-          label="Cuentas activas"
-          hint={`${cuentas.length} en total`}
+          label={t("cuentasActivas")}
+          hint={t("enTotal", { n: cuentas.length })}
         />
       </div>
 
       {porVencer.length > 0 ? (
         <div className="mb-4 rounded-card border border-ex-warning/25 bg-ex-warning/10 px-4 py-3">
           <p className="text-xs text-ex-warning">
-            {porVencer.length}{" "}
-            {porVencer.length === 1 ? "cuenta tiene" : "cuentas tienen"} la
-            suscripción vencida:{" "}
-            {porVencer.slice(0, 4).map((cuenta) => cuenta.name).join(", ")}
-            {porVencer.length > 4 ? "…" : ""}.{" "}
+            {porVencer.length === 1
+              ? t("suscripcionVencidaSingular", { n: 1, lista: listaCuentasVencidas })
+              : t("suscripcionVencidaPlural", { n: porVencer.length, lista: listaCuentasVencidas })}
             <Link href="/admin/cuentas" className="underline underline-offset-4">
-              Revisar
+              {t("revisar")}
             </Link>
           </p>
         </div>
@@ -103,7 +111,7 @@ export default async function AdminDashboardPage({
       <div className="grid gap-3 lg:grid-cols-[1fr_360px]">
         <Card>
           <CardHeader>
-            <CardTitle>Evolución</CardTitle>
+            <CardTitle>{t("evolucion")}</CardTitle>
           </CardHeader>
           <CardBody className="pt-5">
             <EvolutionChart data={series} />
@@ -112,12 +120,12 @@ export default async function AdminDashboardPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Cuentas por escaneos</CardTitle>
+            <CardTitle>{t("cuentasPorEscaneos")}</CardTitle>
             <Link
               href="/admin/cuentas"
               className="font-mono text-[11px] uppercase tracking-[0.08em] text-ex-text-muted transition-colors hover:text-ex-blue-bright"
             >
-              Ver todas
+              {t("verTodas")}
             </Link>
           </CardHeader>
           <RankingList
@@ -127,11 +135,14 @@ export default async function AdminDashboardPage({
               .map((cuenta) => ({
                 id: cuenta.id,
                 title: cuenta.name,
-                subtitle: cuenta.active ? null : "inactiva",
+                subtitle: cuenta.active ? null : t("inactiva"),
                 value: cuenta.scanCount,
-                detail: `${formatNumber(cuenta.locationCount)} locales · ${formatNumber(cuenta.braceletCount)} pulseras`,
+                detail: t("localesYPulseras", {
+                  locales: formatNumber(cuenta.locationCount),
+                  pulseras: formatNumber(cuenta.braceletCount),
+                }),
               }))}
-            emptyMessage="Todavía no hay cuentas cargadas."
+            emptyMessage={t("todaviaSinCuentas")}
           />
         </Card>
       </div>
@@ -139,7 +150,7 @@ export default async function AdminDashboardPage({
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Pulseras más escaneadas</CardTitle>
+            <CardTitle>{t("pulserasMasEscaneadas")}</CardTitle>
           </CardHeader>
           <RankingList
             items={braceletRanking.map((fila) => ({
@@ -147,14 +158,14 @@ export default async function AdminDashboardPage({
               title: fila.code,
               subtitle: fila.locationName,
               value: fila.scans,
-              detail: `${fila.reviewClicks} reseñas`,
+              detail: t("resenas", { n: fila.reviewClicks }),
             }))}
           />
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Camareros del sistema</CardTitle>
+            <CardTitle>{t("camarerosDelSistema")}</CardTitle>
           </CardHeader>
           <RankingList
             medals
@@ -163,9 +174,12 @@ export default async function AdminDashboardPage({
               title: fila.name,
               subtitle: fila.locationName,
               value: fila.scans,
-              detail: `${fila.reviewClicks} reseñas · ${fila.conversionRate.toFixed(0)}%`,
+              detail: t("resenasConConversionCorta", {
+                resenas: fila.reviewClicks,
+                conversion: fila.conversionRate.toFixed(0),
+              }),
             }))}
-            emptyMessage="Ninguna pulsera tiene camarero asignado todavía."
+            emptyMessage={t("sinCamarerosSistema")}
           />
         </Card>
       </div>

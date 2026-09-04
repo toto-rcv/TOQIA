@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { PanelShell, type NavItem } from "@/components/layout/panel-shell";
 import { requireDistributor } from "@/lib/session";
 
@@ -5,12 +6,6 @@ import { requireDistributor } from "@/lib/session";
 export const metadata = { robots: { index: false, follow: false } };
 
 export const dynamic = "force-dynamic";
-
-const ITEMS: NavItem[] = [
-  { href: "/distribuidor", label: "Resumen", exact: true, icon: "estadisticas" },
-  { href: "/distribuidor/restaurantes", label: "Restaurantes", icon: "cuentas" },
-  { href: "/distribuidor/pulseras", label: "Pulseras", icon: "pulseras" },
-];
 
 /**
  * Panel del distribuidor.
@@ -25,14 +20,23 @@ export default async function DistribuidorLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await requireDistributor();
+  const [user, t] = await Promise.all([
+    requireDistributor(),
+    getTranslations("Nav"),
+  ]);
+
+  const items: NavItem[] = [
+    { href: "/distribuidor", label: t("resumen"), exact: true, icon: "estadisticas" },
+    { href: "/distribuidor/restaurantes", label: t("cuentas"), icon: "cuentas" },
+    { href: "/distribuidor/pulseras", label: t("pulseras"), icon: "pulseras" },
+  ];
 
   return (
     <PanelShell
       title="Toqia"
       badge="Distribuidor"
       email={user.email}
-      items={ITEMS}
+      items={items}
     >
       {children}
     </PanelShell>

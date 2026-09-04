@@ -1,48 +1,42 @@
 import { ChevronDown } from "lucide-react";
+import { headers } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import { BANDERAS } from "@/components/ui/banderas";
 import { cambiarIdioma } from "@/i18n/acciones";
 import { IDIOMAS, NOMBRE_DE_IDIOMA, type Idioma } from "@/i18n/locales";
 
-/**
- * El selector de idioma de las páginas del cliente.
- *
- * Un desplegable de siete banderas con su nombre al lado. La bandera se
- * reconoce sin leer, que en esta página es la mitad del punto; el nombre está
- * porque una bandera es un país y no un idioma, y porque las de Rusia y
- * Países Bajos son los mismos tres colores en distinto orden.
- *
- * Dos cosas que lo hacen funcionar donde tiene que funcionar —un celular
- * cualquiera, en la puerta de un restaurante, con la señal justa:
- *
- *  - **Abre y cierra sin JavaScript**, porque es un `<details>`.
- *  - **Cambia de idioma sin JavaScript**, porque es un formulario con una
- *    Server Action: Next las envía por formulario cuando el JS todavía no
- *    hidrató.
- *
- * Es además un componente de servidor: no viaja un solo byte de traducciones
- * al celular del cliente.
- *
- * `volverA` es a dónde vuelve después de cambiar. En la landing tiene que
- * llevar el parámetro que saltea el registro del escaneo (ver
- * `PARAM_CAMBIO_DE_IDIOMA`): sin eso, cambiar de idioma pasados los 30
- * segundos de deduplicación le sumaría al local un escaneo que nunca existió.
- */
 export async function SelectorIdioma({
   volverA,
   tono = "landing",
   align = "right",
 }: {
-  volverA: string;
+  volverA?: string;
   /** "landing" = dorado sobre la portada. "carta" = champagne sobre el negro. */
   tono?: "landing" | "carta";
   align?: "left" | "right";
 }) {
-  const [actual, t] = await Promise.all([
+  const [actual, t, reqHeaders] = await Promise.all([
     getLocale(),
     getTranslations("Idioma"),
+    headers(),
   ]);
+
+  let targetUrl = volverA;
+  if (!targetUrl) {
+    const referer = reqHeaders.get("referer");
+    if (referer) {
+      try {
+        const parsed = new URL(referer);
+        targetUrl = parsed.pathname + parsed.search;
+      } catch {
+        targetUrl = "/";
+      }
+    } else {
+      targetUrl = "/";
+    }
+  }
+
   const BanderaActual = BANDERAS[actual as Idioma] ?? BANDERAS.es;
 
   const marco =
@@ -80,7 +74,7 @@ export async function SelectorIdioma({
         action={cambiarIdioma}
         className={`absolute ${align === "right" ? "right-0" : "left-0"} top-[calc(100%+8px)] z-50 min-w-[190px] overflow-hidden rounded-2xl border py-1 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.8)] ${panel}`}
       >
-        <input type="hidden" name="volverA" value={volverA} />
+        <input type="hidden" name="volverA" value={targetUrl} />
 
         {IDIOMAS.map((idioma) => {
           const esActual = idioma === (actual as Idioma);

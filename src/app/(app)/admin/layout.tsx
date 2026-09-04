@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { PanelShell } from "@/components/layout/panel-shell";
 import { requireAdmin } from "@/lib/session";
 
@@ -7,17 +8,6 @@ import type { NavItem } from "@/components/layout/panel-shell";
 
 /** El panel de Toqia: nunca en un buscador. */
 export const metadata = { robots: { index: false, follow: false } };
-
-const ITEMS: NavItem[] = [
-  { href: "/admin", label: "Panel", exact: true, icon: "estadisticas" },
-  { href: "/admin/cuentas", label: "Cuentas", icon: "cuentas" },
-  { href: "/admin/locales", label: "Locales", icon: "locales" },
-  { href: "/admin/pulseras", label: "Pulseras", icon: "pulseras" },
-  { href: "/admin/camareros", label: "Camareros", icon: "camareros" },
-  { href: "/admin/escaneos", label: "Escaneos", icon: "escaneos" },
-  { href: "/admin/usuarios", label: "Usuarios", icon: "usuarios" },
-  { href: "/admin/mantenimiento", label: "Mantenimiento", icon: "mantenimiento" },
-];
 
 /**
  * Panel de administración.
@@ -31,10 +21,24 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await requireAdmin();
+  const [user, t] = await Promise.all([
+    requireAdmin(),
+    getTranslations("Nav"),
+  ]);
+
+  const items: NavItem[] = [
+    { href: "/admin", label: t("panel"), exact: true, icon: "estadisticas" },
+    { href: "/admin/cuentas", label: t("cuentas"), icon: "cuentas" },
+    { href: "/admin/locales", label: t("locales"), icon: "locales" },
+    { href: "/admin/pulseras", label: t("pulseras"), icon: "pulseras" },
+    { href: "/admin/camareros", label: t("camareros"), icon: "camareros" },
+    { href: "/admin/escaneos", label: t("escaneos"), icon: "escaneos" },
+    { href: "/admin/usuarios", label: t("usuarios"), icon: "usuarios" },
+    { href: "/admin/mantenimiento", label: t("mantenimiento"), icon: "mantenimiento" },
+  ];
 
   return (
-    <PanelShell title="Toqia" badge="Admin" email={user.email} items={ITEMS}>
+    <PanelShell title="Toqia" badge={t("admin")} email={user.email} items={items}>
       {children}
     </PanelShell>
   );
