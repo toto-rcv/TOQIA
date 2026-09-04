@@ -30,6 +30,9 @@ export const metadata: Metadata = {
   // las pocas pantallas de esta mitad que no declaran título propio.
   title: { default: "Toqia", template: "%s · Toqia" },
   metadataBase: new URL(sitioUrl()),
+  icons: {
+    icon: "/marca/toqia-isotipo.webp",
+  },
   // El noindex no se declara global: lo pone cada sección en su propio layout,
   // más src/app/robots.ts. Ver la nota en el layout del sitio comercial.
 };

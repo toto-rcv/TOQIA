@@ -67,6 +67,9 @@ export async function generateMetadata({
     title: { default: t("titulo"), template: "%s · Toqia" },
     description: t("descripcion"),
     metadataBase: new URL(base),
+    icons: {
+      icon: "/marca/toqia-isotipo.webp",
+    },
     alternates: {
       canonical: `${base}${getPathname({ href: "/", locale: locale as Idioma })}`,
       languages: { ...alternates, "x-default": `${base}/` },
@@ -89,7 +92,7 @@ export default async function SitioLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang={locale} className={`scroll-smooth ${GeistSans.variable} ${GeistMono.variable}`}>
       <body suppressHydrationWarning>{children}</body>
     </html>
   );
