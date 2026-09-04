@@ -10,19 +10,27 @@ import { parseScanFilters, type RawScanParams } from "@/lib/scan-params";
 import { requireRestaurantUser } from "@/lib/session";
 import { formatNumber } from "@/lib/utils";
 
-export const metadata = { title: "Escaneos · Toqia" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Escaneos");
+  return { title: t("titulo") };
+}
 export const dynamic = "force-dynamic";
 
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
 export default async function PanelScansPage({
   searchParams,
 }: {
   searchParams: Promise<RawScanParams>;
 }) {
-  const [user, t] = await Promise.all([
+  const [user, t, locale] = await Promise.all([
     requireRestaurantUser(),
     getTranslations("Escaneos"),
+    getLocale(),
   ]);
   const params = await searchParams;
   const pagina = parsePageParams(params);
@@ -52,7 +60,7 @@ export default async function PanelScansPage({
     <>
       <PageHeader
         title={t("titulo")}
-        subtitle={t(subtituloKey, { n: formatNumber(escaneos.total) })}
+        subtitle={t(subtituloKey, { n: formatNumber(escaneos.total, locale) })}
       />
 
       <ScanFiltersBar

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Check, Copy, Plus } from "lucide-react";
 import * as React from "react";
@@ -29,6 +30,7 @@ import { crearRestaurante } from "../actions";
  * y no hay forma de recuperarla.
  */
 export function NuevoRestauranteDialog() {
+  const t = useTranslations("Distribuidor");
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -73,53 +75,50 @@ export function NuevoRestauranteDialog() {
     <>
       <Button variant="primary" size="sm" onClick={() => cerrar(true)}>
         <Plus />
-        Nuevo restaurante
+        {t("nuevoRestaurante")}
       </Button>
 
       <Dialog open={open} onOpenChange={cerrar}>
         <DialogContent>
           <form ref={formRef} onSubmit={handleSubmit}>
             <DialogHeader>
-              <DialogTitle>Nuevo restaurante</DialogTitle>
-              <DialogDescription>
-                Se crea la cuenta, su primer local y el acceso al panel. El
-                resto lo completa el restaurante.
-              </DialogDescription>
+              <DialogTitle>{t("nuevoRestaurante")}</DialogTitle>
+              <DialogDescription>{t("nuevoRestauranteDesc")}</DialogDescription>
             </DialogHeader>
 
             <DialogBody className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="r-nombre">Nombre del restaurante</Label>
+                <Label htmlFor="r-nombre">{t("nombreRestaurante")}</Label>
                 <Input
                   id="r-nombre"
                   name="nombre"
                   required
-                  placeholder="La Parrilla del Centro"
+                  placeholder={t("nombreRestaurantePlaceholder")}
                   autoComplete="off"
                 />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="r-email">Email de acceso</Label>
+                  <Label htmlFor="r-email">{t("emailAcceso")}</Label>
                   <Input
                     id="r-email"
                     name="email"
                     type="email"
                     required
-                    placeholder="dueño@restaurante.com"
+                    placeholder={t("emailPlaceholder")}
                     autoComplete="off"
                     spellCheck={false}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="r-password">Contraseña</Label>
+                  <Label htmlFor="r-password">{t("password")}</Label>
                   <Input
                     id="r-password"
                     name="password"
                     required
                     minLength={8}
-                    placeholder="Mínimo 8 caracteres"
+                    placeholder={t("passwordPlaceholder")}
                     autoComplete="new-password"
                     spellCheck={false}
                     className="font-mono"
@@ -129,21 +128,21 @@ export function NuevoRestauranteDialog() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="r-persona">
-                  Nombre de la persona{" "}
-                  <span className="text-ex-text-disabled">(opcional)</span>
+                  {t("nombrePersona")}{" "}
+                  <span className="text-ex-text-disabled">{t("opcional")}</span>
                 </Label>
                 <Input
                   id="r-persona"
                   name="nombreUsuario"
-                  placeholder="Si lo dejás vacío se usa el del restaurante"
+                  placeholder={t("nombrePersonaPlaceholder")}
                   autoComplete="off"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="r-review">
-                  Enlace de reseñas de Google{" "}
-                  <span className="text-ex-text-disabled">(opcional)</span>
+                  {t("enlaceResenas")}{" "}
+                  <span className="text-ex-text-disabled">{t("opcional")}</span>
                 </Label>
                 <Input
                   id="r-review"
@@ -153,9 +152,7 @@ export function NuevoRestauranteDialog() {
                   spellCheck={false}
                 />
                 <p className="text-[11px] leading-relaxed text-ex-text-muted">
-                  Es lo único imprescindible para que las pulseras sirvan. Si no
-                  lo tenés ahora, el restaurante lo carga después desde su
-                  panel.
+                  {t("enlaceResenasHint")}
                 </p>
               </div>
 
@@ -173,10 +170,10 @@ export function NuevoRestauranteDialog() {
                 onClick={() => cerrar(false)}
                 disabled={pending}
               >
-                Cancelar
+                {t("cancelar")}
               </Button>
               <Button type="submit" variant="primary" disabled={pending}>
-                {pending ? "Creando…" : "Crear restaurante"}
+                {pending ? t("creando") : t("crearRestaurante")}
               </Button>
             </DialogFooter>
           </form>
@@ -199,10 +196,16 @@ function CredencialesDialog({
   credenciales: { nombre: string; email: string; password: string } | null;
   onClose: () => void;
 }) {
+  const t = useTranslations("Distribuidor");
   const [copiado, setCopiado] = React.useState(false);
 
+  // El texto que se le pasa al cliente va en el idioma del panel: lo escribe
+  // el distribuidor y se lo manda a alguien que habla su mismo idioma.
   const texto = credenciales
-    ? `Acceso a tu panel de Toqia\nUsuario: ${credenciales.email}\nContraseña: ${credenciales.password}`
+    ? t("textoCredenciales", {
+        email: credenciales.email,
+        password: credenciales.password,
+      })
     : "";
 
   async function copiar() {
@@ -226,11 +229,10 @@ function CredencialesDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{credenciales?.nombre} quedó creado</DialogTitle>
-          <DialogDescription>
-            Pasale estos datos al restaurante. La contraseña no se puede volver
-            a ver: si se pierde, hay que generar una nueva.
-          </DialogDescription>
+          <DialogTitle>
+            {t("quedoCreado", { nombre: credenciales?.nombre ?? "" })}
+          </DialogTitle>
+          <DialogDescription>{t("credencialesDesc")}</DialogDescription>
         </DialogHeader>
 
         <DialogBody className="space-y-3">
@@ -240,13 +242,13 @@ function CredencialesDialog({
 
           <Button type="button" variant="secondary" onClick={copiar}>
             {copiado ? <Check /> : <Copy />}
-            {copiado ? "Copiado" : "Copiar"}
+            {copiado ? t("copiado") : t("copiar")}
           </Button>
         </DialogBody>
 
         <DialogFooter>
           <Button type="button" variant="primary" onClick={onClose}>
-            Listo
+            {t("listo")}
           </Button>
         </DialogFooter>
       </DialogContent>

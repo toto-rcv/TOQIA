@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { and, eq } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 
 import { db, mediaFiles, type MediaKind } from "@/db";
 
@@ -86,17 +87,27 @@ export async function guardarArchivo({
   locationId: number;
   kind: MediaKind;
   formato: Formato;
-  /** Cómo se llama el campo en el formulario, para los mensajes de error. */
+  /**
+   * Clave del campo dentro del espacio `Campos`, para nombrarlo en los
+   * mensajes de error. Es una clave y no el texto ya escrito porque el panel
+   * está en siete idiomas: un mensaje armado por quien llama viaja hasta el
+   * diálogo sin pasar por ninguna traducción.
+   */
   etiqueta: string;
 }): Promise<string> {
+  const [t, tc] = await Promise.all([
+    getTranslations("Errores"),
+    getTranslations("Campos"),
+  ]);
+  const campo = tc(etiqueta);
   const limite = formato === "pdf" ? LIMITE_PDF : LIMITE_IMAGEN;
 
   if (file.size === 0) {
-    throw new ErrorDeArchivo(`${etiqueta}: el archivo está vacío.`);
+    throw new ErrorDeArchivo(t("archivoVacio", { campo }));
   }
   if (file.size > limite) {
     throw new ErrorDeArchivo(
-      `${etiqueta}: el archivo pesa ${mb(file.size)} y el máximo es ${mb(limite)}.`
+      t("archivoPesado", { campo, peso: mb(file.size), maximo: mb(limite) })
     );
   }
 
@@ -109,7 +120,7 @@ export async function guardarArchivo({
 
   if (formato === "pdf") {
     if (!PDF.firma(buffer)) {
-      throw new ErrorDeArchivo(`${etiqueta}: el archivo no es un PDF válido.`);
+      throw new ErrorDeArchivo(t("archivoNoPdf", { campo }));
     }
     mimeType = "application/pdf";
     extension = PDF.ext;
@@ -118,9 +129,7 @@ export async function guardarArchivo({
       spec.firma(buffer)
     );
     if (!detectado) {
-      throw new ErrorDeArchivo(
-        `${etiqueta}: el archivo no es una imagen válida (se aceptan JPG, PNG, WebP, GIF y AVIF).`
-      );
+      throw new ErrorDeArchivo(t("archivoNoImagen", { campo }));
     }
     [mimeType] = detectado;
     extension = detectado[1].ext;
@@ -154,15 +163,10 @@ export async function guardarArchivo({
     // No es culpa del archivo, y decirle al usuario que pruebe con uno más
     // liviano lo manda a perseguir un problema que no existe.
     if (esValorFueraDelEnum(cause)) {
-      throw new ErrorDeArchivo(
-        `${etiqueta}: la base todavía no acepta este tipo de archivo. ` +
-          "Hay que aplicar las migraciones pendientes desde Mantenimiento, en el panel de administración."
-      );
+      throw new ErrorDeArchivo(t("archivoEnumFaltante", { campo }));
     }
 
-    throw new ErrorDeArchivo(
-      `${etiqueta}: no se pudo guardar el archivo. Probá con uno más liviano.`
-    );
+    throw new ErrorDeArchivo(t("archivoNoGuardado", { campo }));
   }
 }
 
@@ -201,6 +205,7 @@ export async function resolverCampoDeArchivo({
   locationId: number;
   kind: MediaKind;
   formato: Formato;
+  /** Clave dentro del espacio `Campos`. */
   etiqueta: string;
 }): Promise<string | null> {
   const subido = esArchivoConContenido(file) ? file : null;

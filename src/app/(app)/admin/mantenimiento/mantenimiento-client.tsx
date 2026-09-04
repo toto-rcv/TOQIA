@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, DatabaseZap, Trash2 } from "lucide-react";
 import * as React from "react";
@@ -27,6 +28,7 @@ import { borrarTodo, ejecutarMigraciones } from "./actions";
  * es no dispararse dos veces mientras corre.
  */
 export function MigrarBoton({ alDia }: { alDia: boolean }) {
+  const t = useTranslations("Mantenimiento");
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string | null>(null);
@@ -47,8 +49,8 @@ export function MigrarBoton({ alDia }: { alDia: boolean }) {
       const informe = resultado.data;
       setHecho(
         informe && informe.aplicados > 0
-          ? `Listo: ${informe.aplicados} cambio(s) aplicado(s).`
-          : "La base ya estaba al día: no hubo nada que aplicar."
+          ? t("aplicados", { n: informe.aplicados })
+          : t("yaAlDia")
       );
       router.refresh();
     });
@@ -58,11 +60,7 @@ export function MigrarBoton({ alDia }: { alDia: boolean }) {
     <div className="space-y-2">
       <Button variant="primary" onClick={migrar} disabled={pending}>
         <DatabaseZap />
-        {pending
-          ? "Aplicando…"
-          : alDia
-            ? "Volver a revisar"
-            : "Aplicar los cambios que faltan"}
+        {pending ? t("aplicando") : alDia ? t("volverARevisar") : t("aplicarCambios")}
       </Button>
 
       {error ? <Mensaje tono="error">{error}</Mensaje> : null}
@@ -80,6 +78,8 @@ export function BorrarTodoDialog({
   total: number;
   email: string;
 }) {
+  const t = useTranslations("Mantenimiento");
+  const locale = useLocale();
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [texto, setTexto] = React.useState("");
@@ -115,9 +115,7 @@ export function BorrarTodoDialog({
       }
 
       const borradas = resultado.data?.total ?? 0;
-      setHecho(
-        `Base vaciada: ${formatNumber(borradas)} fila(s) borradas. Quedó solo ${email}.`
-      );
+      setHecho(t("baseVaciada", { filas: formatNumber(borradas, locale), email }));
       cerrar(false);
       router.refresh();
     });
@@ -132,8 +130,8 @@ export function BorrarTodoDialog({
       >
         <Trash2 />
         {total === 0
-          ? "No hay nada para borrar"
-          : `Borrar todo (${formatNumber(total)} filas)`}
+          ? t("nadaParaBorrar")
+          : t("borrarTodoCon", { filas: formatNumber(total, locale) })}
       </Button>
 
       {hecho ? <Mensaje tono="ok">{hecho}</Mensaje> : null}
@@ -142,28 +140,30 @@ export function BorrarTodoDialog({
         <DialogContent>
           <form onSubmit={handleSubmit}>
             <DialogHeader>
-              <DialogTitle>Vaciar la base</DialogTitle>
+              <DialogTitle>{t("vaciarLaBase")}</DialogTitle>
               <DialogDescription>
-                Se van {formatNumber(total)} fila(s) entre cuentas, locales,
-                pulseras, camareros, escaneos, cartas, archivos subidos y los
-                demás usuarios. No se puede deshacer.
+                {t("vaciarLaBaseDesc", { filas: formatNumber(total, locale) })}
               </DialogDescription>
             </DialogHeader>
 
             <DialogBody className="space-y-3">
               <p className="text-[13px] leading-relaxed text-ex-text-secondary">
-                Tu usuario{" "}
-                <span className="font-mono text-ex-text">{email}</span> se
-                conserva, con tu sesión abierta.
+                {t.rich("tuUsuarioSeConserva", {
+                  email: () => (
+                    <span className="font-mono text-ex-text">{email}</span>
+                  ),
+                })}
               </p>
 
               <div className="space-y-1.5">
                 <Label htmlFor="confirmacion">
-                  Escribí{" "}
-                  <span className="font-mono text-ex-text">
-                    {FRASE_DE_CONFIRMACION}
-                  </span>{" "}
-                  para confirmar
+                  {t.rich("escribiParaConfirmar", {
+                    frase: () => (
+                      <span className="font-mono text-ex-text">
+                        {FRASE_DE_CONFIRMACION}
+                      </span>
+                    ),
+                  })}
                 </Label>
                 <Input
                   id="confirmacion"
@@ -186,14 +186,14 @@ export function BorrarTodoDialog({
                 onClick={() => cerrar(false)}
                 disabled={pending}
               >
-                Cancelar
+                {t("cancelar")}
               </Button>
               <Button
                 type="submit"
                 variant="danger"
                 disabled={!confirmado || pending}
               >
-                {pending ? "Borrando…" : "Sí, borrar todo"}
+                {pending ? t("borrando") : t("siBorrarTodo")}
               </Button>
             </DialogFooter>
           </form>

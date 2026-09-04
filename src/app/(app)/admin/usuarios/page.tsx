@@ -1,3 +1,5 @@
+import { getLocale, getTranslations } from "next-intl/server";
+
 import { PageHeader } from "@/components/admin/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -8,52 +10,64 @@ import { requireAdmin } from "@/lib/session";
 import { formatDate } from "@/lib/utils";
 import { EditUserDialog, NewUserDialog } from "./user-dialogs";
 
-export const metadata = { title: "Usuarios · Toqia Admin" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Usuarios");
+  return { title: t("titulo") };
+}
 export const dynamic = "force-dynamic";
 
-const ROLES: Record<string, { label: string; tone: "accent" | "warning" | "inactive" }> = {
-  admin: { label: "admin", tone: "accent" },
-  distributor: { label: "distribuidor", tone: "warning" },
-  restaurant: { label: "restaurante", tone: "inactive" },
+/** El tono es visual; el nombre del rol sale de las traducciones. */
+const ROLES: Record<string, { clave: string; tone: "accent" | "warning" | "inactive" }> = {
+  admin: { clave: "rolAdmin", tone: "accent" },
+  distributor: { clave: "rolDistribuidor", tone: "warning" },
+  restaurant: { clave: "rolRestaurante", tone: "inactive" },
 };
 
 export default async function AdminUsersPage() {
   const actual = await requireAdmin();
 
-  const [usuarios, cuentas] = await Promise.all([listUsers(), listAccountOptions()]);
+  const [usuarios, cuentas, t, locale] = await Promise.all([
+    listUsers(),
+    listAccountOptions(),
+    getTranslations("Usuarios"),
+    getLocale(),
+  ]);
 
   return (
     <>
       <PageHeader
-        title="Usuarios"
-        subtitle="Accesos al sistema. No hay registro público: todos se crean acá."
+        title={t("titulo")}
+        subtitle={t("subtitulo")}
       >
         <NewUserDialog accounts={cuentas} />
       </PageHeader>
 
       {usuarios.length === 0 ? (
         <Card>
-          <EmptyState>No hay usuarios cargados.</EmptyState>
+          <EmptyState>{t("sinUsuarios")}</EmptyState>
         </Card>
       ) : (
         <Card className="overflow-hidden">
           <Table>
             <Thead>
               <tr>
-                <Th>Nombre</Th>
-                <Th className="w-[260px]">Email</Th>
-                <Th className="w-[130px]">Rol</Th>
-                <Th className="w-[220px]">Cuenta</Th>
-                <Th className="w-[120px]">Alta</Th>
-                <Th className="w-[80px] text-right">Acciones</Th>
+                <Th>{t("colNombre")}</Th>
+                <Th className="w-[260px]">{t("colEmail")}</Th>
+                <Th className="w-[130px]">{t("colRol")}</Th>
+                <Th className="w-[220px]">{t("colCuenta")}</Th>
+                <Th className="w-[120px]">{t("colAlta")}</Th>
+                <Th className="w-[80px] text-right">{t("colAcciones")}</Th>
               </tr>
             </Thead>
             <tbody>
               {usuarios.map((usuario) => {
-                const rol = ROLES[usuario.role] ?? {
-                  label: usuario.role,
-                  tone: "inactive" as const,
-                };
+                const rol = ROLES[usuario.role];
+                const etiquetaDeRol = rol ? t(rol.clave) : usuario.role;
+                const tonoDeRol = rol?.tone ?? ("inactive" as const);
 
                 return (
                   <Tr key={usuario.id}>
@@ -61,20 +75,20 @@ export default async function AdminUsersPage() {
                       {usuario.name}
                       {usuario.id === actual.id ? (
                         <span className="ml-2 font-mono text-[10px] text-ex-text-disabled">
-                          vos
+                          {t("vos")}
                         </span>
                       ) : null}
                     </Td>
                     <Td className="font-mono text-xs">{usuario.email}</Td>
                     <Td>
-                      <Badge tone={rol.tone}>{rol.label}</Badge>
+                      <Badge tone={tonoDeRol}>{etiquetaDeRol}</Badge>
                     </Td>
                     <Td className="text-xs">
                       {usuario.accountName ?? (
                         <span className="text-ex-text-disabled">—</span>
                       )}
                     </Td>
-                    <Td className="num text-[11px]">{formatDate(usuario.createdAt)}</Td>
+                    <Td className="num text-[11px]">{formatDate(usuario.createdAt, locale)}</Td>
                     <Td>
                       <div className="flex justify-end">
                         <EditUserDialog
@@ -98,10 +112,7 @@ export default async function AdminUsersPage() {
         </Card>
       )}
 
-      <p className="mt-4 text-[11px] text-ex-text-muted">
-        Un usuario con rol restaurante sin cuenta asignada no puede ver nada: si
-        ves una fila así, editala y asignale la cuenta.
-      </p>
+      <p className="mt-4 text-[11px] text-ex-text-muted">{t("aviso")}</p>
     </>
   );
 }

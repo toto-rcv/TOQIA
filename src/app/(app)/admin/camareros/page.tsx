@@ -1,3 +1,5 @@
+import { getLocale, getTranslations } from "next-intl/server";
+
 import { AccountFilter } from "@/components/admin/account-filter";
 import { PageHeader } from "@/components/admin/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +12,14 @@ import { parsePageParams } from "@/lib/pagination";
 import { requireAdmin } from "@/lib/session";
 import { formatDate, formatNumber } from "@/lib/utils";
 
-export const metadata = { title: "Camareros · Toqia Admin" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Camareros");
+  return { title: t("titulo") };
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -27,7 +36,11 @@ export default async function AdminWaitersPage({
   searchParams: Promise<{ cuenta?: string; page?: string; limit?: string }>;
 }) {
   await requireAdmin();
-  const params = await searchParams;
+  const [params, t, locale] = await Promise.all([
+    searchParams,
+    getTranslations("Camareros"),
+    getLocale(),
+  ]);
   const { cuenta } = params;
   const pagina = parsePageParams(params);
 
@@ -42,28 +55,26 @@ export default async function AdminWaitersPage({
   return (
     <>
       <PageHeader
-        title="Camareros"
-        subtitle="Los administra cada restaurante desde su panel. Acá se ven todos."
+        title={t("titulo")}
+        subtitle={t("subtituloAdmin")}
       >
         <AccountFilter accounts={cuentas} />
       </PageHeader>
 
       {camareros.total === 0 ? (
         <Card>
-          <EmptyState>
-            Todavía ningún restaurante cargó camareros.
-          </EmptyState>
+          <EmptyState>{t("sinCamarerosAdmin")}</EmptyState>
         </Card>
       ) : (
         <Card className="overflow-hidden">
           <Table>
             <Thead>
               <tr>
-                <Th>Nombre</Th>
-                <Th className="w-[240px]">Local</Th>
-                <Th className="w-[110px] text-right">Pulseras</Th>
-                <Th className="w-[120px]">Alta</Th>
-                <Th className="w-[100px]">Estado</Th>
+                <Th>{t("colNombre")}</Th>
+                <Th className="w-[240px]">{t("colLocal")}</Th>
+                <Th className="w-[110px] text-right">{t("colPulseras")}</Th>
+                <Th className="w-[120px]">{t("colAlta")}</Th>
+                <Th className="w-[100px]">{t("colEstado")}</Th>
               </tr>
             </Thead>
             <tbody>
@@ -75,12 +86,12 @@ export default async function AdminWaitersPage({
                   <Td className="text-sm text-ex-text">{camarero.name}</Td>
                   <Td className="text-xs">{camarero.locationName}</Td>
                   <Td className="num text-right text-sm text-ex-text">
-                    {formatNumber(camarero.braceletCount)}
+                    {formatNumber(camarero.braceletCount, locale)}
                   </Td>
-                  <Td className="num text-[11px]">{formatDate(camarero.createdAt)}</Td>
+                  <Td className="num text-[11px]">{formatDate(camarero.createdAt, locale)}</Td>
                   <Td>
                     <Badge tone={camarero.active ? "active" : "inactive"}>
-                      {camarero.active ? "activo" : "inactivo"}
+                      {camarero.active ? t("activo") : t("inactivo")}
                     </Badge>
                   </Td>
                 </Tr>
@@ -92,7 +103,7 @@ export default async function AdminWaitersPage({
             paged={camareros}
             basePath="/admin/camareros"
             searchParams={params}
-            itemLabel="camareros"
+            itemLabel={t("itemLabel")}
           />
         </Card>
       )}

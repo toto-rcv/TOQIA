@@ -14,6 +14,8 @@
  * iniciada en un panel, no un cliente del restaurante.
  */
 
+import { getTranslations } from "next-intl/server";
+
 /** Números de error de MySQL que apuntan a un esquema desactualizado. */
 const COLUMNA_DESCONOCIDA = 1054; // ER_BAD_FIELD_ERROR
 const TABLA_INEXISTENTE = 1146; // ER_NO_SUCH_TABLE
@@ -40,54 +42,58 @@ function buscarErrorMysql(cause: unknown, profundidad = 0): ErrorMysql | null {
   return buscarErrorMysql(error.cause, profundidad + 1);
 }
 
-const AVISO_MIGRACIONES =
-  "Falta aplicar migraciones en la base: entrá al panel de administración, " +
-  "sección Mantenimiento, y aplicá los cambios pendientes.";
-
 /**
  * Una frase para agregarle al mensaje de error, o null si el error no dice
  * nada aprovechable.
+ *
+ * El texto sale de las traducciones: lo lee alguien con sesión abierta en un
+ * panel que puede estar en cualquiera de los siete idiomas, y un consejo
+ * accionable escrito en un idioma que la persona no lee no es accionable.
+ * El detalle crudo de MySQL va entre paréntesis y no se traduce: es lo que
+ * hay que copiar y mandar tal cual.
  */
-export function pistaDeErrorDeBase(cause: unknown): string | null {
+export async function pistaDeErrorDeBase(cause: unknown): Promise<string | null> {
   const error = buscarErrorMysql(cause);
   if (!error) return null;
 
+  const t = await getTranslations("Errores");
   const detalle = error.sqlMessage ?? "";
 
   switch (error.errno) {
     case COLUMNA_DESCONOCIDA:
     case TABLA_INEXISTENTE:
-      return `${AVISO_MIGRACIONES} (${detalle})`;
-
+    // Un valor que no está en la lista permitida de una columna enum. Pasa
+    // cuando la columna se creó antes de que existiera ese valor.
     case VALOR_TRUNCADO:
-      // Un valor que no está en la lista permitida de una columna enum. Pasa
-      // cuando la columna se creó antes de que existiera ese valor.
-      return `${AVISO_MIGRACIONES} (${detalle})`;
+      return `${t("faltanMigraciones")} (${detalle})`;
 
     case VALOR_DEMASIADO_LARGO:
-      return `Hay un campo con más texto del que entra. (${detalle})`;
+      return `${t("campoDemasiadoLargo")} (${detalle})`;
 
     case CARACTER_NO_SOPORTADO:
-      return (
-        "La base no acepta alguno de los caracteres escritos: la tabla no está " +
-        `en utf8mb4. (${detalle})`
-      );
+      return `${t("caracterNoSoportado")} (${detalle})`;
 
     default:
       // Cualquier otro error de MySQL igual se muestra. Es texto técnico, sí,
       // pero es la diferencia entre poder arreglarlo y quedarse apretando
       // "Probá de nuevo" para siempre.
-      return detalle ? `Error de la base: ${detalle}` : null;
+      return detalle ? t("errorDeLaBase", { detalle }) : null;
   }
 }
 
 /**
  * Arma el mensaje final: el de siempre, más la pista si la hay.
  *
- * @param base cómo empieza el mensaje, sin punto final (ej. "No se pudo guardar")
+ * @param claveBase clave dentro del espacio `Errores` con el arranque del
+ *   mensaje, sin punto final (ej. `noSePudoGuardar`).
  */
-export function mensajeDeError(base: string, cause: unknown): string {
-  const pista = pistaDeErrorDeBase(cause);
+export async function mensajeDeError(
+  claveBase: string,
+  cause: unknown
+): Promise<string> {
+  const t = await getTranslations("Errores");
+  const base = t(claveBase);
+  const pista = await pistaDeErrorDeBase(cause);
   if (pista) return `${base}. ${pista}`;
 
   // No fue un error de MySQL. Igual se muestra lo que dijo, recortado: un
@@ -96,9 +102,9 @@ export function mensajeDeError(base: string, cause: unknown): string {
   const detalle = cause instanceof Error ? cause.message.trim() : "";
   if (detalle) {
     const recortado =
-      detalle.length > 220 ? `${detalle.slice(0, 220)}…` : detalle;
+      detalle.length > 220 ? `${detalle.slice(0, 220)}\u2026` : detalle;
     return `${base}. ${recortado}`;
   }
 
-  return `${base}. Probá de nuevo.`;
+  return `${base}. ${t("probaDeNuevo")}`;
 }

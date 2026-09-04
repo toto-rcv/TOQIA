@@ -1,3 +1,5 @@
+import { getLocale, getTranslations } from "next-intl/server";
+
 import { formatNumber } from "@/lib/utils";
 
 export type RankingItem = {
@@ -15,9 +17,9 @@ export type RankingItem = {
  * La barra codifica el mismo dato que el número: sirve para comparar de un
  * vistazo sin leer cada cifra. La escala es relativa al primero de la lista.
  */
-export function RankingList({
+export async function RankingList({
   items,
-  emptyMessage = "Sin datos en este período.",
+  emptyMessage,
   medals = false,
 }: {
   items: RankingItem[];
@@ -26,13 +28,15 @@ export function RankingList({
   medals?: boolean;
 }) {
   if (items.length === 0) {
+    const t = await getTranslations("Stats");
     return (
       <p className="px-5 py-12 text-center text-sm text-ex-text-muted">
-        {emptyMessage}
+        {emptyMessage ?? t("sinDatosPeriodo")}
       </p>
     );
   }
 
+  const locale = await getLocale();
   const maximo = items[0]?.value ?? 0;
 
   return (
@@ -83,7 +87,7 @@ export function RankingList({
           </div>
 
           <span className="shrink-0 text-[15px] font-semibold tabular-nums text-ex-text">
-            {formatNumber(item.value)}
+            {formatNumber(item.value, locale)}
           </span>
         </div>
       ))}

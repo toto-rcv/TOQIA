@@ -2,6 +2,7 @@
 
 import { and, eq, gt, lt, desc, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 import { db, locations, menuCategories, menuItems } from "@/db";
 import {
@@ -43,6 +44,7 @@ function revalidar() {
   revalidatePath("/panel/carta");
 }
 
+/** Devuelve una clave de `Errores` en `error`, no la frase ya escrita. */
 function limpiarPrecio(valor: string): { precio: string | null; error?: string } {
   const texto = valor.trim();
   if (texto === "") return { precio: null };
@@ -50,10 +52,10 @@ function limpiarPrecio(valor: string): { precio: string | null; error?: string }
   // Se acepta coma o punto: en España y Argentina la gente escribe "12,50".
   const numero = Number(texto.replace(",", "."));
   if (!Number.isFinite(numero) || numero < 0) {
-    return { precio: null, error: "El precio tiene que ser un número positivo." };
+    return { precio: null, error: "precioNoPositivo" };
   }
   if (numero > 99_999_999) {
-    return { precio: null, error: "El precio es demasiado grande." };
+    return { precio: null, error: "precioGrande" };
   }
 
   return { precio: numero.toFixed(2) };
@@ -63,6 +65,7 @@ function limpiarPrecio(valor: string): { precio: string | null; error?: string }
 
 export async function createCategory(formData: FormData): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   const locationId = readInt(formData.get("locationId"));
   const name = readString(formData.get("name"));
@@ -71,13 +74,13 @@ export async function createCategory(formData: FormData): Promise<ActionResult> 
   // se guarda como null en vez de confiar en lo que mandó el formulario.
   const icon = normalizeMenuIcon(readString(formData.get("icon")));
 
-  if (!locationId) return fail("Elegí un local.");
-  if (name === "") return fail("La categoría necesita un nombre.");
-  if (name.length > 120) return fail("El nombre no puede superar los 120 caracteres.");
+  if (!locationId) return fail(t("elegiUnLocal"));
+  if (name === "") return fail(t("categoriaSinNombre"));
+  if (name.length > 120) return fail(t("nombreLargo120"));
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     await db.insert(menuCategories).values({
       locationId,
@@ -92,12 +95,13 @@ export async function createCategory(formData: FormData): Promise<ActionResult> 
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo crear la categoría", { cause });
-    return fail(mensajeDeError("No se pudo crear la categoría", cause));
+    return fail(await mensajeDeError("noSePudoCrearCategoria", cause));
   }
 }
 
 export async function updateCategory(formData: FormData): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   const id = readInt(formData.get("id"));
   const locationId = readInt(formData.get("locationId"));
@@ -105,15 +109,15 @@ export async function updateCategory(formData: FormData): Promise<ActionResult> 
   const description = readString(formData.get("description"));
   const icon = normalizeMenuIcon(readString(formData.get("icon")));
 
-  if (!id || !locationId) return fail("Faltan datos de la categoría.");
-  if (name === "") return fail("La categoría necesita un nombre.");
+  if (!id || !locationId) return fail(t("faltanDatosCategoria"));
+  if (name === "") return fail(t("categoriaSinNombre"));
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     const actual = await getCategoryForLocation(id, locationId);
-    if (!actual) return fail("La categoría ya no existe.");
+    if (!actual) return fail(t("categoriaNoExiste"));
 
     await db
       .update(menuCategories)
@@ -128,7 +132,7 @@ export async function updateCategory(formData: FormData): Promise<ActionResult> 
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo actualizar la categoría", { id, cause });
-    return fail(mensajeDeError("No se pudo guardar la categoría", cause));
+    return fail(await mensajeDeError("noSePudoGuardarCategoria", cause));
   }
 }
 
@@ -138,13 +142,14 @@ export async function toggleCategory(
   active: boolean
 ): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     const actual = await getCategoryForLocation(id, locationId);
-    if (!actual) return fail("La categoría ya no existe.");
+    if (!actual) return fail(t("categoriaNoExiste"));
 
     await db
       .update(menuCategories)
@@ -155,7 +160,7 @@ export async function toggleCategory(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo cambiar el estado de la categoría", { id, cause });
-    return fail(mensajeDeError("No se pudo cambiar el estado de la categoría", cause));
+    return fail(await mensajeDeError("noSePudoCambiarEstadoCategoria", cause));
   }
 }
 
@@ -170,13 +175,14 @@ export async function deleteCategory(
   locationId: number
 ): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     const actual = await getCategoryForLocation(id, locationId);
-    if (!actual) return fail("La categoría ya no existe.");
+    if (!actual) return fail(t("categoriaNoExiste"));
 
     // Los platos caen por la clave foránea en cascada.
     await db.delete(menuCategories).where(eq(menuCategories.id, id));
@@ -185,7 +191,7 @@ export async function deleteCategory(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo borrar la categoría", { id, cause });
-    return fail(mensajeDeError("No se pudo borrar la categoría", cause));
+    return fail(await mensajeDeError("noSePudoBorrarCategoria", cause));
   }
 }
 
@@ -202,13 +208,14 @@ export async function moveCategory(
   direccion: "arriba" | "abajo"
 ): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     const actual = await getCategoryForLocation(id, locationId);
-    if (!actual) return fail("La categoría ya no existe.");
+    if (!actual) return fail(t("categoriaNoExiste"));
 
     const vecinas = await db
       .select()
@@ -245,7 +252,7 @@ export async function moveCategory(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo mover la categoría", { id, cause });
-    return fail(mensajeDeError("No se pudo cambiar el orden", cause));
+    return fail(await mensajeDeError("noSePudoCambiarOrden", cause));
   }
 }
 
@@ -253,6 +260,7 @@ export async function moveCategory(
 
 export async function createItem(formData: FormData): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   const categoryId = readInt(formData.get("categoryId"));
   const locationId = readInt(formData.get("locationId"));
@@ -262,17 +270,17 @@ export async function createItem(formData: FormData): Promise<ActionResult> {
     readString(formData.get("price"))
   );
 
-  if (!categoryId || !locationId) return fail("Faltan datos del plato.");
-  if (name === "") return fail("El plato necesita un nombre.");
-  if (name.length > 160) return fail("El nombre no puede superar los 160 caracteres.");
-  if (errorPrecio) return fail(errorPrecio);
+  if (!categoryId || !locationId) return fail(t("faltanDatosPlato"));
+  if (name === "") return fail(t("platoSinNombre"));
+  if (name.length > 160) return fail(t("nombreLargo160"));
+  if (errorPrecio) return fail(t(errorPrecio));
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     const categoria = await getCategoryForLocation(categoryId, locationId);
-    if (!categoria) return fail("La categoría elegida no existe.");
+    if (!categoria) return fail(t("categoriaElegidaNoExiste"));
 
     const imageUrl = await resolverCampoDeArchivo({
       file: formData.get("imageFile"),
@@ -281,7 +289,7 @@ export async function createItem(formData: FormData): Promise<ActionResult> {
       locationId,
       kind: "dish",
       formato: "imagen",
-      etiqueta: "La foto del plato",
+      etiqueta: "fotoPlato",
     });
 
     await db.insert(menuItems).values({
@@ -301,12 +309,13 @@ export async function createItem(formData: FormData): Promise<ActionResult> {
   } catch (cause) {
     if (cause instanceof ErrorDeArchivo) return fail(cause.message);
     console.error("[carta] no se pudo crear el plato", { cause });
-    return fail(mensajeDeError("No se pudo crear el plato", cause));
+    return fail(await mensajeDeError("noSePudoCrearPlato", cause));
   }
 }
 
 export async function updateItem(formData: FormData): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   const id = readInt(formData.get("id"));
   const locationId = readInt(formData.get("locationId"));
@@ -317,19 +326,19 @@ export async function updateItem(formData: FormData): Promise<ActionResult> {
     readString(formData.get("price"))
   );
 
-  if (!id || !locationId || !categoryId) return fail("Faltan datos del plato.");
-  if (name === "") return fail("El plato necesita un nombre.");
-  if (errorPrecio) return fail(errorPrecio);
+  if (!id || !locationId || !categoryId) return fail(t("faltanDatosPlato"));
+  if (name === "") return fail(t("platoSinNombre"));
+  if (errorPrecio) return fail(t(errorPrecio));
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     const actual = await getItemForLocation(id, locationId);
-    if (!actual) return fail("El plato ya no existe.");
+    if (!actual) return fail(t("platoNoExiste"));
 
     const categoria = await getCategoryForLocation(categoryId, locationId);
-    if (!categoria) return fail("La categoría elegida no existe.");
+    if (!categoria) return fail(t("categoriaElegidaNoExiste"));
 
     // Si suben una foto nueva, la anterior se borra sola.
     const imageUrl = await resolverCampoDeArchivo({
@@ -339,7 +348,7 @@ export async function updateItem(formData: FormData): Promise<ActionResult> {
       locationId,
       kind: "dish",
       formato: "imagen",
-      etiqueta: "La foto del plato",
+      etiqueta: "fotoPlato",
     });
 
     await db
@@ -358,7 +367,7 @@ export async function updateItem(formData: FormData): Promise<ActionResult> {
   } catch (cause) {
     if (cause instanceof ErrorDeArchivo) return fail(cause.message);
     console.error("[carta] no se pudo actualizar el plato", { id, cause });
-    return fail(mensajeDeError("No se pudo guardar el plato", cause));
+    return fail(await mensajeDeError("noSePudoGuardarPlato", cause));
   }
 }
 
@@ -369,13 +378,14 @@ export async function toggleItemAvailable(
   available: boolean
 ): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     const actual = await getItemForLocation(id, locationId);
-    if (!actual) return fail("El plato ya no existe.");
+    if (!actual) return fail(t("platoNoExiste"));
 
     await db.update(menuItems).set({ available }).where(eq(menuItems.id, id));
 
@@ -383,7 +393,7 @@ export async function toggleItemAvailable(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo cambiar la disponibilidad", { id, cause });
-    return fail(mensajeDeError("No se pudo cambiar la disponibilidad", cause));
+    return fail(await mensajeDeError("noSePudoCambiarDisponibilidad", cause));
   }
 }
 
@@ -392,13 +402,14 @@ export async function deleteItem(
   locationId: number
 ): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     const actual = await getItemForLocation(id, locationId);
-    if (!actual) return fail("El plato ya no existe.");
+    if (!actual) return fail(t("platoNoExiste"));
 
     await db.delete(menuItems).where(eq(menuItems.id, id));
     // La foto no sirve para nada sin su plato.
@@ -408,7 +419,7 @@ export async function deleteItem(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo borrar el plato", { id, cause });
-    return fail(mensajeDeError("No se pudo borrar el plato", cause));
+    return fail(await mensajeDeError("noSePudoBorrarPlato", cause));
   }
 }
 
@@ -418,13 +429,14 @@ export async function moveItem(
   direccion: "arriba" | "abajo"
 ): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     const actual = await getItemForLocation(id, locationId);
-    if (!actual) return fail("El plato ya no existe.");
+    if (!actual) return fail(t("platoNoExiste"));
 
     // El orden es dentro de la categoría, no de la carta entera.
     const vecinos = await db
@@ -459,7 +471,7 @@ export async function moveItem(
     return ok();
   } catch (cause) {
     console.error("[carta] no se pudo mover el plato", { id, cause });
-    return fail(mensajeDeError("No se pudo cambiar el orden", cause));
+    return fail(await mensajeDeError("noSePudoCambiarOrden", cause));
   }
 }
 
@@ -473,13 +485,14 @@ export async function moveItem(
  */
 export async function updateMenuHeader(formData: FormData): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   const locationId = readInt(formData.get("locationId"));
-  if (!locationId) return fail("Falta el identificador del local.");
+  if (!locationId) return fail(t("faltaIdLocal"));
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     const menuHeaderImageUrl = await resolverCampoDeArchivo({
       file: formData.get("headerFile"),
@@ -488,7 +501,7 @@ export async function updateMenuHeader(formData: FormData): Promise<ActionResult
       locationId,
       kind: "menu_header",
       formato: "imagen",
-      etiqueta: "La imagen de la carta",
+      etiqueta: "imagenCarta",
     });
 
     await db
@@ -509,6 +522,6 @@ export async function updateMenuHeader(formData: FormData): Promise<ActionResult
       locationId,
       cause,
     });
-    return fail(mensajeDeError("No se pudo guardar la imagen", cause));
+    return fail(await mensajeDeError("noSePudoGuardarImagen", cause));
   }
 }

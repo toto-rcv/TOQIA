@@ -1,10 +1,26 @@
 /**
  * Validaciones de entrada del panel.
  *
- * Todas devuelven un mensaje de error en castellano listo para mostrar, o
- * null si el valor es válido. La idea es que las Server Actions puedan
- * devolver `{ ok: false, error }` sin armar el texto ellas mismas.
+ * **Devuelven una clave de traducción, no un texto.** Antes devolvían la
+ * frase ya escrita en castellano, que era cómodo hasta que el panel pasó a
+ * los siete idiomas: un mensaje armado acá viaja hasta el diálogo sin pasar
+ * por ninguna traducción, y el usuario que puso la web en alemán veía el
+ * formulario en alemán y el error en castellano.
+ *
+ * Ahora devuelven `{ clave, valores }` y el mensaje lo arma quien lo va a
+ * mostrar, con el idioma del pedido. Las claves viven en el espacio
+ * `Errores` de `messages/*.json`.
+ *
+ * Este archivo no importa nada de next-intl a propósito: `slugify` lo usan
+ * también dos diálogos del admin, que son componentes cliente.
  */
+
+export type ErrorDeValidacion = {
+  /** Clave dentro del espacio `Errores`. */
+  clave: string;
+  /** Valores para interpolar, si la frase los lleva. */
+  valores?: Record<string, string | number>;
+};
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -21,25 +37,21 @@ export function fail(error: string): { ok: false; error: string } {
 /** Un código de pulsera tiene que poder ir en una URL sin escaparse. */
 const CODE_PATTERN = /^[A-Za-z0-9._-]{1,50}$/;
 
-export function validateCode(value: string): string | null {
+export function validateCode(value: string): ErrorDeValidacion | null {
   const trimmed = value.trim();
-  if (trimmed === "") return "El código no puede estar vacío.";
-  if (trimmed.length > 50) return "El código no puede superar los 50 caracteres.";
-  if (!CODE_PATTERN.test(trimmed)) {
-    return "El código solo admite letras, números, punto, guion y guion bajo.";
-  }
+  if (trimmed === "") return { clave: "codigoVacio" };
+  if (trimmed.length > 50) return { clave: "codigoLargo" };
+  if (!CODE_PATTERN.test(trimmed)) return { clave: "codigoFormato" };
   return null;
 }
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-export function validateSlug(value: string): string | null {
+export function validateSlug(value: string): ErrorDeValidacion | null {
   const trimmed = value.trim();
-  if (trimmed === "") return "El slug no puede estar vacío.";
-  if (trimmed.length > 100) return "El slug no puede superar los 100 caracteres.";
-  if (!SLUG_PATTERN.test(trimmed)) {
-    return "El slug solo admite minúsculas, números y guiones (ej. la-parrilla-centro).";
-  }
+  if (trimmed === "") return { clave: "slugVacio" };
+  if (trimmed.length > 100) return { clave: "slugLargo" };
+  if (!SLUG_PATTERN.test(trimmed)) return { clave: "slugFormato" };
   return null;
 }
 
@@ -49,29 +61,37 @@ export function validateSlug(value: string): string | null {
  * contra los clientes del restaurante, así que se rechaza acá y también en
  * el endpoint /r/[code].
  */
-export function validateDestinationUrl(value: string): string | null {
+export function validateDestinationUrl(value: string): ErrorDeValidacion | null {
   const trimmed = value.trim();
-  if (trimmed === "") return "El destino no puede estar vacío.";
-  if (trimmed.length > 2048) return "El destino no puede superar los 2048 caracteres.";
+  if (trimmed === "") return { clave: "destinoVacio" };
+  if (trimmed.length > 2048) return { clave: "destinoLargo" };
 
   let url: URL;
   try {
     url = new URL(trimmed);
   } catch {
-    return "El destino tiene que ser una URL completa, incluyendo https://";
+    return { clave: "destinoIncompleto" };
   }
 
   if (url.protocol !== "http:" && url.protocol !== "https:") {
-    return "El destino solo puede ser http o https.";
+    return { clave: "destinoProtocolo" };
   }
 
   return null;
 }
 
-export function validateName(value: string, field = "El nombre"): string | null {
+/**
+ * @param campo clave dentro del espacio `Campos`, para nombrar qué está mal.
+ */
+export function validateName(
+  value: string,
+  campo = "nombre"
+): ErrorDeValidacion | null {
   const trimmed = value.trim();
-  if (trimmed === "") return `${field} no puede estar vacío.`;
-  if (trimmed.length > 255) return `${field} no puede superar los 255 caracteres.`;
+  if (trimmed === "") return { clave: "campoVacio", valores: { campo } };
+  if (trimmed.length > 255) {
+    return { clave: "campoLargo", valores: { campo, tope: 255 } };
+  }
   return null;
 }
 
@@ -101,23 +121,28 @@ export function readString(value: FormDataEntryValue | null): string {
  * URL opcional: vacío es válido, pero si hay algo tiene que ser http o https.
  * El mensaje incluye el nombre del campo para que el usuario sepa cuál de los
  * seis enlaces del formulario está mal.
+ *
+ * @param campo clave dentro del espacio `Campos`.
  */
-export function validateOptionalUrl(value: string, label: string): string | null {
+export function validateOptionalUrl(
+  value: string,
+  campo: string
+): ErrorDeValidacion | null {
   const trimmed = value.trim();
   if (trimmed === "") return null;
   if (trimmed.length > 2048) {
-    return `${label} no puede superar los 2048 caracteres.`;
+    return { clave: "campoLargo", valores: { campo, tope: 2048 } };
   }
 
   let url: URL;
   try {
     url = new URL(trimmed);
   } catch {
-    return `${label} tiene que ser una URL completa, incluyendo https://`;
+    return { clave: "campoUrlIncompleta", valores: { campo } };
   }
 
   if (url.protocol !== "http:" && url.protocol !== "https:") {
-    return `${label} solo puede ser http o https.`;
+    return { clave: "campoUrlProtocolo", valores: { campo } };
   }
 
   return null;
@@ -127,34 +152,36 @@ export function validateOptionalUrl(value: string, label: string): string | null
  * Teléfono de WhatsApp. Se acepta cualquier formato de escritura y se valida
  * solo la cantidad de dígitos: un número internacional tiene entre 8 y 15.
  */
-export function validatePhone(value: string): string | null {
+export function validatePhone(value: string): ErrorDeValidacion | null {
   const digits = value.replace(/\D/g, "");
   if (digits.length < 8 || digits.length > 15) {
-    return "El teléfono tiene que tener entre 8 y 15 dígitos, con código de país (ej. 5491133334444).";
+    return { clave: "telefonoDigitos" };
   }
   return null;
 }
 
 /** Valida el estado de suscripción contra la lista permitida. */
-export function validateSubscriptionStatus(value: string): string | null {
+export function validateSubscriptionStatus(
+  value: string
+): ErrorDeValidacion | null {
   const permitidos = ["trial", "active", "past_due", "cancelled"];
-  if (!permitidos.includes(value)) return "El estado de suscripción no es válido.";
+  if (!permitidos.includes(value)) return { clave: "estadoSuscripcion" };
   return null;
 }
 
 /** Email con una validación deliberadamente laxa: la real la hace el login. */
-export function validateEmail(value: string): string | null {
+export function validateEmail(value: string): ErrorDeValidacion | null {
   const trimmed = value.trim();
-  if (trimmed === "") return "El email no puede estar vacío.";
-  if (trimmed.length > 255) return "El email no puede superar los 255 caracteres.";
+  if (trimmed === "") return { clave: "emailVacio" };
+  if (trimmed.length > 255) return { clave: "emailLargo" };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-    return "El email no tiene un formato válido.";
+    return { clave: "emailFormato" };
   }
   return null;
 }
 
-export function validatePassword(value: string): string | null {
-  if (value.length < 8) return "La contraseña tiene que tener al menos 8 caracteres.";
-  if (value.length > 128) return "La contraseña no puede superar los 128 caracteres.";
+export function validatePassword(value: string): ErrorDeValidacion | null {
+  if (value.length < 8) return { clave: "passwordCorta" };
+  if (value.length > 128) return { clave: "passwordLarga" };
   return null;
 }

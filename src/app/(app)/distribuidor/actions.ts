@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 import { bracelets, db } from "@/db";
 import { getBraceletForDistributor } from "@/db/queries/bracelets";
@@ -75,15 +76,16 @@ export async function colocarPulsera(
   formData: FormData
 ): Promise<ActionResult> {
   const distribuidor = await requireDistributor();
+  const t = await getTranslations("Errores");
 
   const braceletId = readInt(formData.get("braceletId"));
   const destino = readString(formData.get("locationId"));
 
-  if (!braceletId) return fail("Falta el identificador de la pulsera.");
+  if (!braceletId) return fail(t("faltaIdPulsera"));
 
   try {
     const pulsera = await getBraceletForDistributor(braceletId, distribuidor.id);
-    if (!pulsera) return fail("Esa pulsera no es tuya.");
+    if (!pulsera) return fail(t("pulseraAjena"));
 
     // Volver al stock: se saca del local y se le quita el camarero, que era
     // del salón del que acaba de salir.
@@ -100,18 +102,18 @@ export async function colocarPulsera(
 
     const locationId = Number.parseInt(destino, 10);
     if (!Number.isFinite(locationId) || locationId <= 0) {
-      return fail("El local elegido no es válido.");
+      return fail(t("localNoValido"));
     }
 
     const local = await getLocationById(locationId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     // La comprobación que importa: el local tiene que ser de una cuenta de
     // este distribuidor. Sin esto, cambiar el número del formulario alcanzaría
     // para meter una pulsera en el restaurante de otro.
     const cuentas = await listAccountIdsOfDistributor(distribuidor.id);
     if (!cuentas.includes(local.accountId)) {
-      return fail("Ese local no es de ninguno de tus restaurantes.");
+      return fail(t("localDeOtroDistribuidor"));
     }
 
     await db
@@ -127,6 +129,6 @@ export async function colocarPulsera(
       braceletId,
       cause,
     });
-    return fail(mensajeDeError("No se pudo mover la pulsera", cause));
+    return fail(await mensajeDeError("noSePudoMoverPulsera", cause));
   }
 }

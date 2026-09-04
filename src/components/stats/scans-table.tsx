@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/table";
 import type { ScanRow } from "@/db/queries/scans";
 import type { Paged } from "@/lib/pagination";
+import { useLocale } from "next-intl";
+
 import { formatDateTime } from "@/lib/utils";
 
 /**
@@ -39,6 +41,7 @@ export function ScansTable({
   showLocation?: boolean;
 }) {
   const t = useTranslations("Escaneos");
+  const locale = useLocale();
 
   if (paged.data.length === 0) {
     return (
@@ -71,7 +74,7 @@ export function ScansTable({
             {paged.data.map((scan) => (
               <Tr key={scan.id}>
                 <Td className="text-[13px] tabular-nums text-ex-text">
-                  {formatDateTime(scan.scannedAt)}
+                  {formatDateTime(scan.scannedAt, locale)}
                 </Td>
                 <Td className="font-mono text-[13px] font-medium text-ex-text">
                   {scan.braceletCode}
@@ -112,7 +115,7 @@ export function ScansTable({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[14.5px] font-semibold tabular-nums text-ex-text">
-                  {formatDateTime(scan.scannedAt)}
+                  {formatDateTime(scan.scannedAt, locale)}
                 </p>
                 <p className="mt-0.5 font-mono text-[12.5px] text-ex-text-muted">
                   {scan.braceletCode}
@@ -152,11 +155,12 @@ function MarcaDeResena({
   conTexto?: boolean;
 }) {
   const t = useTranslations("Escaneos");
+  const locale = useLocale();
 
   if (scan.reviewClickedAt) {
     return (
       <span
-        title={t("fueAResenaEl", { fecha: formatDateTime(scan.reviewClickedAt) })}
+        title={t("fueAResenaEl", { fecha: formatDateTime(scan.reviewClickedAt, locale) })}
         className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-ex-success/12
                    px-2 py-1 text-[11px] font-semibold text-ex-success"
       >

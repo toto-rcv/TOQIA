@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
@@ -32,6 +33,7 @@ export function ColocarSelect({
   locationId: number | null;
   locales: LocalOption[];
 }) {
+  const t = useTranslations("Distribuidor");
   const router = useRouter();
   const [valor, setValor] = React.useState(locationId ? String(locationId) : "");
   const [error, setError] = React.useState<string | null>(null);
@@ -63,10 +65,10 @@ export function ColocarSelect({
         value={valor}
         onChange={(event) => cambiar(event.target.value)}
         disabled={pending}
-        aria-label="Local donde está la pulsera"
+        aria-label={t("localDeLaPulsera")}
         className="text-[12px]"
       >
-        <option value="">En stock</option>
+        <option value="">{t("enStock")}</option>
         {locales.map((local) => (
           <option key={local.id} value={local.id}>
             {local.accountName} · {local.name}

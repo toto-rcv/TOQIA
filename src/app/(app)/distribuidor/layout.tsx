@@ -34,7 +34,7 @@ export default async function DistribuidorLayout({
   return (
     <PanelShell
       title="Toqia"
-      badge="Distribuidor"
+      badge={t("distribuidor")}
       email={user.email}
       items={items}
     >

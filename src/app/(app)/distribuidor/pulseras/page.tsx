@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { PageHeader } from "@/components/admin/page-header";
 import { MetricTile } from "@/components/stats/metric-tile";
@@ -28,7 +29,14 @@ import { requireDistributor } from "@/lib/session";
 import { braceletUrl, formatDateTime, formatNumber } from "@/lib/utils";
 import { ColocarSelect } from "./colocar";
 
-export const metadata = { title: "Pulseras · Toqia Distribuidor" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Pulseras");
+  return { title: t("titulo") };
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -45,7 +53,12 @@ export default async function PulserasDistribuidorPage({
   searchParams: Promise<{ estado?: string; page?: string; limit?: string }>;
 }) {
   const user = await requireDistributor();
-  const params = await searchParams;
+  const [params, t, tp, locale] = await Promise.all([
+    searchParams,
+    getTranslations("Distribuidor"),
+    getTranslations("Pulseras"),
+    getLocale(),
+  ]);
   const pagina = parsePageParams(params);
 
   // "stock" y "colocadas" son las dos preguntas que uno le hace a esta
@@ -74,28 +87,25 @@ export default async function PulserasDistribuidorPage({
   return (
     <>
       <PageHeader
-        title="Pulseras"
-        subtitle="Las que te entregó Toqia. Elegí en qué local va cada una."
+        title={tp("titulo")}
+        subtitle={t("subtituloPulseras")}
       />
 
       <div className="mb-4 grid grid-cols-3 gap-3">
-        <MetricTile value={stock.total} label="Entregadas" />
-        <MetricTile value={stock.enStock} label="Sin colocar" highlight />
-        <MetricTile value={stock.colocadas} label="Colocadas" />
+        <MetricTile value={stock.total} label={t("entregadas")} />
+        <MetricTile value={stock.enStock} label={t("sinColocar")} highlight />
+        <MetricTile value={stock.colocadas} label={t("colocadas")} />
       </div>
 
       <FiltroEstado actual={params.estado} />
 
       {stock.total === 0 ? (
         <Card>
-          <EmptyState>
-            Toqia todavía no te entregó pulseras. Cuando lo haga, aparecen acá
-            para que las repartas entre tus restaurantes.
-          </EmptyState>
+          <EmptyState>{t("sinPulserasEntregadas")}</EmptyState>
         </Card>
       ) : pulseras.total === 0 ? (
         <Card>
-          <EmptyState>No hay pulseras con este filtro.</EmptyState>
+          <EmptyState>{t("sinPulserasFiltro")}</EmptyState>
         </Card>
       ) : (
         <Card className="overflow-hidden">
@@ -104,12 +114,12 @@ export default async function PulserasDistribuidorPage({
             <Table>
               <Thead>
                 <tr>
-                  <Th className="w-[110px]">Código</Th>
-                  <Th className="w-[230px]">Local</Th>
-                  <Th className="w-[220px]">URL del chip</Th>
-                  <Th className="w-[85px] text-right">Escaneos</Th>
-                  <Th className="w-[85px] text-right">Reseñas</Th>
-                  <Th className="w-[130px]">Último</Th>
+                  <Th className="w-[110px]">{tp("colCodigo")}</Th>
+                  <Th className="w-[230px]">{tp("colLocal")}</Th>
+                  <Th className="w-[220px]">{tp("colUrlChip")}</Th>
+                  <Th className="w-[85px] text-right">{tp("colEscaneos")}</Th>
+                  <Th className="w-[85px] text-right">{tp("colResenas")}</Th>
+                  <Th className="w-[130px]">{tp("colUltimo")}</Th>
                 </tr>
               </Thead>
               <tbody>
@@ -127,9 +137,11 @@ export default async function PulserasDistribuidorPage({
                             {pulsera.code}
                           </span>
                           {pulsera.locationId === null ? (
-                            <Badge tone="warning">stock</Badge>
+                            <Badge tone="warning">{tp("stock")}</Badge>
                           ) : null}
-                          {!pulsera.active ? <Badge tone="inactive">off</Badge> : null}
+                          {!pulsera.active ? (
+                            <Badge tone="inactive">{tp("off")}</Badge>
+                          ) : null}
                         </div>
                       </Td>
 
@@ -149,18 +161,18 @@ export default async function PulserasDistribuidorPage({
                           >
                             {url}
                           </span>
-                          <CopyButton value={url} label="Copiar URL para grabar" />
+                          <CopyButton value={url} label={tp("copiarUrl")} />
                         </div>
                       </Td>
 
                       <Td className="num text-right text-sm text-ex-text">
-                        {formatNumber(pulsera.scanCount)}
+                        {formatNumber(pulsera.scanCount, locale)}
                       </Td>
                       <Td className="num text-right text-sm text-ex-text-secondary">
-                        {formatNumber(pulsera.reviewClicks)}
+                        {formatNumber(pulsera.reviewClicks, locale)}
                       </Td>
                       <Td className="num text-[11px]">
-                        {formatDateTime(pulsera.lastScanAt)}
+                        {formatDateTime(pulsera.lastScanAt, locale)}
                       </Td>
                     </Tr>
                   );
@@ -181,13 +193,13 @@ export default async function PulserasDistribuidorPage({
                     {pulsera.code}
                   </span>
                   {pulsera.locationId === null ? (
-                    <Badge tone="warning">stock</Badge>
+                    <Badge tone="warning">{tp("stock")}</Badge>
                   ) : null}
                 </div>
 
                 <div className="mt-2.5">
                   <p className="mb-1 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ex-text-muted">
-                    Local
+                    {tp("colLocal")}
                   </p>
                   <ColocarSelect
                     braceletId={pulsera.id}
@@ -197,17 +209,17 @@ export default async function PulserasDistribuidorPage({
                 </div>
 
                 <RowFields className="grid-cols-3">
-                  <RowField label="Escaneos">
+                  <RowField label={tp("colEscaneos")}>
                     <span className="font-semibold text-ex-text">
-                      {formatNumber(pulsera.scanCount)}
+                      {formatNumber(pulsera.scanCount, locale)}
                     </span>
                   </RowField>
-                  <RowField label="Reseñas">
-                    {formatNumber(pulsera.reviewClicks)}
+                  <RowField label={tp("colResenas")}>
+                    {formatNumber(pulsera.reviewClicks, locale)}
                   </RowField>
-                  <RowField label="Último">
+                  <RowField label={tp("colUltimo")}>
                     <span className="text-[11px]">
-                      {formatDateTime(pulsera.lastScanAt)}
+                      {formatDateTime(pulsera.lastScanAt, locale)}
                     </span>
                   </RowField>
                 </RowFields>
@@ -219,7 +231,7 @@ export default async function PulserasDistribuidorPage({
             paged={pulseras}
             basePath="/distribuidor/pulseras"
             searchParams={params}
-            itemLabel="pulseras"
+            itemLabel={tp("itemLabel")}
           />
         </Card>
       )}
@@ -228,11 +240,13 @@ export default async function PulserasDistribuidorPage({
 }
 
 /** Tres enlaces, no un desplegable: el estado se comparte y sobrevive al refresh. */
-function FiltroEstado({ actual }: { actual?: string }) {
+async function FiltroEstado({ actual }: { actual?: string }) {
+  const t = await getTranslations("Distribuidor");
+
   const opciones = [
-    { valor: undefined, label: "Todas" },
-    { valor: "stock", label: "Sin colocar" },
-    { valor: "colocadas", label: "Colocadas" },
+    { valor: undefined, label: t("filtroTodas") },
+    { valor: "stock", label: t("sinColocar") },
+    { valor: "colocadas", label: t("colocadas") },
   ];
 
   return (

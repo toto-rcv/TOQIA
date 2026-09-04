@@ -13,6 +13,7 @@
 
 export const MENU_ICON_GROUPS = [
   {
+    id: "comer",
     label: "Para comer",
     icons: [
       { id: "hamburguesa", label: "Hamburguesa" },
@@ -32,6 +33,7 @@ export const MENU_ICON_GROUPS = [
     ],
   },
   {
+    id: "postres",
     label: "Postres",
     icons: [
       { id: "postre", label: "Postres" },
@@ -41,6 +43,7 @@ export const MENU_ICON_GROUPS = [
     ],
   },
   {
+    id: "bebidas",
     label: "Bebidas",
     icons: [
       { id: "bebida", label: "Bebidas" },
@@ -52,6 +55,7 @@ export const MENU_ICON_GROUPS = [
     ],
   },
   {
+    id: "generales",
     label: "Generales",
     icons: [
       { id: "cubiertos", label: "Cubiertos" },

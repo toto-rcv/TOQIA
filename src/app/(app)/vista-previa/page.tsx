@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 
 import { LandingView } from "@/components/landing/landing-view";
@@ -9,10 +10,10 @@ import {
 import { hasVisibleMenu } from "@/db/queries/menu";
 import { requireUser } from "@/lib/session";
 
-export const metadata = {
-  title: "Vista previa · Toqia",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata() {
+  const t = await getTranslations("VistaPrevia");
+  return { title: t("titulo"), robots: { index: false, follow: false } };
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -29,8 +30,11 @@ export default async function VistaPreviaPage({
 }: {
   searchParams: Promise<{ local?: string }>;
 }) {
-  const user = await requireUser();
-  const { local } = await searchParams;
+  const [user, { local }, t] = await Promise.all([
+    requireUser(),
+    searchParams,
+    getTranslations("VistaPrevia"),
+  ]);
 
   const locationId = local ? Number.parseInt(local, 10) : NaN;
   if (!Number.isFinite(locationId)) notFound();
@@ -56,7 +60,7 @@ export default async function VistaPreviaPage({
   return (
     <>
       <div className="bg-ex-blue-deep px-4 py-2 text-center text-xs text-white">
-        Vista previa · los clics de esta pantalla no se registran
+        {t("aviso")}
       </div>
       <LandingView
         landing={location}

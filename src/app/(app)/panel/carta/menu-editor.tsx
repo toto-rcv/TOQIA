@@ -9,6 +9,7 @@ import {
   Settings2,
   Trash2,
 } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { MenuIcon } from "@/components/landing/menu-icons";
 import { FileField } from "@/components/ui/file-field";
-import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { Input, Label, Textarea } from "@/components/ui/input";
 import type { MenuCategoryRow } from "@/db/queries/menu";
 import { MENU_ICON_GROUPS } from "@/lib/menu-icons";
 import { cn } from "@/lib/utils";
@@ -56,14 +57,13 @@ export function MenuEditor({
   currency: string;
   categories: MenuCategoryRow[];
 }) {
+  const t = useTranslations("CartaAdmin");
+
   return (
     <div className="space-y-3">
       {categories.length === 0 ? (
         <div className="rounded-card border border-ex-border bg-ex-surface px-5 py-14 text-center">
-          <p className="text-sm text-ex-text-muted">
-            Tu carta está vacía. Empezá creando una categoría, por ejemplo
-            &ldquo;Entradas&rdquo;.
-          </p>
+          <p className="text-sm text-ex-text-muted">{t("cartaVacia")}</p>
           <div className="mt-4 flex justify-center">
             <NewCategoryDialog locationId={locationId} />
           </div>
@@ -97,6 +97,7 @@ function CategoryBlock({
   esPrimera: boolean;
   esUltima: boolean;
 }) {
+  const t = useTranslations("CartaAdmin");
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string | null>(null);
 
@@ -104,7 +105,7 @@ function CategoryBlock({
     setError(null);
     startTransition(async () => {
       const resultado = await accion();
-      if (!resultado.ok) setError(resultado.error ?? "No se pudo completar.");
+      if (!resultado.ok) setError(resultado.error ?? t("noSePudo"));
     });
   }
 
@@ -127,7 +128,7 @@ function CategoryBlock({
               {categoria.name}
               {!categoria.active ? (
                 <span className="ml-2 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-ex-text-muted">
-                  oculta
+                  {t("oculta")}
                 </span>
               ) : null}
             </h2>
@@ -141,21 +142,21 @@ function CategoryBlock({
 
         <div className="flex items-center gap-1.5">
           <IconButton
-            title="Subir"
+            title={t("subir")}
             disabled={pending || esPrimera}
             onClick={() => correr(() => moveCategory(categoria.id, locationId, "arriba"))}
           >
             <ChevronUp className="size-3.5" />
           </IconButton>
           <IconButton
-            title="Bajar"
+            title={t("bajar")}
             disabled={pending || esUltima}
             onClick={() => correr(() => moveCategory(categoria.id, locationId, "abajo"))}
           >
             <ChevronDown className="size-3.5" />
           </IconButton>
           <IconButton
-            title={categoria.active ? "Ocultar de la carta" : "Mostrar en la carta"}
+            title={categoria.active ? t("ocultarCategoria") : t("mostrarCategoria")}
             disabled={pending}
             onClick={() =>
               correr(() => toggleCategory(categoria.id, locationId, !categoria.active))
@@ -180,7 +181,7 @@ function CategoryBlock({
 
       {categoria.items.length === 0 ? (
         <p className="px-5 py-6 text-center text-xs text-ex-text-muted">
-          Sin platos en esta categoría.
+          {t("sinPlatosCategoria")}
         </p>
       ) : (
         <ul>
@@ -220,6 +221,8 @@ function ItemRow({
   esPrimero: boolean;
   esUltimo: boolean;
 }) {
+  const t = useTranslations("CartaAdmin");
+  const formato = useFormatter();
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string | null>(null);
 
@@ -227,7 +230,7 @@ function ItemRow({
     setError(null);
     startTransition(async () => {
       const resultado = await accion();
-      if (!resultado.ok) setError(resultado.error ?? "No se pudo completar.");
+      if (!resultado.ok) setError(resultado.error ?? t("noSePudo"));
     });
   }
 
@@ -257,7 +260,7 @@ function ItemRow({
           {plato.price ? (
             // Mismo formato que ve el cliente: sin el ".00" cuando es redondo.
             <span className="shrink-0 text-[13px] font-semibold tabular-nums text-ex-text-secondary">
-              {formatearPrecio(plato.price, currency)}
+              {formatearPrecio(plato.price, currency, formato)}
             </span>
           ) : null}
         </div>
@@ -277,21 +280,21 @@ function ItemRow({
 
       <div className="flex shrink-0 items-center gap-1.5">
         <IconButton
-          title="Subir"
+          title={t("subir")}
           disabled={pending || esPrimero}
           onClick={() => correr(() => moveItem(plato.id, locationId, "arriba"))}
         >
           <ChevronUp className="size-3.5" />
         </IconButton>
         <IconButton
-          title="Bajar"
+          title={t("bajar")}
           disabled={pending || esUltimo}
           onClick={() => correr(() => moveItem(plato.id, locationId, "abajo"))}
         >
           <ChevronDown className="size-3.5" />
         </IconButton>
         <IconButton
-          title={plato.available ? "Marcar como agotado" : "Volver a ofrecer"}
+          title={plato.available ? t("marcarAgotado") : t("volverAOfrecer")}
           disabled={pending}
           onClick={() =>
             correr(() => toggleItemAvailable(plato.id, locationId, !plato.available))
@@ -314,6 +317,7 @@ function ItemRow({
 /* ── Diálogos ────────────────────────────────────────────────────────────── */
 
 export function NewCategoryDialog({ locationId }: { locationId: number }) {
+  const t = useTranslations("CartaAdmin");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -339,34 +343,38 @@ export function NewCategoryDialog({ locationId }: { locationId: number }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <Button variant="primary" size="sm" onClick={() => setOpen(true)}>
         <Plus />
-        Nueva categoría
+        {t("nuevaCategoria")}
       </Button>
 
       <DialogContent>
         <form ref={formRef} onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Nueva categoría</DialogTitle>
-            <DialogDescription>
-              Entradas, Principales, Postres, Bebidas…
-            </DialogDescription>
+            <DialogTitle>{t("nuevaCategoria")}</DialogTitle>
+            <DialogDescription>{t("nuevaCategoriaDesc")}</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
             <input type="hidden" name="locationId" value={locationId} />
 
             <div className="space-y-1.5">
-              <Label htmlFor="cat-name">Nombre</Label>
-              <Input id="cat-name" name="name" required placeholder="Entradas" />
+              <Label htmlFor="cat-name">{t("nombre")}</Label>
+              <Input
+                id="cat-name"
+                name="name"
+                required
+                placeholder={t("nombreCategoriaPlaceholder")}
+              />
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="cat-desc">
-                Descripción <span className="text-ex-text-disabled">(opcional)</span>
+                {t("descripcion")}{" "}
+                <span className="text-ex-text-disabled">{t("opcional")}</span>
               </Label>
               <Input
                 id="cat-desc"
                 name="description"
-                placeholder="Para compartir"
+                placeholder={t("descCategoriaPlaceholder")}
               />
             </div>
 
@@ -377,10 +385,10 @@ export function NewCategoryDialog({ locationId }: { locationId: number }) {
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Creando…" : "Crear"}
+              {pending ? t("creando") : t("crear")}
             </Button>
           </DialogFooter>
         </form>
@@ -396,6 +404,7 @@ function EditCategoryDialog({
   categoria: MenuCategoryRow;
   locationId: number;
 }) {
+  const t = useTranslations("CartaAdmin");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -417,14 +426,14 @@ function EditCategoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <IconButton title="Editar categoría" onClick={() => setOpen(true)}>
+      <IconButton title={t("editarCategoria")} onClick={() => setOpen(true)}>
         <Settings2 className="size-3.5" />
       </IconButton>
 
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Editar categoría</DialogTitle>
+            <DialogTitle>{t("editarCategoria")}</DialogTitle>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
@@ -432,7 +441,7 @@ function EditCategoryDialog({
             <input type="hidden" name="locationId" value={locationId} />
 
             <div className="space-y-1.5">
-              <Label htmlFor={`c-name-${categoria.id}`}>Nombre</Label>
+              <Label htmlFor={`c-name-${categoria.id}`}>{t("nombre")}</Label>
               <Input
                 id={`c-name-${categoria.id}`}
                 name="name"
@@ -442,7 +451,7 @@ function EditCategoryDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor={`c-desc-${categoria.id}`}>Descripción</Label>
+              <Label htmlFor={`c-desc-${categoria.id}`}>{t("descripcion")}</Label>
               <Input
                 id={`c-desc-${categoria.id}`}
                 name="description"
@@ -457,10 +466,10 @@ function EditCategoryDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Guardando…" : "Guardar"}
+              {pending ? t("guardando") : t("guardar")}
             </Button>
           </DialogFooter>
         </form>
@@ -476,26 +485,24 @@ function DeleteCategoryDialog({
   categoria: MenuCategoryRow;
   locationId: number;
 }) {
+  const t = useTranslations("CartaAdmin");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <IconButton title="Borrar categoría" danger onClick={() => setOpen(true)}>
+      <IconButton title={t("borrarCategoria")} danger onClick={() => setOpen(true)}>
         <Trash2 className="size-3.5" />
       </IconButton>
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Borrar &ldquo;{categoria.name}&rdquo;</DialogTitle>
+          <DialogTitle>{t("borrarNombre", { nombre: categoria.name })}</DialogTitle>
           <DialogDescription>
             {/* Se dice el número exacto: no es lo mismo perder una categoría
                 vacía que una con veinte platos cargados. */}
-            Se borran también sus {categoria.items.length}{" "}
-            {categoria.items.length === 1 ? "plato" : "platos"}. No se puede
-            deshacer. Si solo querés sacarla de la carta, usá el ojo para
-            ocultarla.
+            {t("borrarCategoriaDesc", { n: categoria.items.length })}
           </DialogDescription>
         </DialogHeader>
 
@@ -503,7 +510,7 @@ function DeleteCategoryDialog({
 
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-            Cancelar
+            {t("cancelar")}
           </Button>
           <Button
             type="button"
@@ -521,7 +528,7 @@ function DeleteCategoryDialog({
               });
             }}
           >
-            {pending ? "Borrando…" : "Borrar igual"}
+            {pending ? t("borrando") : t("borrarIgual")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -538,6 +545,7 @@ function NewItemDialog({
   locationId: number;
   currency: string;
 }) {
+  const t = useTranslations("CartaAdmin");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -563,13 +571,13 @@ function NewItemDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
         <Plus />
-        Agregar plato
+        {t("agregarPlato")}
       </Button>
 
       <DialogContent>
         <form ref={formRef} onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Nuevo plato</DialogTitle>
+            <DialogTitle>{t("nuevoPlato")}</DialogTitle>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
@@ -581,10 +589,10 @@ function NewItemDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Agregando…" : "Agregar"}
+              {pending ? t("agregando") : t("agregar")}
             </Button>
           </DialogFooter>
         </form>
@@ -604,6 +612,7 @@ function EditItemDialog({
   locationId: number;
   currency: string;
 }) {
+  const t = useTranslations("CartaAdmin");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -625,14 +634,14 @@ function EditItemDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <IconButton title="Editar plato" onClick={() => setOpen(true)}>
+      <IconButton title={t("editarPlato")} onClick={() => setOpen(true)}>
         <Settings2 className="size-3.5" />
       </IconButton>
 
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Editar plato</DialogTitle>
+            <DialogTitle>{t("editarPlato")}</DialogTitle>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
@@ -645,10 +654,10 @@ function EditItemDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Guardando…" : "Guardar"}
+              {pending ? t("guardando") : t("guardar")}
             </Button>
           </DialogFooter>
         </form>
@@ -664,30 +673,28 @@ function DeleteItemDialog({
   plato: MenuCategoryRow["items"][number];
   locationId: number;
 }) {
+  const t = useTranslations("CartaAdmin");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <IconButton title="Borrar plato" danger onClick={() => setOpen(true)}>
+      <IconButton title={t("borrarPlato")} danger onClick={() => setOpen(true)}>
         <Trash2 className="size-3.5" />
       </IconButton>
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Borrar &ldquo;{plato.name}&rdquo;</DialogTitle>
-          <DialogDescription>
-            No se puede deshacer. Si es algo que se agotó hoy, mejor marcalo
-            como agotado con el ojo: se sigue viendo y podés reactivarlo mañana.
-          </DialogDescription>
+          <DialogTitle>{t("borrarNombre", { nombre: plato.name })}</DialogTitle>
+          <DialogDescription>{t("borrarPlatoDesc")}</DialogDescription>
         </DialogHeader>
 
         <DialogBody>{error ? <ErrorBox message={error} /> : null}</DialogBody>
 
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-            Cancelar
+            {t("cancelar")}
           </Button>
           <Button
             type="button"
@@ -705,7 +712,7 @@ function DeleteItemDialog({
               });
             }}
           >
-            {pending ? "Borrando…" : "Borrar"}
+            {pending ? t("borrando") : t("borrar")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -720,23 +727,26 @@ function ItemFields({
   currency: string;
   plato?: MenuCategoryRow["items"][number];
 }) {
+  const t = useTranslations("CartaAdmin");
   const id = plato?.id ?? "nuevo";
 
   return (
     <>
       <div className="grid grid-cols-[1fr_120px] gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor={`i-name-${id}`}>Nombre</Label>
+          <Label htmlFor={`i-name-${id}`}>{t("nombre")}</Label>
           <Input
             id={`i-name-${id}`}
             name="name"
             defaultValue={plato?.name ?? ""}
             required
-            placeholder="Burrata con tomate"
+            placeholder={t("nombrePlatoPlaceholder")}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor={`i-price-${id}`}>Precio ({currency})</Label>
+          <Label htmlFor={`i-price-${id}`}>
+            {t("precio", { moneda: currency })}
+          </Label>
           <Input
             id={`i-price-${id}`}
             name="price"
@@ -750,23 +760,24 @@ function ItemFields({
 
       <div className="space-y-1.5">
         <Label htmlFor={`i-desc-${id}`}>
-          Descripción <span className="text-ex-text-disabled">(opcional)</span>
+          {t("descripcion")}{" "}
+          <span className="text-ex-text-disabled">{t("opcional")}</span>
         </Label>
         <Textarea
           id={`i-desc-${id}`}
           name="description"
           rows={2}
           defaultValue={plato?.description ?? ""}
-          placeholder="Con tomate de estación y albahaca"
+          placeholder={t("descPlatoPlaceholder")}
         />
       </div>
 
       <FileField
         name="image"
-        label="Foto del plato (opcional)"
+        label={t("fotoPlato")}
         actual={plato?.imageUrl ?? null}
         formato="imagen"
-        hint="Se ve cuadrada al lado del nombre. Una foto del plato solo, bien iluminada, funciona mejor que una de la mesa entera."
+        hint={t("fotoPlatoHint")}
       />
     </>
   );
@@ -785,6 +796,8 @@ function ItemFields({
  * valida contra el catálogo: nunca se guarda lo que llegó sin revisar.
  */
 function SelectorDeIcono({ inicial }: { inicial?: string | null }) {
+  const t = useTranslations("CartaAdmin");
+  const ti = useTranslations("Iconos");
   const [elegido, setElegido] = React.useState<string | null>(inicial ?? null);
 
   return (
@@ -792,14 +805,15 @@ function SelectorDeIcono({ inicial }: { inicial?: string | null }) {
       {/* No es un <label>: no hay un control único al que apuntar, son
           veintisiete botones. El grupo se anuncia por el texto de arriba. */}
       <p className="block text-[12px] font-semibold uppercase tracking-[0.04em] text-ex-text-muted">
-        Ícono <span className="normal-case text-ex-text-disabled">(opcional)</span>
+        {t("icono")}{" "}
+        <span className="normal-case text-ex-text-disabled">{t("opcional")}</span>
       </p>
 
       <div className="max-h-[188px] space-y-3 overflow-y-auto rounded-control border border-ex-border p-3">
         {MENU_ICON_GROUPS.map((grupo) => (
-          <div key={grupo.label}>
+          <div key={grupo.id}>
             <p className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ex-text-muted">
-              {grupo.label}
+              {ti(`grupo.${grupo.id}`)}
             </p>
 
             <div className="flex flex-wrap gap-1.5">
@@ -810,8 +824,8 @@ function SelectorDeIcono({ inicial }: { inicial?: string | null }) {
                   <button
                     key={icono.id}
                     type="button"
-                    title={icono.label}
-                    aria-label={icono.label}
+                    title={ti(icono.id)}
+                    aria-label={ti(icono.id)}
                     aria-pressed={activo}
                     // Volver a tocar el que ya está elegido lo saca: es la
                     // forma más natural de decir "ninguno".
@@ -833,9 +847,7 @@ function SelectorDeIcono({ inicial }: { inicial?: string | null }) {
       </div>
 
       <p className="text-[11px] text-ex-text-muted">
-        {elegido
-          ? "Se muestra al lado del nombre en la carta. Tocalo de nuevo para sacarlo."
-          : "Sin ícono, la categoría se muestra solo con su nombre."}
+        {elegido ? t("iconoElegido") : t("iconoVacio")}
       </p>
 
       <input type="hidden" name="icon" value={elegido ?? ""} />
@@ -890,14 +902,28 @@ function ErrorBox({ message }: { message: string }) {
   );
 }
 
-/** Igual que en la carta pública: "$6500" y no "6500.00 $". */
-function formatearPrecio(price: string, currency: string): string {
+/**
+ * Igual que en la carta pública: "$6500" y no "6500.00 $".
+ *
+ * El separador decimal sale del idioma activo (12,50 en castellano, 12.50 en
+ * inglés): el número tiene que leerse igual acá que en la página del cliente.
+ * `currency` es el símbolo que cargó el local ("€", "$"), no un código ISO,
+ * así que se formatea el número y el símbolo se antepone aparte.
+ */
+function formatearPrecio(
+  price: string,
+  currency: string,
+  formato: ReturnType<typeof useFormatter>
+): string {
   const numero = Number(price);
   if (!Number.isFinite(numero)) return `${price} ${currency}`;
 
   const texto = Number.isInteger(numero)
-    ? String(numero)
-    : numero.toFixed(2).replace(".", ",");
+    ? formato.number(numero)
+    : formato.number(numero, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
 
   return `${currency}${texto}`;
 }

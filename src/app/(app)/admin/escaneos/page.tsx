@@ -1,3 +1,5 @@
+import { getLocale, getTranslations } from "next-intl/server";
+
 import { AccountFilter } from "@/components/admin/account-filter";
 import { PageHeader } from "@/components/admin/page-header";
 import { ScanFiltersBar } from "@/components/stats/scan-filters";
@@ -12,7 +14,14 @@ import { parseScanFilters, type RawScanParams } from "@/lib/scan-params";
 import { requireAdmin } from "@/lib/session";
 import { formatNumber } from "@/lib/utils";
 
-export const metadata = { title: "Escaneos · Toqia Admin" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Escaneos");
+  return { title: t("titulo") };
+}
 export const dynamic = "force-dynamic";
 
 
@@ -22,7 +31,11 @@ export default async function AdminScansPage({
   searchParams: Promise<RawScanParams>;
 }) {
   await requireAdmin();
-  const params = await searchParams;
+  const [params, t, locale] = await Promise.all([
+    searchParams,
+    getTranslations("Escaneos"),
+    getLocale(),
+  ]);
   const pagina = parsePageParams(params);
 
   const cuentaId = params.cuenta ? Number.parseInt(params.cuenta, 10) : NaN;
@@ -43,8 +56,12 @@ export default async function AdminScansPage({
   return (
     <>
       <PageHeader
-        title="Escaneos"
-        subtitle={`${formatNumber(escaneos.total)} ${escaneos.total === 1 ? "registro" : "registros"} con los filtros aplicados.`}
+        title={t("titulo")}
+        subtitle={
+          escaneos.total === 1
+            ? t("subtituloSingular", { n: formatNumber(escaneos.total, locale) })
+            : t("subtituloPlural", { n: formatNumber(escaneos.total, locale) })
+        }
       >
         <AccountFilter accounts={cuentas} />
       </PageHeader>

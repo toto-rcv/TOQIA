@@ -22,19 +22,27 @@ import { requireRestaurantUser } from "@/lib/session";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { NewWaiterDialog, WaiterRowActions } from "./waiter-dialogs";
 
-export const metadata = { title: "Camareros · Toqia" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Camareros");
+  return { title: t("titulo") };
+}
 export const dynamic = "force-dynamic";
 
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
 export default async function PanelWaitersPage({
   searchParams,
 }: {
   searchParams: Promise<RawPageParams>;
 }) {
-  const [user, t] = await Promise.all([
+  const [user, t, locale] = await Promise.all([
     requireRestaurantUser(),
     getTranslations("Camareros"),
+    getLocale(),
   ]);
   const params = await searchParams;
   const pagina = parsePageParams(params);
@@ -89,10 +97,10 @@ export default async function PanelWaitersPage({
                       <Td className="text-[13px]">{camarero.locationName}</Td>
                     ) : null}
                     <Td className="text-right text-sm font-medium tabular-nums text-ex-text">
-                      {formatNumber(camarero.braceletCount)}
+                      {formatNumber(camarero.braceletCount, locale)}
                     </Td>
                     <Td className="text-[12px] tabular-nums">
-                      {formatDate(camarero.createdAt)}
+                      {formatDate(camarero.createdAt, locale)}
                     </Td>
                     <Td>
                       <Badge tone={camarero.active ? "active" : "inactive"}>
@@ -132,12 +140,12 @@ export default async function PanelWaitersPage({
                 <RowFields className="grid-cols-3">
                   <RowField label={t("colPulseras")}>
                     <span className="font-semibold tabular-nums text-ex-text">
-                      {formatNumber(camarero.braceletCount)}
+                      {formatNumber(camarero.braceletCount, locale)}
                     </span>
                   </RowField>
                   <RowField label={t("colAlta")}>
                     <span className="tabular-nums">
-                      {formatDate(camarero.createdAt)}
+                      {formatDate(camarero.createdAt, locale)}
                     </span>
                   </RowField>
                   <RowField label={t("colEstado")}>

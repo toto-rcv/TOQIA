@@ -10,7 +10,14 @@ import { MenuHeaderCard } from "./menu-header-card";
 import { db, locations as locationsTable } from "@/db";
 import { eq } from "drizzle-orm";
 
-export const metadata = { title: "Mi carta · Toqia" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("CartaAdmin");
+  return { title: t("titulo") };
+}
 export const dynamic = "force-dynamic";
 
 import { getTranslations } from "next-intl/server";

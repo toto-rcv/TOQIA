@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Power, Settings2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ type LocationOption = { id: number; name: string };
 type WaiterRow = { id: number; name: string; active: boolean; locationId: number };
 
 export function NewWaiterDialog({ locations }: { locations: LocationOption[] }) {
+  const t = useTranslations("Camareros");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -45,26 +47,29 @@ export function NewWaiterDialog({ locations }: { locations: LocationOption[] }) 
     <Dialog open={open} onOpenChange={setOpen}>
       <Button variant="primary" size="sm" onClick={() => setOpen(true)}>
         <Plus />
-        Nuevo camarero
+        {t("nuevoCamarero")}
       </Button>
 
       <DialogContent>
         <form ref={formRef} onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Nuevo camarero</DialogTitle>
-            <DialogDescription>
-              Después le asignás una pulsera desde la sección Pulseras.
-            </DialogDescription>
+            <DialogTitle>{t("nuevoCamarero")}</DialogTitle>
+            <DialogDescription>{t("nuevoCamareroDesc")}</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="waiter-name">Nombre</Label>
-              <Input id="waiter-name" name="name" required placeholder="Nombre y apellido" />
+              <Label htmlFor="waiter-name">{t("colNombre")}</Label>
+              <Input
+                id="waiter-name"
+                name="name"
+                required
+                placeholder={t("nombrePlaceholder")}
+              />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="waiter-location">Local</Label>
+              <Label htmlFor="waiter-location">{t("colLocal")}</Label>
               <Select
                 id="waiter-location"
                 name="locationId"
@@ -73,7 +78,7 @@ export function NewWaiterDialog({ locations }: { locations: LocationOption[] }) 
               >
                 {locations.length === 1 ? null : (
                   <option value="" disabled>
-                    Elegí uno…
+                    {t("elegiUno")}
                   </option>
                 )}
                 {locations.map((local) => (
@@ -89,10 +94,10 @@ export function NewWaiterDialog({ locations }: { locations: LocationOption[] }) 
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Creando…" : "Crear"}
+              {pending ? t("creando") : t("crear")}
             </Button>
           </DialogFooter>
         </form>
@@ -111,6 +116,7 @@ export function WaiterRowActions({ waiter }: { waiter: WaiterRow }) {
 }
 
 function EditWaiterDialog({ waiter }: { waiter: WaiterRow }) {
+  const t = useTranslations("Camareros");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -135,8 +141,8 @@ function EditWaiterDialog({ waiter }: { waiter: WaiterRow }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title="Editar camarero"
-        aria-label="Editar camarero"
+        title={t("editar")}
+        aria-label={t("editar")}
         className="inline-flex h-7 w-7 items-center justify-center rounded-control border
                    border-ex-border text-ex-text-muted transition-colors
                    hover:border-ex-blue/40 hover:text-ex-text active:scale-[0.98]"
@@ -147,13 +153,13 @@ function EditWaiterDialog({ waiter }: { waiter: WaiterRow }) {
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Editar camarero</DialogTitle>
+            <DialogTitle>{t("editar")}</DialogTitle>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
             <input type="hidden" name="id" value={waiter.id} />
             <div className="space-y-1.5">
-              <Label htmlFor={`w-name-${waiter.id}`}>Nombre</Label>
+              <Label htmlFor={`w-name-${waiter.id}`}>{t("colNombre")}</Label>
               <Input
                 id={`w-name-${waiter.id}`}
                 name="name"
@@ -166,10 +172,10 @@ function EditWaiterDialog({ waiter }: { waiter: WaiterRow }) {
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Guardando…" : "Guardar"}
+              {pending ? t("guardando") : t("guardar")}
             </Button>
           </DialogFooter>
         </form>
@@ -179,6 +185,7 @@ function EditWaiterDialog({ waiter }: { waiter: WaiterRow }) {
 }
 
 function ToggleWaiterButton({ waiter }: { waiter: WaiterRow }) {
+  const t = useTranslations("Camareros");
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string | null>(null);
 
@@ -197,11 +204,9 @@ function ToggleWaiterButton({ waiter }: { waiter: WaiterRow }) {
       disabled={pending}
       title={
         error ??
-        (waiter.active
-          ? "Desactivar (sus pulseras siguen funcionando)"
-          : "Activar")
+        (waiter.active ? t("desactivarHint") : t("activar"))
       }
-      aria-label={waiter.active ? "Desactivar camarero" : "Activar camarero"}
+      aria-label={waiter.active ? t("desactivar") : t("activar")}
       className={
         "inline-flex h-7 w-7 items-center justify-center rounded-control border transition-colors " +
         "active:scale-[0.98] disabled:opacity-40 " +

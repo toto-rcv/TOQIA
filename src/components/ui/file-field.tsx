@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, Trash2, Upload } from "lucide-react";
+import { useTranslations } from "next-intl";
 import * as React from "react";
 
 import { Label } from "@/components/ui/input";
@@ -35,6 +36,7 @@ export function FileField({
   hint?: string;
   forma?: "cuadrada" | "redonda" | "ancha";
 }) {
+  const t = useTranslations("Archivos");
   const [elegido, setElegido] = React.useState<string | null>(null);
   const [quitar, setQuitar] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -87,7 +89,7 @@ export function FileField({
               className="flex size-14 flex-col items-center justify-center gap-1 rounded-control
                          border border-ex-border text-ex-text-muted transition-colors
                          hover:border-ex-blue/40 hover:text-ex-text"
-              title="Ver el archivo actual"
+              title={t("verActual")}
             >
               <FileText className="size-5" aria-hidden />
               <span className="text-[9px] uppercase tracking-wide">PDF</span>
@@ -121,17 +123,17 @@ export function FileField({
 
           {elegido ? (
             <p className="truncate text-[11px] text-ex-success">
-              Se va a subir: {elegido}
+              {t("seVaASubir", { nombre: elegido })}
             </p>
           ) : quitar ? (
             <p className="text-[11px] text-ex-danger">
-              Se va a quitar al guardar.{" "}
+              {t("seVaAQuitar")}{" "}
               <button
                 type="button"
                 onClick={handleDeshacer}
                 className="underline underline-offset-2 hover:text-ex-text"
               >
-                Deshacer
+                {t("deshacer")}
               </button>
             </p>
           ) : actual ? (
@@ -142,7 +144,7 @@ export function FileField({
                          transition-colors hover:text-ex-danger"
             >
               <Trash2 className="size-3" aria-hidden />
-              Quitar
+              {t("quitar")}
             </button>
           ) : null}
         </div>

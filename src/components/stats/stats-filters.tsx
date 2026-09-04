@@ -8,19 +8,6 @@ import { Input, Select } from "@/components/ui/input";
 import { PERIOD_PRESETS } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
-const GRANULARIDADES = [
-  { value: "day", label: "Día" },
-  { value: "week", label: "Semana" },
-  { value: "month", label: "Mes" },
-] as const;
-
-const ETIQUETAS_PRESET: Record<string, string> = {
-  "7d": "7 días",
-  "30d": "30 días",
-  "90d": "90 días",
-  "365d": "1 año",
-};
-
 /**
  * Filtros de las pantallas de estadísticas.
  *
@@ -122,8 +109,8 @@ export function StatsFilters({
         {/* Período: botones y no un select, porque es el control que más se toca. */}
         <div className="flex shrink-0 items-center rounded-pill border border-ex-border bg-ex-surface p-1 shadow-subtle">
           {Object.keys(PERIOD_PRESETS).map((key) => {
-            const presetKey = `preset${key}`;
-            const label = t.has(presetKey as any) ? t(presetKey as any) : key;
+            // La clave de la traducción sale del preset: `7d` → `preset7d`.
+            const label = t(`preset${key}`);
 
             return (
               <button

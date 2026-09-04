@@ -1,6 +1,7 @@
 "use client";
 
 import { Layers, Plus, Power, Settings2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -67,19 +68,21 @@ function DestinoSelect({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const t = useTranslations("Pulseras");
+
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>Destino</Label>
+      <Label htmlFor={id}>{t("destino")}</Label>
       <Select id={id} name="destino" value={value} onChange={(e) => onChange(e.target.value)}>
-        <optgroup label="Sin colocar">
-          <option value={DESTINO_STOCK}>Stock de Toqia</option>
+        <optgroup label={t("sinColocar")}>
+          <option value={DESTINO_STOCK}>{t("stockDeToqia")}</option>
           {distributors.map((distribuidor) => (
             <option key={distribuidor.id} value={`distribuidor:${distribuidor.id}`}>
-              Stock de {distribuidor.name}
+              {t("stockDe", { nombre: distribuidor.name })}
             </option>
           ))}
         </optgroup>
-        <optgroup label="En un local">
+        <optgroup label={t("enUnLocal")}>
           {locations.map((local) => (
             <option key={local.id} value={`local:${local.id}`}>
               {local.accountName} · {local.name}
@@ -102,6 +105,7 @@ export function NewBraceletDialog({
   distributors: DistributorOption[];
   defaultLocationId?: number;
 }) {
+  const t = useTranslations("Pulseras");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -130,23 +134,20 @@ export function NewBraceletDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
         <Plus />
-        Nueva pulsera
+        {t("nueva")}
       </Button>
 
       <DialogContent>
         <form ref={formRef} onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Nueva pulsera</DialogTitle>
-            <DialogDescription>
-              El código es el que se graba en el chip y no se puede repetir en
-              todo el sistema.
-            </DialogDescription>
+            <DialogTitle>{t("nueva")}</DialogTitle>
+            <DialogDescription>{t("nuevaDesc")}</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="b-code">Código</Label>
+                <Label htmlFor="b-code">{t("colCodigo")}</Label>
                 <Input
                   id="b-code"
                   name="code"
@@ -167,17 +168,22 @@ export function NewBraceletDialog({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="b-type">Tipo</Label>
+                <Label htmlFor="b-type">{t("tipo")}</Label>
                 <Select id="b-type" name="deviceType" defaultValue="pulsera">
-                  <option value="pulsera">Pulsera</option>
-                  <option value="placa">Placa</option>
+                  <option value="pulsera">{t("unaPulsera")}</option>
+                  <option value="placa">{t("unaPlaca")}</option>
                 </Select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="b-label">
-                  Etiqueta <span className="text-ex-text-disabled">(opcional)</span>
+                  {t("colEtiqueta")}{" "}
+                  <span className="text-ex-text-disabled">{t("opcional")}</span>
                 </Label>
-                <Input id="b-label" name="label" placeholder="Mesa 4, Barra…" />
+                <Input
+                  id="b-label"
+                  name="label"
+                  placeholder={t("etiquetaPlaceholder")}
+                />
               </div>
             </div>
 
@@ -188,10 +194,10 @@ export function NewBraceletDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Creando…" : "Crear"}
+              {pending ? t("creando") : t("crear")}
             </Button>
           </DialogFooter>
         </form>
@@ -211,6 +217,7 @@ export function BulkCreateDialog({
   distributors: DistributorOption[];
   defaultLocationId?: number;
 }) {
+  const t = useTranslations("Pulseras");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [resumen, setResumen] = React.useState<string | null>(null);
@@ -250,7 +257,13 @@ export function BulkCreateDialog({
       if (data && data.skipped.length > 0) {
         // No cerramos: el usuario tiene que ver qué se salteó.
         setResumen(
-          `Se crearon ${data.created} pulseras. Se saltearon ${data.skipped.length} porque ya existían: ${data.skipped.slice(0, 8).join(", ")}${data.skipped.length > 8 ? "…" : ""}`
+          t("resumenLote", {
+            creadas: data.created,
+            salteadas: data.skipped.length,
+            codigos:
+              data.skipped.slice(0, 8).join(", ") +
+              (data.skipped.length > 8 ? "…" : ""),
+          })
         );
         return;
       }
@@ -272,16 +285,14 @@ export function BulkCreateDialog({
     >
       <Button variant="primary" size="sm" onClick={() => setOpen(true)}>
         <Layers />
-        Alta masiva
+        {t("altaMasiva")}
       </Button>
 
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Generar lote de pulseras</DialogTitle>
-            <DialogDescription>
-              Los códigos que ya existan se saltean.
-            </DialogDescription>
+            <DialogTitle>{t("generarLote")}</DialogTitle>
+            <DialogDescription>{t("generarLoteDesc")}</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
@@ -294,16 +305,16 @@ export function BulkCreateDialog({
             />
 
             <div className="space-y-1.5">
-              <Label htmlFor="bulk-type">Tipo de dispositivo</Label>
+              <Label htmlFor="bulk-type">{t("tipoDeDispositivo")}</Label>
               <Select id="bulk-type" name="deviceType" defaultValue="pulsera">
-                <option value="pulsera">Pulseras</option>
-                <option value="placa">Placas</option>
+                <option value="pulsera">{t("titulo")}</option>
+                <option value="placa">{t("placas")}</option>
               </Select>
             </div>
 
             <div className="grid grid-cols-4 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="bulk-prefix">Prefijo</Label>
+                <Label htmlFor="bulk-prefix">{t("prefijo")}</Label>
                 <Input
                   id="bulk-prefix"
                   name="prefix"
@@ -315,7 +326,7 @@ export function BulkCreateDialog({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="bulk-start">Desde</Label>
+                <Label htmlFor="bulk-start">{t("desde")}</Label>
                 <Input
                   id="bulk-start"
                   name="start"
@@ -328,7 +339,7 @@ export function BulkCreateDialog({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="bulk-count">Cantidad</Label>
+                <Label htmlFor="bulk-count">{t("cantidad")}</Label>
                 <Input
                   id="bulk-count"
                   name="count"
@@ -342,7 +353,7 @@ export function BulkCreateDialog({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="bulk-padding">Dígitos</Label>
+                <Label htmlFor="bulk-padding">{t("digitos")}</Label>
                 <Input
                   id="bulk-padding"
                   name="padding"
@@ -358,7 +369,7 @@ export function BulkCreateDialog({
             </div>
 
             <div className="rounded-control border border-ex-border bg-ex-black px-3 py-2">
-              <p className="ex-label mb-1">Se van a generar</p>
+              <p className="ex-label mb-1">{t("seVanAGenerar")}</p>
               <p className="font-mono text-sm text-ex-blue-bright">{preview}</p>
             </div>
 
@@ -372,10 +383,10 @@ export function BulkCreateDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              {resumen ? "Cerrar" : "Cancelar"}
+              {resumen ? t("cerrar") : t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Generando…" : "Generar"}
+              {pending ? t("generando") : t("generar")}
             </Button>
           </DialogFooter>
         </form>
@@ -421,6 +432,7 @@ function EditBraceletDialog({
   distributors: DistributorOption[];
   waiters: WaiterOption[];
 }) {
+  const t = useTranslations("Pulseras");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -457,8 +469,8 @@ function EditBraceletDialog({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title="Editar pulsera"
-        aria-label="Editar pulsera"
+        title={t("editar")}
+        aria-label={t("editar")}
         className="inline-flex h-7 w-7 items-center justify-center rounded-control border
                    border-ex-border text-ex-text-muted transition-colors
                    hover:border-ex-blue/40 hover:text-ex-text active:scale-[0.98]"
@@ -469,10 +481,8 @@ function EditBraceletDialog({
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Editar pulsera {bracelet.code}</DialogTitle>
-            <DialogDescription>
-              Cambiar el código obliga a regrabar el chip.
-            </DialogDescription>
+            <DialogTitle>{t("editarCodigo", { code: bracelet.code })}</DialogTitle>
+            <DialogDescription>{t("editarDesc")}</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
@@ -480,7 +490,7 @@ function EditBraceletDialog({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor={`e-code-${bracelet.id}`}>Código</Label>
+                <Label htmlFor={`e-code-${bracelet.id}`}>{t("colCodigo")}</Label>
                 <Input
                   id={`e-code-${bracelet.id}`}
                   name="code"
@@ -501,42 +511,44 @@ function EditBraceletDialog({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor={`e-waiter-${bracelet.id}`}>Camarero</Label>
+                <Label htmlFor={`e-waiter-${bracelet.id}`}>{t("colCamarero")}</Label>
                 <Select
                   id={`e-waiter-${bracelet.id}`}
                   name="waiterId"
                   defaultValue={bracelet.waiterId ? String(bracelet.waiterId) : ""}
                   disabled={localElegido === null}
                 >
-                  <option value="">Sin asignar</option>
+                  <option value="">{t("sinAsignar")}</option>
                   {camarerosDelLocal.map((camarero) => (
                     <option key={camarero.id} value={camarero.id}>
                       {camarero.name}
-                      {camarero.active ? "" : " (inactivo)"}
+                      {camarero.active ? "" : ` ${t("camareroInactivo")}`}
                     </option>
                   ))}
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor={`e-label-${bracelet.id}`}>Etiqueta</Label>
+                <Label htmlFor={`e-label-${bracelet.id}`}>{t("colEtiqueta")}</Label>
                 <Input
                   id={`e-label-${bracelet.id}`}
                   name="label"
                   defaultValue={bracelet.label ?? ""}
-                  placeholder="Mesa 4, Barra…"
+                  placeholder={t("etiquetaPlaceholder")}
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor={`e-type-${bracelet.id}`}>Tipo de dispositivo</Label>
+              <Label htmlFor={`e-type-${bracelet.id}`}>
+                {t("tipoDeDispositivo")}
+              </Label>
               <Select
                 id={`e-type-${bracelet.id}`}
                 name="deviceType"
                 defaultValue={bracelet.deviceType}
               >
-                <option value="pulsera">Pulsera</option>
-                <option value="placa">Placa</option>
+                <option value="pulsera">{t("unaPulsera")}</option>
+                <option value="placa">{t("unaPlaca")}</option>
               </Select>
             </div>
 
@@ -550,10 +562,10 @@ function EditBraceletDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Guardando…" : "Guardar"}
+              {pending ? t("guardando") : t("guardar")}
             </Button>
           </DialogFooter>
         </form>
@@ -563,6 +575,7 @@ function EditBraceletDialog({
 }
 
 function ToggleBraceletButton({ bracelet }: { bracelet: BraceletListItem }) {
+  const t = useTranslations("Pulseras");
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string | null>(null);
 
@@ -579,8 +592,8 @@ function ToggleBraceletButton({ bracelet }: { bracelet: BraceletListItem }) {
       type="button"
       onClick={handleClick}
       disabled={pending}
-      title={error ?? (bracelet.active ? "Desactivar pulsera" : "Activar pulsera")}
-      aria-label={bracelet.active ? "Desactivar pulsera" : "Activar pulsera"}
+      title={error ?? (bracelet.active ? t("desactivar") : t("activar"))}
+      aria-label={bracelet.active ? t("desactivar") : t("activar")}
       className={
         "inline-flex h-7 w-7 items-center justify-center rounded-control border transition-colors " +
         "active:scale-[0.98] disabled:opacity-40 " +
@@ -603,10 +616,13 @@ function OverrideField({
   id: string;
   defaultValue?: string;
 }) {
+  const t = useTranslations("Pulseras");
+
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>
-        Destino directo <span className="text-ex-text-disabled">(opcional)</span>
+        {t("destinoDirecto")}{" "}
+        <span className="text-ex-text-disabled">{t("opcional")}</span>
       </Label>
       <Input
         id={id}
@@ -616,10 +632,7 @@ function OverrideField({
         placeholder="https://…"
         className="font-mono text-xs"
       />
-      <p className="text-[11px] text-ex-text-muted">
-        Si lo cargás, esta pulsera saltea la página del local y va directo acá.
-        El escaneo se registra igual.
-      </p>
+      <p className="text-[11px] text-ex-text-muted">{t("destinoDirectoHint")}</p>
     </div>
   );
 }

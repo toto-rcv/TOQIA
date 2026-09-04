@@ -1,6 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ export function MenuHeaderCard({
   locationId: number;
   actual: string | null;
 }) {
+  const t = useTranslations("CartaAdmin");
   const [error, setError] = React.useState<string | null>(null);
   const [guardado, setGuardado] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
@@ -55,11 +57,11 @@ export function MenuHeaderCard({
 
         <FileField
           name="header"
-          label="Imagen de la carta"
+          label={t("imagenCarta")}
           actual={actual}
           formato="imagen"
           forma="ancha"
-          hint="Aparece arriba de todo en la carta que ve el cliente. Se muestra apaisada; una foto horizontal del salón o de un plato estrella queda bien."
+          hint={t("imagenCartaHint")}
         />
 
         {error ? (
@@ -73,13 +75,13 @@ export function MenuHeaderCard({
 
         <div className="flex items-center gap-3">
           <Button type="submit" variant="secondary" disabled={pending}>
-            {pending ? "Guardando…" : "Guardar imagen"}
+            {pending ? t("guardando") : t("guardarImagen")}
           </Button>
 
           {guardado ? (
             <span className="flex items-center gap-1.5 text-xs text-ex-success">
               <Check className="size-3.5" />
-              Guardado.
+              {t("guardado")}
             </span>
           ) : null}
         </div>

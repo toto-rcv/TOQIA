@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { cookies } from "next/headers";
 
 import {
@@ -44,6 +45,7 @@ import {
   validateSlug,
   validateSubscriptionStatus,
   type ActionResult,
+  type ErrorDeValidacion,
 } from "@/lib/validation";
 
 /**
@@ -61,6 +63,18 @@ function revalidarAdmin() {
   revalidatePath("/admin/camareros");
 }
 
+/**
+ * El texto de un error de validación, en el idioma del pedido.
+ *
+ * Los validadores devuelven una clave y sus valores, no una frase ya escrita:
+ * el panel está en siete idiomas y un mensaje armado dentro de
+ * `lib/validation.ts` llegaría siempre en castellano al diálogo.
+ */
+async function textoDeError(error: ErrorDeValidacion): Promise<string> {
+  const t = await getTranslations("Errores");
+  return t(error.clave, error.valores);
+}
+
 function esClaveDuplicada(error: unknown): boolean {
   return (
     typeof error === "object" &&
@@ -74,19 +88,20 @@ function esClaveDuplicada(error: unknown): boolean {
 
 export async function createAccount(formData: FormData): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   const name = readString(formData.get("name"));
   const slug = readString(formData.get("slug")) || slugify(name);
 
   const errorNombre = validateName(name);
-  if (errorNombre) return fail(errorNombre);
+  if (errorNombre) return fail(await textoDeError(errorNombre));
 
   const errorSlug = validateSlug(slug);
-  if (errorSlug) return fail(errorSlug);
+  if (errorSlug) return fail(await textoDeError(errorSlug));
 
   try {
     if (await getAccountBySlug(slug)) {
-      return fail(`Ya existe una cuenta con el slug "${slug}".`);
+      return fail(t("cuentaConEseSlug", { slug }));
     }
 
     await db.insert(accounts).values({ name, slug, active: true });
@@ -95,15 +110,16 @@ export async function createAccount(formData: FormData): Promise<ActionResult> {
     return ok();
   } catch (cause) {
     if (esClaveDuplicada(cause)) {
-      return fail(`Ya existe una cuenta con el slug "${slug}".`);
+      return fail(t("cuentaConEseSlug", { slug }));
     }
     console.error("[admin] no se pudo crear la cuenta", { slug, cause });
-    return fail(mensajeDeError("No se pudo crear la cuenta", cause));
+    return fail(await mensajeDeError("noSePudoCrearCuenta", cause));
   }
 }
 
 export async function updateAccount(formData: FormData): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   const id = readInt(formData.get("id"));
   const name = readString(formData.get("name"));
@@ -113,22 +129,22 @@ export async function updateAccount(formData: FormData): Promise<ActionResult> {
   const subscriptionExpiresAt = readString(formData.get("subscriptionExpiresAt"));
   const distributorId = readString(formData.get("distributorId"));
 
-  if (!id) return fail("Falta el identificador de la cuenta.");
+  if (!id) return fail(t("faltaIdCuenta"));
 
   const errorNombre = validateName(name);
-  if (errorNombre) return fail(errorNombre);
+  if (errorNombre) return fail(await textoDeError(errorNombre));
 
   const errorSlug = validateSlug(slug);
-  if (errorSlug) return fail(errorSlug);
+  if (errorSlug) return fail(await textoDeError(errorSlug));
 
   const errorEstado = validateSubscriptionStatus(subscriptionStatus);
-  if (errorEstado) return fail(errorEstado);
+  if (errorEstado) return fail(await textoDeError(errorEstado));
 
   let precio: string | null = null;
   if (subscriptionPrice !== "") {
     const numero = Number(subscriptionPrice.replace(",", "."));
     if (!Number.isFinite(numero) || numero < 0) {
-      return fail("El precio tiene que ser un número positivo.");
+      return fail(t("precioNoPositivo"));
     }
     precio = numero.toFixed(2);
   }
@@ -136,13 +152,13 @@ export async function updateAccount(formData: FormData): Promise<ActionResult> {
   let vence: Date | null = null;
   if (subscriptionExpiresAt !== "") {
     const fecha = new Date(`${subscriptionExpiresAt}T00:00:00`);
-    if (Number.isNaN(fecha.getTime())) return fail("La fecha de vencimiento no es válida.");
+    if (Number.isNaN(fecha.getTime())) return fail(t("fechaVencimientoInvalida"));
     vence = fecha;
   }
 
   try {
     const actual = await getAccountById(id);
-    if (!actual) return fail("La cuenta ya no existe.");
+    if (!actual) return fail(t("cuentaNoExiste"));
 
     await db
       .update(accounts)
@@ -164,9 +180,9 @@ export async function updateAccount(formData: FormData): Promise<ActionResult> {
     revalidarAdmin();
     return ok();
   } catch (cause) {
-    if (esClaveDuplicada(cause)) return fail(`Ya existe otra cuenta con el slug "${slug}".`);
+    if (esClaveDuplicada(cause)) return fail(t("otraCuentaConEseSlug", { slug }));
     console.error("[admin] no se pudo actualizar la cuenta", { id, cause });
-    return fail(mensajeDeError("No se pudo guardar la cuenta", cause));
+    return fail(await mensajeDeError("noSePudoGuardarCuenta", cause));
   }
 }
 
@@ -179,10 +195,11 @@ export async function toggleAccount(
   active: boolean
 ): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   try {
     const actual = await getAccountById(id);
-    if (!actual) return fail("La cuenta ya no existe.");
+    if (!actual) return fail(t("cuentaNoExiste"));
 
     await db.update(accounts).set({ active }).where(eq(accounts.id, id));
 
@@ -193,7 +210,7 @@ export async function toggleAccount(
     return ok();
   } catch (cause) {
     console.error("[admin] no se pudo cambiar el estado de la cuenta", { id, cause });
-    return fail(mensajeDeError("No se pudo cambiar el estado de la cuenta", cause));
+    return fail(await mensajeDeError("noSePudoCambiarEstadoCuenta", cause));
   }
 }
 
@@ -201,27 +218,28 @@ export async function toggleAccount(
 
 export async function createLocation(formData: FormData): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   const accountId = readInt(formData.get("accountId"));
   const name = readString(formData.get("name"));
   const slug = readString(formData.get("slug")) || slugify(name);
   const googleReviewUrl = readString(formData.get("googleReviewUrl"));
 
-  if (!accountId) return fail("Elegí una cuenta.");
+  if (!accountId) return fail(t("elegiUnaCuenta"));
 
   const errorNombre = validateName(name);
-  if (errorNombre) return fail(errorNombre);
+  if (errorNombre) return fail(await textoDeError(errorNombre));
 
   const errorSlug = validateSlug(slug);
-  if (errorSlug) return fail(errorSlug);
+  if (errorSlug) return fail(await textoDeError(errorSlug));
 
-  const errorUrl = validateOptionalUrl(googleReviewUrl, "El enlace de Google Reviews");
-  if (errorUrl) return fail(errorUrl);
+  const errorUrl = validateOptionalUrl(googleReviewUrl, "googleReviewUrl");
+  if (errorUrl) return fail(await textoDeError(errorUrl));
 
   try {
-    if (!(await getAccountById(accountId))) return fail("La cuenta elegida no existe.");
+    if (!(await getAccountById(accountId))) return fail(t("cuentaElegidaNoExiste"));
     if (await getLocationBySlug(slug)) {
-      return fail(`Ya existe un local con el slug "${slug}".`);
+      return fail(t("localConEseSlug", { slug }));
     }
 
     await db.insert(locations).values({
@@ -235,32 +253,33 @@ export async function createLocation(formData: FormData): Promise<ActionResult> 
     revalidarAdmin();
     return ok();
   } catch (cause) {
-    if (esClaveDuplicada(cause)) return fail(`Ya existe un local con el slug "${slug}".`);
+    if (esClaveDuplicada(cause)) return fail(t("localConEseSlug", { slug }));
     console.error("[admin] no se pudo crear el local", { slug, cause });
-    return fail(mensajeDeError("No se pudo crear el local", cause));
+    return fail(await mensajeDeError("noSePudoCrearLocal", cause));
   }
 }
 
 export async function updateLocation(formData: FormData): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   const id = readInt(formData.get("id"));
   const accountId = readInt(formData.get("accountId"));
   const name = readString(formData.get("name"));
   const slug = readString(formData.get("slug"));
 
-  if (!id) return fail("Falta el identificador del local.");
-  if (!accountId) return fail("Elegí una cuenta.");
+  if (!id) return fail(t("faltaIdLocal"));
+  if (!accountId) return fail(t("elegiUnaCuenta"));
 
   const errorNombre = validateName(name);
-  if (errorNombre) return fail(errorNombre);
+  if (errorNombre) return fail(await textoDeError(errorNombre));
 
   const errorSlug = validateSlug(slug);
-  if (errorSlug) return fail(errorSlug);
+  if (errorSlug) return fail(await textoDeError(errorSlug));
 
   try {
-    if (!(await getLocationById(id))) return fail("El local ya no existe.");
-    if (!(await getAccountById(accountId))) return fail("La cuenta elegida no existe.");
+    if (!(await getLocationById(id))) return fail(t("localYaNoExiste"));
+    if (!(await getAccountById(accountId))) return fail(t("cuentaElegidaNoExiste"));
 
     await db.update(locations).set({ name, slug, accountId }).where(eq(locations.id, id));
 
@@ -270,9 +289,9 @@ export async function updateLocation(formData: FormData): Promise<ActionResult> 
     revalidarAdmin();
     return ok();
   } catch (cause) {
-    if (esClaveDuplicada(cause)) return fail(`Ya existe otro local con el slug "${slug}".`);
+    if (esClaveDuplicada(cause)) return fail(t("otroLocalConEseSlug", { slug }));
     console.error("[admin] no se pudo actualizar el local", { id, cause });
-    return fail(mensajeDeError("No se pudo guardar el local", cause));
+    return fail(await mensajeDeError("noSePudoGuardarLocal", cause));
   }
 }
 
@@ -281,9 +300,10 @@ export async function toggleLocation(
   active: boolean
 ): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   try {
-    if (!(await getLocationById(id))) return fail("El local ya no existe.");
+    if (!(await getLocationById(id))) return fail(t("localYaNoExiste"));
 
     await db.update(locations).set({ active }).where(eq(locations.id, id));
 
@@ -294,7 +314,7 @@ export async function toggleLocation(
     return ok();
   } catch (cause) {
     console.error("[admin] no se pudo cambiar el estado del local", { id, cause });
-    return fail(mensajeDeError("No se pudo cambiar el estado del local", cause));
+    return fail(await mensajeDeError("noSePudoCambiarEstadoLocal", cause));
   }
 }
 
@@ -316,6 +336,7 @@ type Destino = { locationId: number | null; distributorId: string | null };
 async function leerDestino(
   formData: FormData
 ): Promise<ActionResult<Destino>> {
+  const t = await getTranslations("Errores");
   const raw = readString(formData.get("destino"));
 
   if (raw === "" || raw === "stock") {
@@ -325,10 +346,10 @@ async function leerDestino(
   if (raw.startsWith("local:")) {
     const locationId = Number.parseInt(raw.slice("local:".length), 10);
     if (!Number.isFinite(locationId) || locationId <= 0) {
-      return fail("El destino elegido no es válido.");
+      return fail(t("destinoNoValido"));
     }
     if (!(await getLocationById(locationId))) {
-      return fail("El local elegido no existe.");
+      return fail(t("localNoExiste"));
     }
     return ok<Destino>({ locationId, distributorId: null });
   }
@@ -336,16 +357,17 @@ async function leerDestino(
   if (raw.startsWith("distribuidor:")) {
     const distributorId = raw.slice("distribuidor:".length);
     if (!(await getDistributorById(distributorId))) {
-      return fail("El distribuidor elegido no existe.");
+      return fail(t("distribuidorNoExiste"));
     }
     return ok<Destino>({ locationId: null, distributorId });
   }
 
-  return fail("El destino elegido no es válido.");
+  return fail(t("destinoNoValido"));
 }
 
 export async function createBracelet(formData: FormData): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   const code = readString(formData.get("code"));
   const label = readString(formData.get("label"));
@@ -353,20 +375,20 @@ export async function createBracelet(formData: FormData): Promise<ActionResult> 
   const deviceType = readString(formData.get("deviceType")) || "pulsera";
 
   const errorCodigo = validateCode(code);
-  if (errorCodigo) return fail(errorCodigo);
+  if (errorCodigo) return fail(await textoDeError(errorCodigo));
   if (deviceType !== "pulsera" && deviceType !== "placa") {
-    return fail("El tipo de dispositivo no es válido.");
+    return fail(t("tipoDispositivoNoValido"));
   }
 
-  const errorUrl = validateOptionalUrl(overrideUrl, "El destino directo");
-  if (errorUrl) return fail(errorUrl);
+  const errorUrl = validateOptionalUrl(overrideUrl, "destinoDirecto");
+  if (errorUrl) return fail(await textoDeError(errorUrl));
 
   const destino = await leerDestino(formData);
   if (!destino.ok) return destino;
 
   try {
     if (await getBraceletByCode(code)) {
-      return fail(`Ya existe una pulsera con el código ${code}.`);
+      return fail(t("pulseraConEseCodigo", { code }));
     }
 
     await db.insert(bracelets).values({
@@ -383,9 +405,9 @@ export async function createBracelet(formData: FormData): Promise<ActionResult> 
     revalidarAdmin();
     return ok();
   } catch (cause) {
-    if (esClaveDuplicada(cause)) return fail(`Ya existe una pulsera con el código ${code}.`);
+    if (esClaveDuplicada(cause)) return fail(t("pulseraConEseCodigo", { code }));
     console.error("[admin] no se pudo crear la pulsera", { code, cause });
-    return fail(mensajeDeError("No se pudo crear la pulsera", cause));
+    return fail(await mensajeDeError("noSePudoCrearPulsera", cause));
   }
 }
 
@@ -400,6 +422,7 @@ export async function createBraceletsBulk(
   formData: FormData
 ): Promise<ActionResult<BulkResult>> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   const prefix = readString(formData.get("prefix"));
   const start = readInt(formData.get("start")) ?? 1;
@@ -408,23 +431,23 @@ export async function createBraceletsBulk(
   const deviceType = readString(formData.get("deviceType")) || "pulsera";
 
   if (deviceType !== "pulsera" && deviceType !== "placa") {
-    return fail("El tipo de dispositivo no es válido.");
+    return fail(t("tipoDispositivoNoValido"));
   }
-  if (prefix === "") return fail("Poné un prefijo (por ejemplo, B).");
+  if (prefix === "") return fail(t("prefijoVacio"));
   if (!/^[A-Za-z0-9._-]{1,20}$/.test(prefix)) {
-    return fail("El prefijo solo admite letras, números, punto, guion y guion bajo.");
+    return fail(t("prefijoFormato"));
   }
-  if (!count || count < 1) return fail("La cantidad tiene que ser al menos 1.");
-  if (count > 500) return fail("Máximo 500 pulseras por lote.");
-  if (start < 0) return fail("El número inicial no puede ser negativo.");
-  if (padding < 0 || padding > 10) return fail("El relleno tiene que estar entre 0 y 10.");
+  if (!count || count < 1) return fail(t("cantidadMinima"));
+  if (count > 500) return fail(t("cantidadMaxima"));
+  if (start < 0) return fail(t("inicioNegativo"));
+  if (padding < 0 || padding > 10) return fail(t("rellenoRango"));
 
   const codes: string[] = [];
   for (let i = 0; i < count; i++) {
     const numero = String(start + i).padStart(padding, "0");
     const code = `${prefix}${numero}`;
     if (code.length > 50) {
-      return fail(`El código generado "${code}" supera los 50 caracteres.`);
+      return fail(t("codigoGeneradoLargo", { code }));
     }
     codes.push(code);
   }
@@ -436,7 +459,7 @@ export async function createBraceletsBulk(
     const existentes = await findExistingCodes(codes);
     const nuevos = codes.filter((code) => !existentes.has(code));
 
-    if (nuevos.length === 0) return fail("Todos los códigos de ese rango ya existen.");
+    if (nuevos.length === 0) return fail(t("codigosYaExisten"));
 
     await db.insert(bracelets).values(
       nuevos.map((code) => ({
@@ -456,12 +479,13 @@ export async function createBraceletsBulk(
     return ok<BulkResult>({ created: nuevos.length, skipped: [...existentes] });
   } catch (cause) {
     console.error("[admin] falló el alta masiva", { prefix, count, cause });
-    return fail(mensajeDeError("No se pudo generar el lote", cause));
+    return fail(await mensajeDeError("noSePudoGenerarLote", cause));
   }
 }
 
 export async function updateBracelet(formData: FormData): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   const id = readInt(formData.get("id"));
   const code = readString(formData.get("code"));
@@ -470,16 +494,16 @@ export async function updateBracelet(formData: FormData): Promise<ActionResult> 
   const overrideUrl = readString(formData.get("overrideUrl"));
   const deviceType = readString(formData.get("deviceType")) || "pulsera";
 
-  if (!id) return fail("Falta el identificador de la pulsera.");
+  if (!id) return fail(t("faltaIdPulsera"));
   if (deviceType !== "pulsera" && deviceType !== "placa") {
-    return fail("El tipo de dispositivo no es válido.");
+    return fail(t("tipoDispositivoNoValido"));
   }
 
   const errorCodigo = validateCode(code);
-  if (errorCodigo) return fail(errorCodigo);
+  if (errorCodigo) return fail(await textoDeError(errorCodigo));
 
-  const errorUrl = validateOptionalUrl(overrideUrl, "El destino directo");
-  if (errorUrl) return fail(errorUrl);
+  const errorUrl = validateOptionalUrl(overrideUrl, "destinoDirecto");
+  if (errorUrl) return fail(await textoDeError(errorUrl));
 
   const destino = await leerDestino(formData);
   if (!destino.ok) return destino;
@@ -487,12 +511,12 @@ export async function updateBracelet(formData: FormData): Promise<ActionResult> 
 
   try {
     const actual = await getBraceletById(id);
-    if (!actual) return fail("La pulsera ya no existe.");
+    if (!actual) return fail(t("pulseraNoExiste"));
 
     // El camarero tiene que ser del mismo local que la pulsera. Una pulsera
     // que vuelve al stock pierde el camarero: ya no está en ningún salón.
     if (waiterId && locationId === null) {
-      return fail("Una pulsera sin local no puede tener camarero asignado.");
+      return fail(t("pulseraSinLocalConCamarero"));
     }
     if (waiterId) {
       const filas = await db
@@ -500,9 +524,9 @@ export async function updateBracelet(formData: FormData): Promise<ActionResult> 
         .from(waiters)
         .where(eq(waiters.id, waiterId))
         .limit(1);
-      if (!filas[0]) return fail("El camarero elegido no existe.");
+      if (!filas[0]) return fail(t("camareroElegidoNoExiste"));
       if (filas[0].locationId !== locationId) {
-        return fail("Ese camarero pertenece a otro local.");
+        return fail(t("camareroDeOtroLocal"));
       }
     }
 
@@ -526,9 +550,9 @@ export async function updateBracelet(formData: FormData): Promise<ActionResult> 
 
     return ok();
   } catch (cause) {
-    if (esClaveDuplicada(cause)) return fail(`Ya existe otra pulsera con el código ${code}.`);
+    if (esClaveDuplicada(cause)) return fail(t("otraPulseraConEseCodigo", { code }));
     console.error("[admin] no se pudo actualizar la pulsera", { id, cause });
-    return fail(mensajeDeError("No se pudo guardar la pulsera", cause));
+    return fail(await mensajeDeError("noSePudoGuardarPulsera", cause));
   }
 }
 
@@ -537,10 +561,11 @@ export async function toggleBracelet(
   active: boolean
 ): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   try {
     const actual = await getBraceletById(id);
-    if (!actual) return fail("La pulsera ya no existe.");
+    if (!actual) return fail(t("pulseraNoExiste"));
 
     await db.update(bracelets).set({ active }).where(eq(bracelets.id, id));
 
@@ -549,7 +574,7 @@ export async function toggleBracelet(
     return ok();
   } catch (cause) {
     console.error("[admin] no se pudo cambiar el estado de la pulsera", { id, cause });
-    return fail(mensajeDeError("No se pudo cambiar el estado de la pulsera", cause));
+    return fail(await mensajeDeError("noSePudoCambiarEstadoPulsera", cause));
   }
 }
 
@@ -569,10 +594,11 @@ export async function toggleBracelet(
  */
 export async function entrarAlPanelDe(accountId: number): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   try {
     const cuenta = await getAccountById(accountId);
-    if (!cuenta) return fail("La cuenta elegida no existe.");
+    if (!cuenta) return fail(t("cuentaElegidaNoExiste"));
 
     const almacen = await cookies();
     almacen.set(COOKIE_CUENTA_ADMIN, String(cuenta.id), {
@@ -586,13 +612,14 @@ export async function entrarAlPanelDe(accountId: number): Promise<ActionResult> 
     return ok();
   } catch (cause) {
     console.error("[admin] no se pudo entrar al panel", { accountId, cause });
-    return fail(mensajeDeError("No se pudo abrir el panel", cause));
+    return fail(await mensajeDeError("noSePudoAbrirPanel", cause));
   }
 }
 
 /** Cierra el panel del restaurante y devuelve al admin a lo suyo. */
 export async function salirDelPanelDelRestaurante(): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   const almacen = await cookies();
   almacen.delete(COOKIE_CUENTA_ADMIN);
@@ -614,6 +641,7 @@ export async function salirDelPanelDelRestaurante(): Promise<ActionResult> {
  */
 export async function createUser(formData: FormData): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
 
   const name = readString(formData.get("name"));
   const email = readString(formData.get("email")).toLowerCase();
@@ -622,25 +650,25 @@ export async function createUser(formData: FormData): Promise<ActionResult> {
   const accountId = readInt(formData.get("accountId"));
 
   const errorNombre = validateName(name);
-  if (errorNombre) return fail(errorNombre);
+  if (errorNombre) return fail(await textoDeError(errorNombre));
 
   const errorEmail = validateEmail(email);
-  if (errorEmail) return fail(errorEmail);
+  if (errorEmail) return fail(await textoDeError(errorEmail));
 
   const errorPassword = validatePassword(password);
-  if (errorPassword) return fail(errorPassword);
+  if (errorPassword) return fail(await textoDeError(errorPassword));
 
   if (!["admin", "distributor", "restaurant"].includes(role)) {
-    return fail("El rol no es válido.");
+    return fail(t("rolNoValido"));
   }
 
   if (role === "restaurant" && !accountId) {
-    return fail("Un usuario de restaurante necesita una cuenta asignada.");
+    return fail(t("usuarioSinCuenta"));
   }
 
   try {
     if (accountId && !(await getAccountById(accountId))) {
-      return fail("La cuenta elegida no existe.");
+      return fail(t("cuentaElegidaNoExiste"));
     }
 
     const existentes = await db
@@ -648,7 +676,7 @@ export async function createUser(formData: FormData): Promise<ActionResult> {
       .from(user)
       .where(eq(user.email, email))
       .limit(1);
-    if (existentes[0]) return fail("Ya existe un usuario con ese email.");
+    if (existentes[0]) return fail(t("emailYaUsado"));
 
     const ctx = await auth.$context;
     const passwordHash = await ctx.password.hash(password);
@@ -681,9 +709,9 @@ export async function createUser(formData: FormData): Promise<ActionResult> {
     revalidatePath("/admin/usuarios");
     return ok();
   } catch (cause) {
-    if (esClaveDuplicada(cause)) return fail("Ya existe un usuario con ese email.");
+    if (esClaveDuplicada(cause)) return fail(t("emailYaUsado"));
     console.error("[admin] no se pudo crear el usuario", { email, cause });
-    return fail(mensajeDeError("No se pudo crear el usuario", cause));
+    return fail(await mensajeDeError("noSePudoCrearUsuario", cause));
   }
 }
 
@@ -704,6 +732,7 @@ export async function createUser(formData: FormData): Promise<ActionResult> {
  */
 export async function updateUser(formData: FormData): Promise<ActionResult> {
   const actual = await requireAdmin();
+  const t = await getTranslations("Errores");
 
   const userId = readString(formData.get("userId"));
   const name = readString(formData.get("name"));
@@ -712,26 +741,26 @@ export async function updateUser(formData: FormData): Promise<ActionResult> {
   const accountId = readInt(formData.get("accountId"));
   const password = readString(formData.get("password"));
 
-  if (userId === "") return fail("Falta el identificador del usuario.");
+  if (userId === "") return fail(t("faltaIdUsuario"));
 
   const errorNombre = validateName(name);
-  if (errorNombre) return fail(errorNombre);
+  if (errorNombre) return fail(await textoDeError(errorNombre));
 
   const errorEmail = validateEmail(email);
-  if (errorEmail) return fail(errorEmail);
+  if (errorEmail) return fail(await textoDeError(errorEmail));
 
   if (!["admin", "distributor", "restaurant"].includes(role)) {
-    return fail("El rol no es válido.");
+    return fail(t("rolNoValido"));
   }
 
   if (role === "restaurant" && !accountId) {
-    return fail("Un usuario de restaurante necesita una cuenta asignada.");
+    return fail(t("usuarioSinCuenta"));
   }
 
   // Vacía = no se toca. Si escribieron algo, tiene que ser válida.
   if (password !== "") {
     const errorPassword = validatePassword(password);
-    if (errorPassword) return fail(errorPassword);
+    if (errorPassword) return fail(await textoDeError(errorPassword));
   }
 
   try {
@@ -742,12 +771,10 @@ export async function updateUser(formData: FormData): Promise<ActionResult> {
       .limit(1);
 
     const anterior = existentes[0];
-    if (!anterior) return fail("Ese usuario ya no existe.");
+    if (!anterior) return fail(t("usuarioNoExiste"));
 
     if (userId === actual.id && role !== anterior.role) {
-      return fail(
-        "No podés cambiarte el rol a vos mismo. Pedile a otro admin que lo haga."
-      );
+      return fail(t("noPodesCambiarteElRol"));
     }
 
     if (anterior.role === "admin" && role !== "admin") {
@@ -757,9 +784,7 @@ export async function updateUser(formData: FormData): Promise<ActionResult> {
         .where(eq(user.role, "admin"));
 
       if ((conteo?.total ?? 0) <= 1) {
-        return fail(
-          "Es el único admin que queda: si le sacás el rol, nadie puede entrar a la administración."
-        );
+        return fail(t("ultimoAdmin"));
       }
     }
 
@@ -770,11 +795,11 @@ export async function updateUser(formData: FormData): Promise<ActionResult> {
       .where(eq(user.email, email))
       .limit(1);
     if (conEseEmail[0] && conEseEmail[0].id !== userId) {
-      return fail("Ya existe otro usuario con ese email.");
+      return fail(t("otroEmailYaUsado"));
     }
 
     if (accountId && !(await getAccountById(accountId))) {
-      return fail("La cuenta elegida no existe.");
+      return fail(t("cuentaElegidaNoExiste"));
     }
 
     await db
@@ -801,9 +826,7 @@ export async function updateUser(formData: FormData): Promise<ActionResult> {
         .limit(1);
 
       if (!credenciales[0]) {
-        return fail(
-          "Los datos se guardaron, pero ese usuario no tiene credenciales cargadas y no se le pudo poner la contraseña."
-        );
+        return fail(t("sinCredenciales"));
       }
 
       await db
@@ -816,15 +839,16 @@ export async function updateUser(formData: FormData): Promise<ActionResult> {
     revalidatePath("/admin/usuarios");
     return ok();
   } catch (cause) {
-    if (esClaveDuplicada(cause)) return fail("Ya existe otro usuario con ese email.");
+    if (esClaveDuplicada(cause)) return fail(t("otroEmailYaUsado"));
     console.error("[admin] no se pudo actualizar el usuario", { userId, cause });
-    return fail(mensajeDeError("No se pudo guardar el usuario", cause));
+    return fail(await mensajeDeError("noSePudoGuardarUsuario", cause));
   }
 }
 
 /** Vacía el caché de la landing. Útil para diagnosticar. */
 export async function clearLandingCache(): Promise<ActionResult> {
   await requireAdmin();
+  const t = await getTranslations("Errores");
   invalidateAll();
   return ok();
 }

@@ -76,14 +76,27 @@ export type Period = {
   prevTo: Date;
   /** Cuántos días cubre. */
   days: number;
-  label: string;
+  /**
+   * Cómo se llama el período, como **clave** dentro del espacio `Stats`.
+   *
+   * No es la frase ya escrita: este archivo no sabe en qué idioma está mirando
+   * la pantalla quien pidió los datos, y un "Últimos 30 días" armado acá
+   * llegaba en castellano al encabezado de un panel en alemán.
+   */
+  labelKey: string;
+  /**
+   * Para el rango a medida: los dos días en formato "YYYY-MM-DD". Se formatean
+   * al renderizar, con el idioma del pedido, porque 04/09 y 04.09 no son la
+   * misma fecha para todo el mundo.
+   */
+  labelDates?: { desde: string; hasta: string };
 };
 
 export const PERIOD_PRESETS = {
-  "7d": { days: 7, label: "Últimos 7 días" },
-  "30d": { days: 30, label: "Últimos 30 días" },
-  "90d": { days: 90, label: "Últimos 90 días" },
-  "365d": { days: 365, label: "Último año" },
+  "7d": { days: 7, labelKey: "label7d" },
+  "30d": { days: 30, labelKey: "label30d" },
+  "90d": { days: 90, labelKey: "label90d" },
+  "365d": { days: 365, labelKey: "label365d" },
 } as const;
 
 export type PeriodKey = keyof typeof PERIOD_PRESETS;
@@ -97,7 +110,7 @@ export function isPeriodKey(value: string | undefined): value is PeriodKey {
  * `to` es el comienzo de mañana, así los escaneos de esta misma tarde entran.
  */
 export function buildPeriod(key: PeriodKey): Period {
-  const { days, label } = PERIOD_PRESETS[key];
+  const { days, labelKey } = PERIOD_PRESETS[key];
 
   const to = addDays(startOfLocalDay(), 1);
   const from = addDays(to, -days);
@@ -108,7 +121,7 @@ export function buildPeriod(key: PeriodKey): Period {
     prevFrom: addDays(from, -days),
     prevTo: from,
     days,
-    label,
+    labelKey,
   };
 }
 
@@ -149,10 +162,8 @@ export function buildCustomPeriod(desde: string, hasta: string): Period | null {
     prevFrom: addDays(from, -days),
     prevTo: from,
     days,
-    label:
-      desde === hasta
-        ? `El ${formatDayLabel(desde)}`
-        : `Del ${formatDayLabel(desde)} al ${formatDayLabel(hasta)}`,
+    labelKey: desde === hasta ? "elDia" : "delAl",
+    labelDates: { desde, hasta },
   };
 }
 
@@ -166,11 +177,6 @@ function parseLocalDay(valor: string): Date | null {
   const fecha = new Date(inicioLocal - OFFSET_HOURS * HOUR_MS);
 
   return Number.isNaN(fecha.getTime()) ? null : fecha;
-}
-
-function formatDayLabel(valor: string): string {
-  const [anio, mes, dia] = valor.split("-");
-  return `${dia}/${mes}/${anio}`;
 }
 
 /** El día local de hoy en formato "YYYY-MM-DD". Sirve para los inputs date. */

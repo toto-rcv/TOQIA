@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
@@ -8,6 +9,7 @@ import { Input, Label } from "@/components/ui/input";
 import { signIn } from "@/lib/auth-client";
 
 export function LoginForm() {
+  const t = useTranslations("Login");
   const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -65,7 +67,7 @@ export function LoginForm() {
 
         // No distinguimos "usuario inexistente" de "contraseña incorrecta":
         // eso le diría a un atacante qué emails existen en el sistema.
-        setError("Email o contraseña incorrectos.");
+        setError(t("errorCredenciales"));
         return;
       }
 
@@ -83,11 +85,7 @@ export function LoginForm() {
         cause instanceof TypeError ||
         (cause instanceof Error && /fetch/i.test(cause.message));
 
-      setError(
-        esFalloDeRed
-          ? "No se pudo contactar al servidor. Revisá que esté corriendo y probá de nuevo."
-          : "Ocurrió un error inesperado al ingresar. Probá de nuevo."
-      );
+      setError(esFalloDeRed ? t("errorRed") : t("errorInesperado"));
     } finally {
       setPending(false);
     }
@@ -96,7 +94,7 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t("email")}</Label>
         <Input
           id="email"
           name="email"
@@ -111,7 +109,7 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="password">Contraseña</Label>
+        <Label htmlFor="password">{t("password")}</Label>
         <Input
           id="password"
           name="password"
@@ -130,9 +128,12 @@ export function LoginForm() {
           aria-live="polite"
           className="rounded-control border border-ex-warning/30 bg-ex-warning/10 px-3 py-2 text-xs leading-relaxed text-ex-text"
         >
-          Demasiados intentos fallidos. Vas a poder volver a probar en{" "}
-          <span className="font-semibold tabular-nums">{restante}</span>{" "}
-          {restante === 1 ? "segundo" : "segundos"}.
+          {t.rich("bloqueo", {
+            restante,
+            n: (chunks) => (
+              <span className="font-semibold tabular-nums">{chunks}</span>
+            ),
+          })}
         </p>
       ) : error ? (
         <p
@@ -150,10 +151,10 @@ export function LoginForm() {
         disabled={pending || bloqueado}
       >
         {bloqueado
-          ? `Esperá ${restante} s`
+          ? t("espera", { n: restante })
           : pending
-            ? "Ingresando…"
-            : "Ingresar"}
+            ? t("ingresando")
+            : t("boton")}
       </Button>
     </form>
   );

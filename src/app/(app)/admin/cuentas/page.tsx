@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { PageHeader } from "@/components/admin/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -10,14 +11,25 @@ import { requireAdmin } from "@/lib/session";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { AccountRowActions, NewAccountDialog } from "./account-dialogs";
 
-export const metadata = { title: "Cuentas · Toqia Admin" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Cuentas");
+  return { title: t("titulo") };
+}
 export const dynamic = "force-dynamic";
 
-const ETIQUETA_ESTADO: Record<string, { label: string; tone: "active" | "inactive" | "warning" | "danger" }> = {
-  trial: { label: "prueba", tone: "warning" },
-  active: { label: "activa", tone: "active" },
-  past_due: { label: "impaga", tone: "warning" },
-  cancelled: { label: "cancelada", tone: "danger" },
+/** El tono es visual; el nombre del estado sale de las traducciones. */
+const ETIQUETA_ESTADO: Record<
+  string,
+  { clave: string; tone: "active" | "inactive" | "warning" | "danger" }
+> = {
+  trial: { clave: "estadoPrueba", tone: "warning" },
+  active: { clave: "estadoActiva", tone: "active" },
+  past_due: { clave: "estadoImpaga", tone: "warning" },
+  cancelled: { clave: "estadoCancelada", tone: "danger" },
 };
 
 export default async function AdminAccountsPage({
@@ -29,11 +41,12 @@ export default async function AdminAccountsPage({
 
   // Se llega con ?elegir=1 desde /panel: un admin sin restaurante elegido no
   // tiene panel que mirar, y el aviso le dice qué le falta hacer.
-  const { elegir } = await searchParams;
-
-  const [cuentas, distribuidores] = await Promise.all([
+  const [{ elegir }, cuentas, distribuidores, t, locale] = await Promise.all([
+    searchParams,
     listAccounts(),
     listDistributors(),
+    getTranslations("Cuentas"),
+    getLocale(),
   ]);
 
   const ahora = Date.now();
@@ -41,8 +54,8 @@ export default async function AdminAccountsPage({
   return (
     <>
       <PageHeader
-        title="Cuentas"
-        subtitle="Cada cuenta agrupa los locales de un cliente. Dar de baja una corta todas sus pulseras."
+        title={t("titulo")}
+        subtitle={t("subtitulo")}
       >
         <NewAccountDialog />
       </PageHeader>
@@ -50,40 +63,45 @@ export default async function AdminAccountsPage({
       {elegir ? (
         <div className="mb-4 rounded-card border border-ex-warning/30 bg-ex-warning/10 px-4 py-3">
           <p className="text-[12.5px] leading-relaxed text-ex-text">
-            Para entrar al panel de un restaurante, elegí cuál con el botón{" "}
-            <ExternalLink className="inline size-3.5 -translate-y-px" aria-hidden />{" "}
-            de su fila. Vas a poder configurarle la página y cargarle la carta
-            como si fueras él.
+            {t.rich("avisoElegir", {
+              icono: () => (
+                <ExternalLink
+                  className="inline size-3.5 -translate-y-px"
+                  aria-hidden
+                />
+              ),
+            })}
           </p>
         </div>
       ) : null}
 
       {cuentas.length === 0 ? (
         <Card>
-          <EmptyState>Todavía no hay cuentas cargadas.</EmptyState>
+          <EmptyState>{t("sinCuentas")}</EmptyState>
         </Card>
       ) : (
         <Card className="overflow-hidden">
           <Table>
             <Thead>
               <tr>
-                <Th>Cuenta</Th>
-                <Th className="w-[130px]">Suscripción</Th>
-                <Th className="w-[110px]">Vence</Th>
-                <Th className="w-[150px]">Distribuidor</Th>
-                <Th className="w-[90px] text-right">Locales</Th>
-                <Th className="w-[90px] text-right">Pulseras</Th>
-                <Th className="w-[100px] text-right">Escaneos</Th>
-                <Th className="w-[90px]">Estado</Th>
-                <Th className="w-[90px] text-right">Acciones</Th>
+                <Th>{t("colCuenta")}</Th>
+                <Th className="w-[130px]">{t("colSuscripcion")}</Th>
+                <Th className="w-[110px]">{t("colVence")}</Th>
+                <Th className="w-[150px]">{t("colDistribuidor")}</Th>
+                <Th className="w-[90px] text-right">{t("colLocales")}</Th>
+                <Th className="w-[90px] text-right">{t("colPulseras")}</Th>
+                <Th className="w-[100px] text-right">{t("colEscaneos")}</Th>
+                <Th className="w-[90px]">{t("colEstado")}</Th>
+                <Th className="w-[90px] text-right">{t("colAcciones")}</Th>
               </tr>
             </Thead>
             <tbody>
               {cuentas.map((cuenta) => {
-                const estado = ETIQUETA_ESTADO[cuenta.subscriptionStatus] ?? {
-                  label: cuenta.subscriptionStatus,
-                  tone: "inactive" as const,
-                };
+                const estado = ETIQUETA_ESTADO[cuenta.subscriptionStatus];
+                const etiquetaDeEstado = estado
+                  ? t(estado.clave)
+                  : cuenta.subscriptionStatus;
+                const tonoDeEstado = estado?.tone ?? ("inactive" as const);
                 const vencida =
                   cuenta.subscriptionExpiresAt &&
                   new Date(cuenta.subscriptionExpiresAt).getTime() < ahora;
@@ -103,7 +121,7 @@ export default async function AdminAccountsPage({
                     </Td>
 
                     <Td>
-                      <Badge tone={estado.tone}>{estado.label}</Badge>
+                      <Badge tone={tonoDeEstado}>{etiquetaDeEstado}</Badge>
                       {cuenta.subscriptionPrice ? (
                         <p className="num mt-1 text-[10px] text-ex-text-muted">
                           ${cuenta.subscriptionPrice}
@@ -117,25 +135,25 @@ export default async function AdminAccountsPage({
                       }
                     >
                       {cuenta.subscriptionExpiresAt
-                        ? formatDate(cuenta.subscriptionExpiresAt)
+                        ? formatDate(cuenta.subscriptionExpiresAt, locale)
                         : "—"}
                     </Td>
 
                     <Td className="text-xs">{cuenta.distributorName ?? "—"}</Td>
 
                     <Td className="num text-right text-sm text-ex-text">
-                      {formatNumber(cuenta.locationCount)}
+                      {formatNumber(cuenta.locationCount, locale)}
                     </Td>
                     <Td className="num text-right text-sm text-ex-text">
-                      {formatNumber(cuenta.braceletCount)}
+                      {formatNumber(cuenta.braceletCount, locale)}
                     </Td>
                     <Td className="num text-right text-sm text-ex-text">
-                      {formatNumber(cuenta.scanCount)}
+                      {formatNumber(cuenta.scanCount, locale)}
                     </Td>
 
                     <Td>
                       <Badge tone={cuenta.active ? "active" : "inactive"}>
-                        {cuenta.active ? "alta" : "baja"}
+                        {cuenta.active ? t("alta") : t("baja")}
                       </Badge>
                     </Td>
 

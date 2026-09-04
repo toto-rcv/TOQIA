@@ -1,4 +1,5 @@
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
+import { useLocale } from "next-intl";
 
 import { cn, formatNumber } from "@/lib/utils";
 
@@ -32,7 +33,8 @@ export function MetricTile({
   highlight?: boolean;
   invert?: boolean;
 }) {
-  const texto = typeof value === "number" ? formatNumber(value) : value;
+  const locale = useLocale();
+  const texto = typeof value === "number" ? formatNumber(value, locale) : value;
 
   return (
     <div

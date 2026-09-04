@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Copy } from "lucide-react";
+import { useTranslations } from "next-intl";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -16,12 +17,14 @@ import { cn } from "@/lib/utils";
 export function CopyButton({
   value,
   className,
-  label = "Copiar",
+  label,
 }: {
   value: string;
   className?: string;
   label?: string;
 }) {
+  const t = useTranslations("Comun");
+  const etiqueta = label ?? t("copiar");
   const [copied, setCopied] = React.useState(false);
   const [failed, setFailed] = React.useState(false);
 
@@ -50,8 +53,8 @@ export function CopyButton({
     <button
       type="button"
       onClick={handleCopy}
-      title={failed ? "No se pudo copiar" : label}
-      aria-label={label}
+      title={failed ? t("noSePudoCopiar") : etiqueta}
+      aria-label={etiqueta}
       className={cn(
         "inline-flex h-7 w-7 items-center justify-center rounded-control border border-ex-border",
         "text-ex-text-muted transition-colors hover:border-ex-blue/40 hover:text-ex-text",

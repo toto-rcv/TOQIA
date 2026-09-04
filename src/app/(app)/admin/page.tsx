@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+
+import { etiquetaDePeriodo } from "@/i18n/periodo";
 
 import { PageHeader } from "@/components/admin/page-header";
 import { EvolutionChart } from "@/components/stats/evolution-chart";
@@ -20,7 +22,14 @@ import { parseStatsParams, type StatsSearchParams } from "@/lib/stats-params";
 import { todayLocalKey } from "@/lib/time";
 import { formatNumber } from "@/lib/utils";
 
-export const metadata = { title: "Dashboard · Toqia Admin" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Stats");
+  return { title: t("dashboard") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage({
@@ -28,9 +37,10 @@ export default async function AdminDashboardPage({
 }: {
   searchParams: Promise<StatsSearchParams>;
 }) {
-  const [, t] = await Promise.all([
+  const [, t, locale] = await Promise.all([
     requireAdmin(),
     getTranslations("Stats"),
+    getLocale(),
   ]);
   const params = parseStatsParams(await searchParams);
 
@@ -54,8 +64,7 @@ export default async function AdminDashboardPage({
       new Date(cuenta.subscriptionExpiresAt).getTime() < Date.now()
   );
 
-  const presetKey = `label${params.periodKey}`;
-  const periodLabel = t.has(presetKey as any) ? t(presetKey as any) : params.period.label;
+  const periodLabel = etiquetaDePeriodo(t, params.period, locale);
 
   const listaCuentasVencidas = porVencer.slice(0, 4).map((cuenta) => cuenta.name).join(", ") +
     (porVencer.length > 4 ? "…" : "");
@@ -138,8 +147,8 @@ export default async function AdminDashboardPage({
                 subtitle: cuenta.active ? null : t("inactiva"),
                 value: cuenta.scanCount,
                 detail: t("localesYPulseras", {
-                  locales: formatNumber(cuenta.locationCount),
-                  pulseras: formatNumber(cuenta.braceletCount),
+                  locales: formatNumber(cuenta.locationCount, locale),
+                  pulseras: formatNumber(cuenta.braceletCount, locale),
                 }),
               }))}
             emptyMessage={t("todaviaSinCuentas")}

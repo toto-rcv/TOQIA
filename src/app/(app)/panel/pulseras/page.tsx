@@ -24,19 +24,27 @@ import { requireRestaurantUser } from "@/lib/session";
 import { braceletUrl, formatDateTime, formatNumber } from "@/lib/utils";
 import { WaiterSelect } from "./waiter-select";
 
-export const metadata = { title: "Pulseras · Toqia" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Pulseras");
+  return { title: t("titulo") };
+}
 export const dynamic = "force-dynamic";
 
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 
 export default async function PanelBraceletsPage({
   searchParams,
 }: {
   searchParams: Promise<RawPageParams>;
 }) {
-  const [user, t] = await Promise.all([
+  const [user, t, locale] = await Promise.all([
     requireRestaurantUser(),
     getTranslations("Pulseras"),
+    getLocale(),
   ]);
   const params = await searchParams;
 
@@ -138,15 +146,15 @@ export default async function PanelBraceletsPage({
                       </Td>
 
                       <Td className="text-right text-sm font-medium tabular-nums text-ex-text">
-                        {formatNumber(pulsera.scanCount)}
+                        {formatNumber(pulsera.scanCount, locale)}
                       </Td>
 
                       <Td className="text-right text-sm tabular-nums">
-                        {formatNumber(pulsera.reviewClicks)}
+                        {formatNumber(pulsera.reviewClicks, locale)}
                       </Td>
 
                       <Td className="text-[12px] tabular-nums">
-                        {formatDateTime(pulsera.lastScanAt)}
+                        {formatDateTime(pulsera.lastScanAt, locale)}
                       </Td>
                     </Tr>
                   );
@@ -200,17 +208,17 @@ export default async function PanelBraceletsPage({
                   <RowFields className="grid-cols-3">
                     <RowField label={t("colEscaneos")}>
                       <span className="font-semibold tabular-nums text-ex-text">
-                        {formatNumber(pulsera.scanCount)}
+                        {formatNumber(pulsera.scanCount, locale)}
                       </span>
                     </RowField>
                     <RowField label={t("colResenas")}>
                       <span className="tabular-nums">
-                        {formatNumber(pulsera.reviewClicks)}
+                        {formatNumber(pulsera.reviewClicks, locale)}
                       </span>
                     </RowField>
                     <RowField label={t("colUltimo")}>
                       <span className="text-[12px] tabular-nums">
-                        {formatDateTime(pulsera.lastScanAt)}
+                        {formatDateTime(pulsera.lastScanAt, locale)}
                       </span>
                     </RowField>
                   </RowFields>

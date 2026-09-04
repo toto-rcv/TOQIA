@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 import { pool } from "@/db";
 import { aplicarMigraciones, type InformeMigracion } from "@/lib/migraciones";
@@ -39,7 +40,8 @@ export async function ejecutarMigraciones(): Promise<
     return ok(informe);
   } catch (error) {
     const detalle = error instanceof Error ? error.message : String(error);
-    return fail(`No se pudo migrar: ${detalle}`);
+    const t = await getTranslations("Errores");
+    return fail(t("noSePudoMigrar", { detalle }));
   }
 }
 
@@ -50,11 +52,11 @@ export async function borrarTodo(
 ): Promise<ActionResult<ResultadoBorrado>> {
   const admin = await requireAdmin();
 
+  const t = await getTranslations("Errores");
+
   const confirmacion = readString(formData.get("confirmacion"));
   if (confirmacion !== FRASE_DE_CONFIRMACION) {
-    return fail(
-      `Para confirmar tenés que escribir exactamente "${FRASE_DE_CONFIRMACION}".`
-    );
+    return fail(t("confirmacionExacta", { frase: FRASE_DE_CONFIRMACION }));
   }
 
   try {
@@ -71,6 +73,6 @@ export async function borrarTodo(
     return ok(resultado);
   } catch (error) {
     const detalle = error instanceof Error ? error.message : String(error);
-    return fail(`No se pudo borrar: ${detalle}`);
+    return fail(t("noSePudoBorrarTodo", { detalle }));
   }
 }

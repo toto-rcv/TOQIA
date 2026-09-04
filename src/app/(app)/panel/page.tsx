@@ -1,4 +1,6 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
+
+import { etiquetaDePeriodo } from "@/i18n/periodo";
 import { PageHeader } from "@/components/admin/page-header";
 import { EvolutionChart } from "@/components/stats/evolution-chart";
 import { MetricTile } from "@/components/stats/metric-tile";
@@ -26,7 +28,14 @@ import { parseStatsParams, type StatsSearchParams } from "@/lib/stats-params";
 import { todayLocalKey } from "@/lib/time";
 import { formatNumber } from "@/lib/utils";
 
-export const metadata = { title: "Estadísticas · Toqia" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Stats");
+  return { title: t("resumen") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function PanelStatsPage({
@@ -34,9 +43,10 @@ export default async function PanelStatsPage({
 }: {
   searchParams: Promise<StatsSearchParams>;
 }) {
-  const [user, t] = await Promise.all([
+  const [user, t, locale] = await Promise.all([
     requireRestaurantUser(),
     getTranslations("Stats"),
+    getLocale(),
   ]);
   const params = parseStatsParams(await searchParams);
 
@@ -63,8 +73,7 @@ export default async function PanelStatsPage({
         : Promise.resolve([]),
     ]);
 
-  const presetKey = `label${params.periodKey}`;
-  const periodLabel = t.has(presetKey as any) ? t(presetKey as any) : params.period.label;
+  const periodLabel = etiquetaDePeriodo(t, params.period, locale);
 
   return (
     <>
@@ -159,7 +168,7 @@ export default async function PanelStatsPage({
                 title: fila.name,
                 value: fila.scans,
                 detail: t("resenasConConversion", {
-                  resenas: formatNumber(fila.reviewClicks),
+                  resenas: formatNumber(fila.reviewClicks, locale),
                   conversion: fila.conversionRate.toFixed(0),
                 }),
               }))}

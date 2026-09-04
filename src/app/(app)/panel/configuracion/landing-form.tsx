@@ -1,6 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ export function LandingForm({
   location: Location;
   tieneCartaToqia: boolean;
 }) {
+  const t = useTranslations("Configuracion");
   const [error, setError] = React.useState<string | null>(null);
   const [guardado, setGuardado] = React.useState(false);
   const [pending, startTransition] = React.useTransition();
@@ -78,99 +80,87 @@ export function LandingForm({
     <form onSubmit={handleSubmit} className="space-y-4 pb-4">
       <input type="hidden" name="locationId" value={location.id} />
 
-      <Seccion
-        titulo="Identidad"
-        descripcion="El nombre y las imágenes con las que se presenta tu local."
-      >
+      <Seccion titulo={t("secIdentidad")} descripcion={t("secIdentidadDesc")}>
         <Campo
           id="displayName"
           name="displayName"
-          label="Nombre visible"
+          label={t("nombreVisible")}
           defaultValue={location.displayName ?? ""}
           placeholder={location.name}
-          hint="Si lo dejás vacío se usa el nombre del local."
+          hint={t("nombreVisibleHint")}
         />
         <Campo
           id="tagline"
           name="tagline"
-          label="Frase debajo del nombre"
+          label={t("fraseSub")}
           defaultValue={location.tagline ?? ""}
-          placeholder="Cocina de autor en Palermo"
+          placeholder={t("fraseSubPlaceholder")}
         />
         <CampoArchivo
           name="logo"
-          label="Logo"
+          label={t("logo")}
           actual={location.logoUrl}
           formato="imagen"
-          hint="PNG con fondo transparente se ve mejor sobre la portada."
+          hint={t("logoHint")}
         />
         <CampoArchivo
           name="cover"
-          label="Foto de portada"
+          label={t("cover")}
           actual={location.coverImageUrl}
           formato="imagen"
-          hint="Va detrás del logo, arriba de todo. Una foto del salón funciona bien: se oscurece automáticamente para que el logo se lea."
+          hint={t("coverHint")}
         />
       </Seccion>
 
-      <Seccion
-        titulo="Textos de la página"
-        descripcion="Lo que lee el cliente. Si los dejás vacíos usamos los nuestros."
-      >
+      <Seccion titulo={t("secTextos")} descripcion={t("secTextosDesc")}>
         <Campo
           id="welcomeKicker"
           name="welcomeKicker"
-          label="Línea de arriba"
+          label={t("welcomeKicker")}
           defaultValue={location.welcomeKicker ?? ""}
-          placeholder="Gracias por visitarnos"
-          hint="Si lo dejás vacío se usa “Gracias por visitarnos”."
+          placeholder={t("welcomeKickerPlaceholder")}
+          hint={t("welcomeKickerHint")}
         />
         <Campo
           id="welcomeTitle"
           name="welcomeTitle"
-          label="Título principal"
+          label={t("welcomeTitle")}
           defaultValue={location.welcomeTitle ?? ""}
-          placeholder="Tu opinión nos ayuda a seguir mejorando"
+          placeholder={t("welcomeTitlePlaceholder")}
         />
         <Campo
           id="closingMessage"
           name="closingMessage"
-          label="Mensaje de cierre"
+          label={t("closingMessage")}
           defaultValue={location.closingMessage ?? ""}
-          placeholder="Gracias por ser parte de nuestra experiencia"
+          placeholder={t("closingMessagePlaceholder")}
         />
         <CampoArchivo
           name="closing"
-          label="Foto del cierre"
+          label={t("closing")}
           actual={location.closingImageUrl}
           formato="imagen"
-          hint="Acompaña al mensaje de despedida, abajo de todo."
+          hint={t("closingHint")}
         />
       </Seccion>
 
-      <Seccion
-        titulo="Reseñas"
-        descripcion="El botón principal de la página."
-      >
+      <Seccion titulo={t("secResenas")} descripcion={t("secResenasDesc")}>
         <Campo
           id="googleReviewUrl"
           name="googleReviewUrl"
-          label="Enlace de Google Reviews"
+          label={t("googleReviewUrl")}
           defaultValue={location.googleReviewUrl ?? ""}
           placeholder="https://g.page/r/CODIGO/review"
           mono
-          hint="Es el botón principal de la página. Sin esto, el cliente no tiene dónde dejar la reseña."
+          hint={t("googleReviewUrlHint")}
         />
       </Seccion>
 
-      <Seccion
-        titulo="Contacto y enlaces"
-        descripcion="Cada dato cargado agrega su botón; los vacíos no aparecen."
-      >
+      <Seccion titulo={t("secContacto")} descripcion={t("secContactoDesc")}>
         <Campo
           id="instagramUrl"
           name="instagramUrl"
-          label="Instagram"
+          label={t("instagramUrl")}
           defaultValue={location.instagramUrl ?? ""}
           placeholder="https://instagram.com/tu-local"
           mono
@@ -178,41 +168,41 @@ export function LandingForm({
         <Campo
           id="whatsappPhone"
           name="whatsappPhone"
-          label="WhatsApp"
+          label={t("whatsappPhone")}
           defaultValue={location.whatsappPhone ?? ""}
           placeholder="5491133334444"
           mono
-          hint="Con código de país, sin + ni espacios."
+          hint={t("whatsappPhoneHint")}
         />
         <Campo
           id="phone"
           name="phone"
-          label="Teléfono"
+          label={t("phone")}
           defaultValue={location.phone ?? ""}
           placeholder="+54 11 3333-4444"
-          hint="Es el del botón “Llamar”. Puede ser distinto del de WhatsApp."
+          hint={t("phoneHint")}
         />
         <Campo
           id="reservationUrl"
           name="reservationUrl"
-          label="Reservas (opcional)"
+          label={t("reservationUrl")}
           defaultValue={location.reservationUrl ?? ""}
           placeholder="https://…/reservar"
           mono
-          hint="Si lo dejás vacío, “Reservar” abre WhatsApp con el mensaje “Hola, quisiera reservar una mesa” ya escrito. Completalo solo si usás una plataforma de reservas."
+          hint={t("reservationUrlHint")}
         />
         <Campo
           id="currency"
           name="currency"
-          label="Moneda de la carta"
+          label={t("currency")}
           defaultValue={location.currency ?? "€"}
           placeholder="€"
-          hint="El símbolo que acompaña los precios: €, $, US$…"
+          hint={t("currencyHint")}
         />
         <Campo
           id="websiteUrl"
           name="websiteUrl"
-          label="Sitio web"
+          label={t("websiteUrl")}
           defaultValue={location.websiteUrl ?? ""}
           placeholder="https://tu-local.com"
           mono
@@ -226,25 +216,22 @@ export function LandingForm({
         tieneCartaToqia={tieneCartaToqia}
       />
 
-      <Seccion
-        titulo="Ubicación"
-        descripcion="Para el botón “Cómo llegar”."
-      >
+      <Seccion titulo={t("secUbicacion")} descripcion={t("secUbicacionDesc")}>
         <Campo
           id="address"
           name="address"
-          label="Dirección"
+          label={t("address")}
           defaultValue={location.address ?? ""}
-          placeholder="Av. Siempre Viva 742, CABA"
+          placeholder={t("addressPlaceholder")}
         />
         <Campo
           id="mapsUrl"
           name="mapsUrl"
-          label="Enlace de Google Maps"
+          label={t("mapsUrl")}
           defaultValue={location.mapsUrl ?? ""}
           placeholder="https://maps.app.goo.gl/…"
           mono
-          hint="Opcional. Si lo dejás vacío pero cargaste la dirección, el botón busca esa dirección en Maps."
+          hint={t("mapsUrlHint")}
         />
       </Seccion>
 
@@ -266,13 +253,13 @@ export function LandingForm({
                    backdrop-blur sm:bottom-4 sm:px-5"
       >
         <Button type="submit" variant="primary" size="lg" disabled={pending}>
-          {pending ? "Guardando…" : "Guardar cambios"}
+          {pending ? t("guardando") : t("guardarCambios")}
         </Button>
 
         {guardado ? (
           <span className="flex items-center gap-1.5 text-xs text-ex-success">
             <Check className="size-3.5" />
-            Guardado. Los cambios ya están en tu página.
+            {t("guardadoExito")}
           </span>
         ) : null}
       </div>
@@ -329,41 +316,44 @@ function SelectorDeCarta({
   pdfActual: string | null;
   tieneCartaToqia: boolean;
 }) {
+  const t = useTranslations("Configuracion");
   const [modo, setModo] = React.useState(modoInicial);
   const [etiqueta, setEtiqueta] = React.useState(etiquetaInicial);
 
   // Lo que va a decir el botón de verdad. Se usa en todos los textos de esta
   // sección: si el local lo llamó "Catálogo", leer instrucciones que hablan de
   // “Ver menú” obliga a traducir mentalmente en cada frase.
-  const comoSeLlama = etiqueta.trim() || "Ver menú";
+  const comoSeLlama = etiqueta.trim() || t("verMenuDefecto");
 
   return (
     <section className="rounded-card border border-ex-border bg-ex-surface shadow-card">
       <div className="border-b border-ex-border-subtle px-4 py-3.5 sm:px-5">
-        <h3 className="text-[15px] font-semibold tracking-tight text-ex-text">Carta</h3>
+        <h3 className="text-[15px] font-semibold tracking-tight text-ex-text">
+          {t("secCarta")}
+        </h3>
         <p className="mt-0.5 text-[12.5px] text-ex-text-muted">
-          Cómo se llama el botón de tu página y qué se abre al tocarlo.
+          {t("secCartaDesc")}
         </p>
       </div>
 
       <div className="border-b border-ex-border-subtle px-4 py-4 sm:px-5">
         <div className="space-y-1.5">
-          <Label htmlFor="menuButtonLabel">Texto del botón</Label>
+          <Label htmlFor="menuButtonLabel">{t("textoBotonCarta")}</Label>
           <Input
             id="menuButtonLabel"
             name="menuButtonLabel"
             value={etiqueta}
             onChange={(event) => setEtiqueta(event.target.value)}
             maxLength={40}
-            placeholder="Ver menú"
+            placeholder={t("verMenuDefecto")}
             autoComplete="off"
           />
           <p className="text-[11px] leading-relaxed text-ex-text-muted">
-            Poné lo que corresponda a tu negocio: “Lista de precios”,
-            “Catálogo”, “Ver servicios”. Si lo dejás vacío dice{" "}
-            <span className="font-medium text-ex-text">Ver menú</span>. Entran
-            hasta 40 caracteres, pero de dos o tres palabras no pasés: el botón
-            es chico y el texto se parte.
+            {t.rich("textoBotonCartaHint", {
+              defecto: (chunks) => (
+                <span className="font-medium text-ex-text">{chunks}</span>
+              ),
+            })}
           </p>
         </div>
       </div>
@@ -373,12 +363,10 @@ function SelectorDeCarta({
           valor="toqia"
           elegido={modo === "toqia"}
           onChange={setModo}
-          titulo="La carta de Toqia"
-          detalle="La que cargás en “Mi carta”, con categorías, precios y fotos. Los cambios se ven al instante y no hay que subir nada."
+          titulo={t("toqiaTitulo")}
+          detalle={t("toqiaDetalle")}
           aviso={
-            tieneCartaToqia
-              ? null
-              : `Todavía no cargaste ningún plato: hasta que lo hagas, el botón “${comoSeLlama}” no aparece en tu página.`
+            tieneCartaToqia ? null : t("avisoSinPlatos", { boton: comoSeLlama })
           }
         />
 
@@ -386,11 +374,11 @@ function SelectorDeCarta({
           valor="pdf"
           elegido={modo === "pdf"}
           onChange={setModo}
-          titulo="Mi carta en PDF"
-          detalle="Tu propio archivo. Cada vez que cambien los precios hay que subir el PDF de nuevo."
+          titulo={t("pdfTitulo")}
+          detalle={t("pdfDetalle")}
           aviso={
             modo === "pdf" && !pdfActual
-              ? `Subí el archivo acá abajo, o el botón “${comoSeLlama}” no va a aparecer.`
+              ? t("avisoSinPdf", { boton: comoSeLlama })
               : null
           }
         />
@@ -402,10 +390,10 @@ function SelectorDeCarta({
         <div className="px-4 pb-4 sm:px-5">
           <CampoArchivo
             name="menu"
-            label="Archivo de la carta"
+            label={t("pdfArchivo")}
             actual={pdfActual}
             formato="pdf"
-            hint={`Un PDF. Se abre en una pestaña nueva cuando el cliente toca “${comoSeLlama}”.`}
+            hint={t("pdfArchivoHint", { nombre: comoSeLlama })}
           />
         </div>
       ) : null}

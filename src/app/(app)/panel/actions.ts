@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 import { bracelets, db, locations, waiters } from "@/db";
 import { getBraceletForAccount } from "@/db/queries/bracelets";
@@ -26,6 +27,7 @@ import {
   validateOptionalUrl,
   validatePhone,
   type ActionResult,
+  type ErrorDeValidacion,
 } from "@/lib/validation";
 
 /**
@@ -38,6 +40,18 @@ import {
  *     cuenta de la sesión. Nunca se confía en que el id sea propio: sin eso,
  *     cambiar un número en el HTML permitiría editar el local de otro cliente.
  */
+
+/**
+ * El texto de un error de validación, en el idioma del pedido.
+ *
+ * Los validadores devuelven una clave y sus valores, no una frase: el panel
+ * está en siete idiomas y un mensaje armado dentro de `lib/validation.ts`
+ * llegaría siempre en castellano al diálogo que lo muestra.
+ */
+async function textoDeError(error: ErrorDeValidacion): Promise<string> {
+  const t = await getTranslations("Errores");
+  return t(error.clave, error.valores);
+}
 
 function revalidarPanel() {
   revalidatePath("/panel");
@@ -54,13 +68,15 @@ export async function createWaiter(formData: FormData): Promise<ActionResult> {
   const name = readString(formData.get("name"));
   const locationId = readInt(formData.get("locationId"));
 
+  const t = await getTranslations("Errores");
+
   const errorNombre = validateName(name);
-  if (errorNombre) return fail(errorNombre);
-  if (!locationId) return fail("Elegí un local.");
+  if (errorNombre) return fail(await textoDeError(errorNombre));
+  if (!locationId) return fail(t("elegiUnLocal"));
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local elegido no existe.");
+    if (!local) return fail(t("localNoExiste"));
 
     await db.insert(waiters).values({ name, locationId, active: true });
 
@@ -68,7 +84,7 @@ export async function createWaiter(formData: FormData): Promise<ActionResult> {
     return ok();
   } catch (cause) {
     console.error("[panel] no se pudo crear el camarero", { cause });
-    return fail(mensajeDeError("No se pudo crear el camarero", cause));
+    return fail(await mensajeDeError("noSePudoCrearCamarero", cause));
   }
 }
 
@@ -78,13 +94,15 @@ export async function updateWaiter(formData: FormData): Promise<ActionResult> {
   const id = readInt(formData.get("id"));
   const name = readString(formData.get("name"));
 
-  if (!id) return fail("Falta el identificador del camarero.");
+  const t = await getTranslations("Errores");
+
+  if (!id) return fail(t("faltaIdCamarero"));
   const errorNombre = validateName(name);
-  if (errorNombre) return fail(errorNombre);
+  if (errorNombre) return fail(await textoDeError(errorNombre));
 
   try {
     const actual = await getWaiterForAccount(id, user.accountId);
-    if (!actual) return fail("El camarero ya no existe.");
+    if (!actual) return fail(t("camareroNoExiste"));
 
     await db.update(waiters).set({ name }).where(eq(waiters.id, id));
 
@@ -92,7 +110,7 @@ export async function updateWaiter(formData: FormData): Promise<ActionResult> {
     return ok();
   } catch (cause) {
     console.error("[panel] no se pudo actualizar el camarero", { id, cause });
-    return fail(mensajeDeError("No se pudo guardar el camarero", cause));
+    return fail(await mensajeDeError("noSePudoGuardarCamarero", cause));
   }
 }
 
@@ -101,10 +119,11 @@ export async function toggleWaiter(
   active: boolean
 ): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   try {
     const actual = await getWaiterForAccount(id, user.accountId);
-    if (!actual) return fail("El camarero ya no existe.");
+    if (!actual) return fail(t("camareroNoExiste"));
 
     await db.update(waiters).set({ active }).where(eq(waiters.id, id));
 
@@ -112,7 +131,7 @@ export async function toggleWaiter(
     return ok();
   } catch (cause) {
     console.error("[panel] no se pudo cambiar el estado del camarero", { id, cause });
-    return fail(mensajeDeError("No se pudo cambiar el estado del camarero", cause));
+    return fail(await mensajeDeError("noSePudoCambiarEstadoCamarero", cause));
   }
 }
 
@@ -130,17 +149,18 @@ export async function assignWaiter(
   waiterId: number | null
 ): Promise<ActionResult> {
   const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
 
   try {
     const pulsera = await getBraceletForAccount(braceletId, user.accountId);
-    if (!pulsera) return fail("La pulsera ya no existe.");
+    if (!pulsera) return fail(t("pulseraNoExiste"));
 
     if (waiterId !== null) {
       const camarero = await getWaiterForAccount(waiterId, user.accountId);
-      if (!camarero) return fail("El camarero elegido no existe.");
+      if (!camarero) return fail(t("camareroElegidoNoExiste"));
       // Un camarero solo puede tener pulseras de su propio local.
       if (camarero.locationId !== pulsera.locationId) {
-        return fail("Ese camarero pertenece a otro local.");
+        return fail(t("camareroDeOtroLocal"));
       }
     }
 
@@ -154,7 +174,7 @@ export async function assignWaiter(
     return ok();
   } catch (cause) {
     console.error("[panel] no se pudo asignar el camarero", { braceletId, cause });
-    return fail(mensajeDeError("No se pudo asignar el camarero", cause));
+    return fail(await mensajeDeError("noSePudoAsignarCamarero", cause));
   }
 }
 
@@ -163,8 +183,10 @@ export async function assignWaiter(
 export async function updateLanding(formData: FormData): Promise<ActionResult> {
   const user = await requireRestaurantUser();
 
+  const t = await getTranslations("Errores");
+
   const locationId = readInt(formData.get("locationId"));
-  if (!locationId) return fail("Falta el identificador del local.");
+  if (!locationId) return fail(t("faltaIdLocal"));
 
   const displayName = readString(formData.get("displayName"));
   const tagline = readString(formData.get("tagline"));
@@ -183,77 +205,86 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
 
   // Enlaces que el local escribe a mano. Las imágenes y el PDF ya no son
   // campos de texto: se suben y se guardan en la base (ver más abajo).
-  const campos: { key: string; label: string; value: string }[] = [
+  // `campo` es la clave del nombre del campo dentro del espacio `Campos`: el
+  // mensaje de error tiene que nombrarlo en el idioma en que la persona está
+  // viendo el formulario.
+  const campos: { key: string; campo: string; value: string }[] = [
     {
       key: "googleReviewUrl",
-      label: "El enlace de Google Reviews",
+      campo: "googleReviewUrl",
       value: readString(formData.get("googleReviewUrl")),
     },
     {
       key: "instagramUrl",
-      label: "El Instagram",
+      campo: "instagram",
       value: readString(formData.get("instagramUrl")),
     },
     {
       key: "websiteUrl",
-      label: "El sitio web",
+      campo: "sitioWeb",
       value: readString(formData.get("websiteUrl")),
     },
     {
       key: "mapsUrl",
-      label: "El enlace de Maps",
+      campo: "maps",
       value: readString(formData.get("mapsUrl")),
     },
     {
       key: "reservationUrl",
-      label: "El enlace de reservas",
+      campo: "reservas",
       value: readString(formData.get("reservationUrl")),
     },
   ];
 
+  const tc = await getTranslations("Campos");
+
   for (const campo of campos) {
-    const error = validateOptionalUrl(campo.value, campo.label);
-    if (error) return fail(error);
+    const error = validateOptionalUrl(campo.value, campo.campo);
+    if (error) return fail(await textoDeError(error));
   }
 
   if (whatsappPhone !== "") {
     const errorTelefono = validatePhone(whatsappPhone);
-    if (errorTelefono) return fail(errorTelefono);
+    if (errorTelefono) return fail(await textoDeError(errorTelefono));
   }
 
   if (phone !== "" && phone.replace(/\D/g, "").length < 6) {
-    return fail("El teléfono de contacto es demasiado corto.");
+    return fail(t("telefonoCorto"));
   }
 
   if (currency.length > 8) {
-    return fail("El símbolo de moneda no puede superar los 8 caracteres.");
+    return fail(t("monedaLarga"));
   }
 
   // Cada texto libre tiene su propio tope en la base. Sin validarlos acá,
   // pasarse por un carácter llegaba hasta MySQL y volvía como un
   // "no se pudo guardar" que no decía qué campo achicar.
   const TOPES: Array<[string, string, number]> = [
-    [displayName, "El nombre visible", 255],
-    [tagline, "La frase", 255],
-    [address, "La dirección", 500],
-    [phone, "El teléfono", 32],
-    [welcomeKicker, "El texto de bienvenida", 120],
-    [welcomeTitle, "El título de la reseña", 200],
-    [closingMessage, "El mensaje de cierre", 200],
-    [menuButtonLabel, "El texto del botón de la carta", 40],
+    [displayName, "nombreVisible", 255],
+    [tagline, "frase", 255],
+    [address, "direccion", 500],
+    [phone, "telefono", 32],
+    [welcomeKicker, "textoBienvenida", 120],
+    [welcomeTitle, "tituloResena", 200],
+    [closingMessage, "mensajeCierre", 200],
+    [menuButtonLabel, "textoBotonCarta", 40],
   ];
 
-  for (const [valor, etiqueta, tope] of TOPES) {
+  for (const [valor, campo, tope] of TOPES) {
     if (valor.length > tope) {
       return fail(
-        `${etiqueta} no puede superar los ${tope} caracteres (tiene ${valor.length}).`
+        t("campoLargoConCuenta", {
+          campo: tc(campo),
+          tope,
+          tiene: valor.length,
+        })
       );
     }
   }
 
   try {
     const local = await getLocationForAccount(locationId, user.accountId);
-    if (!local) return fail("El local ya no existe.");
+    if (!local) return fail(t("localYaNoExiste"));
 
     const vacioANull = (valor: string) => (valor === "" ? null : valor);
     const porClave = Object.fromEntries(
@@ -271,7 +302,7 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
         locationId,
         kind: "logo",
         formato: "imagen",
-        etiqueta: "El logo",
+        etiqueta: "logo",
       }),
       resolverCampoDeArchivo({
         file: formData.get("coverFile"),
@@ -280,7 +311,7 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
         locationId,
         kind: "cover",
         formato: "imagen",
-        etiqueta: "La foto de portada",
+        etiqueta: "portada",
       }),
       resolverCampoDeArchivo({
         file: formData.get("closingFile"),
@@ -289,7 +320,7 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
         locationId,
         kind: "closing",
         formato: "imagen",
-        etiqueta: "La foto de cierre",
+        etiqueta: "fotoCierre",
       }),
       resolverCampoDeArchivo({
         file: formData.get("menuFile"),
@@ -298,7 +329,7 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
         locationId,
         kind: "menu_pdf",
         formato: "pdf",
-        etiqueta: "La carta en PDF",
+        etiqueta: "cartaPdf",
       }),
     ]);
 
@@ -347,6 +378,6 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
       locationId,
       cause,
     });
-    return fail(mensajeDeError("No se pudo guardar", cause));
+    return fail(await mensajeDeError("noSePudoGuardar", cause));
   }
 }

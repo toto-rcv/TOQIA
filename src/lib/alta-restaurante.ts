@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 
 import { account as authAccount, accounts, db, locations, user } from "@/db";
 import { getAccountBySlug } from "@/db/queries/accounts";
@@ -50,43 +51,39 @@ export type ResultadoDeAlta = {
 export async function altaDeRestaurante(
   datos: DatosDeAlta
 ): Promise<ActionResult<ResultadoDeAlta>> {
+  const t = await getTranslations("Errores");
   const nombre = datos.nombre.trim();
   const email = datos.email.trim().toLowerCase();
   const googleReviewUrl = (datos.googleReviewUrl ?? "").trim();
 
   const errorNombre = validateName(nombre);
-  if (errorNombre) return fail(errorNombre);
+  if (errorNombre) return fail(t(errorNombre.clave, errorNombre.valores));
 
   const errorEmail = validateEmail(email);
-  if (errorEmail) return fail(errorEmail);
+  if (errorEmail) return fail(t(errorEmail.clave, errorEmail.valores));
 
   const errorPassword = validatePassword(datos.password);
-  if (errorPassword) return fail(errorPassword);
+  if (errorPassword) return fail(t(errorPassword.clave, errorPassword.valores));
 
-  const errorUrl = validateOptionalUrl(
-    googleReviewUrl,
-    "El enlace de Google Reviews"
-  );
-  if (errorUrl) return fail(errorUrl);
+  // El segundo argumento es la clave del nombre del campo dentro de `Campos`,
+  // no el texto: el mensaje se arma en el idioma del pedido.
+  const errorUrl = validateOptionalUrl(googleReviewUrl, "googleReviewUrl");
+  if (errorUrl) return fail(t(errorUrl.clave, errorUrl.valores));
 
   const slug = slugify(nombre);
   const errorSlug = validateSlug(slug);
   if (errorSlug) {
-    return fail("Con ese nombre no se puede armar una dirección web válida.");
+    return fail(t("nombreSinDireccionWeb"));
   }
 
   try {
     // Las tres colisiones posibles, con un mensaje que dice cuál es. Un
     // "no se pudo crear" genérico obliga a adivinar qué cambiar.
     if (await getAccountBySlug(slug)) {
-      return fail(
-        `Ya existe un restaurante con un nombre parecido ("${slug}"). Probá con otro.`
-      );
+      return fail(t("restauranteParecido", { slug }));
     }
     if (await getLocationBySlug(slug)) {
-      return fail(
-        `Ya existe un local con un nombre parecido ("${slug}"). Probá con otro.`
-      );
+      return fail(t("localParecido", { slug }));
     }
 
     const yaExiste = await db
@@ -94,7 +91,7 @@ export async function altaDeRestaurante(
       .from(user)
       .where(eq(user.email, email))
       .limit(1);
-    if (yaExiste[0]) return fail("Ya existe un usuario con ese email.");
+    if (yaExiste[0]) return fail(t("emailYaUsado"));
 
     // La contraseña se hashea con el propio Better Auth: escrita con otro
     // algoritmo, el login fallaría sin decir por qué.
@@ -149,6 +146,6 @@ export async function altaDeRestaurante(
       email,
       cause,
     });
-    return fail("No se pudo dar de alta el restaurante. Probá de nuevo.");
+    return fail(t("noSePudoDarDeAlta"));
   }
 }

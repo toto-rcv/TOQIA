@@ -1,3 +1,5 @@
+import { getLocale, getTranslations } from "next-intl/server";
+
 import { PageHeader } from "@/components/admin/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +10,14 @@ import { requireAdmin } from "@/lib/session";
 import { formatNumber } from "@/lib/utils";
 import { BorrarTodoDialog, MigrarBoton } from "./mantenimiento-client";
 
-export const metadata = { title: "Mantenimiento · Toqia Admin" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Mantenimiento");
+  return { title: t("titulo") };
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -24,6 +33,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function MantenimientoPage() {
   const admin = await requireAdmin();
+  const t = await getTranslations("Mantenimiento");
 
   const [esquema, datos] = await Promise.all([
     revisarEsquema(pool).catch((error: unknown) => errorDe(error)),
@@ -33,23 +43,22 @@ export default async function MantenimientoPage() {
   return (
     <>
       <PageHeader
-        title="Mantenimiento"
-        subtitle="Poner al día el esquema de la base y vaciarla para arrancar con datos reales."
+        title={t("titulo")}
+        subtitle={t("subtitulo")}
       />
 
       <div className="space-y-5">
         {/* ── Esquema ──────────────────────────────────────────────────── */}
         <Card>
           <CardHeader>
-            <CardTitle>Esquema de la base</CardTitle>
+            <CardTitle>{t("esquema")}</CardTitle>
             {"error" in esquema ? (
-              <Badge tone="danger">no se pudo revisar</Badge>
+              <Badge tone="danger">{t("noSePudoRevisar")}</Badge>
             ) : esquema.alDia ? (
-              <Badge tone="active">al día</Badge>
+              <Badge tone="active">{t("alDia")}</Badge>
             ) : (
               <Badge tone="warning">
-                {esquema.pendientes} cambio{esquema.pendientes === 1 ? "" : "s"} pendiente
-                {esquema.pendientes === 1 ? "" : "s"}
+                {t("pendientes", { n: esquema.pendientes })}
               </Badge>
             )}
           </CardHeader>
@@ -62,10 +71,14 @@ export default async function MantenimientoPage() {
             ) : (
               <>
                 <p className="text-[13px] leading-relaxed text-ex-text-muted">
-                  Base <span className="font-mono text-ex-text">{esquema.base}</span>.{" "}
-                  {esquema.alDia
-                    ? "No falta ningún cambio: el código y la base están sincronizados."
-                    : "Mientras falte un cambio, las páginas que usan esas columnas van a fallar con un error de servidor."}
+                  {t.rich("baseNombre", {
+                    base: () => (
+                      <span className="font-mono text-ex-text">
+                        {esquema.base}
+                      </span>
+                    ),
+                  })}{" "}
+                  {esquema.alDia ? t("sincronizada") : t("faltanCambios")}
                 </p>
 
                 {esquema.pendientes > 0 ? (
@@ -81,17 +94,17 @@ export default async function MantenimientoPage() {
         {/* ── Borrado ──────────────────────────────────────────────────── */}
         <Card className="border-ex-danger/25">
           <CardHeader>
-            <CardTitle>Vaciar la base</CardTitle>
-            <Badge tone="danger">irreversible</Badge>
+            <CardTitle>{t("vaciarLaBase")}</CardTitle>
+            <Badge tone="danger">{t("irreversible")}</Badge>
           </CardHeader>
 
           <CardBody className="space-y-4">
             <p className="text-[13px] leading-relaxed text-ex-text-muted">
-              Borra cuentas, locales, pulseras, camareros, escaneos, cartas y
-              archivos subidos, y todos los usuarios menos el tuyo (
-              <span className="font-mono text-ex-text">{admin.email}</span>). No
-              hay forma de deshacerlo: si querés conservar algo, exportalo
-              antes desde Escaneos.
+              {t.rich("vaciarDesc", {
+                email: () => (
+                  <span className="font-mono text-ex-text">{admin.email}</span>
+                ),
+              })}
             </p>
 
             {"error" in datos ? (
@@ -116,13 +129,14 @@ export default async function MantenimientoPage() {
 
 /* ── Piezas ───────────────────────────────────────────────────────────────── */
 
-function ListaDePasos({ informe }: { informe: InformeMigracion }) {
+async function ListaDePasos({ informe }: { informe: InformeMigracion }) {
+  const t = await getTranslations("Mantenimiento");
   const pendientes = informe.pasos.filter((paso) => paso.estado === "pendiente");
 
   return (
     <div className="rounded-control border border-ex-border bg-ex-elevated p-3">
       <p className="mb-2 text-[12px] font-semibold text-ex-text">
-        Cambios que faltan
+        {t("cambiosQueFaltan")}
       </p>
       <ul className="space-y-1">
         {pendientes.map((paso, i) => (
@@ -142,19 +156,23 @@ function ListaDePasos({ informe }: { informe: InformeMigracion }) {
   );
 }
 
-function TablaDeConteos({
+async function TablaDeConteos({
   tablas,
   otrosUsuarios,
 }: {
   tablas: Array<{ tabla: string; filas: number }>;
   otrosUsuarios: number;
 }) {
-  const filas = [...tablas, { tabla: "otros usuarios", filas: otrosUsuarios }];
+  const [t, locale] = await Promise.all([
+    getTranslations("Mantenimiento"),
+    getLocale(),
+  ]);
+  const filas = [...tablas, { tabla: t("otrosUsuarios"), filas: otrosUsuarios }];
 
   return (
     <div className="rounded-control border border-ex-border bg-ex-elevated p-3">
       <p className="mb-2 text-[12px] font-semibold text-ex-text">
-        Lo que hay hoy en la base
+        {t("loQueHayHoy")}
       </p>
       <ul className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
         {filas.map((fila) => (
@@ -171,7 +189,7 @@ function TablaDeConteos({
                 (fila.filas > 0 ? "text-ex-text" : "text-ex-text-disabled")
               }
             >
-              {formatNumber(fila.filas)}
+              {formatNumber(fila.filas, locale)}
             </span>
           </li>
         ))}

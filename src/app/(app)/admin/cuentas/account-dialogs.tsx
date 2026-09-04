@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { ExternalLink, Plus, Power, Settings2 } from "lucide-react";
 import * as React from "react";
@@ -36,14 +37,16 @@ type AccountRow = {
   distributorId: string | null;
 };
 
+/** El valor va a la base; el nombre visible sale de las traducciones. */
 const ESTADOS = [
-  { value: "trial", label: "Prueba" },
-  { value: "active", label: "Activa" },
-  { value: "past_due", label: "Impaga" },
-  { value: "cancelled", label: "Cancelada" },
+  { value: "trial", clave: "estadoPrueba" },
+  { value: "active", clave: "estadoActiva" },
+  { value: "past_due", clave: "estadoImpaga" },
+  { value: "cancelled", clave: "estadoCancelada" },
 ];
 
 export function NewAccountDialog() {
+  const t = useTranslations("Cuentas");
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [slug, setSlug] = React.useState("");
@@ -78,34 +81,31 @@ export function NewAccountDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <Button variant="primary" size="sm" onClick={() => setOpen(true)}>
         <Plus />
-        Nueva cuenta
+        {t("nueva")}
       </Button>
 
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Nueva cuenta</DialogTitle>
-            <DialogDescription>
-              Una cuenta agrupa los locales de un mismo cliente. Después le
-              agregás los locales.
-            </DialogDescription>
+            <DialogTitle>{t("nueva")}</DialogTitle>
+            <DialogDescription>{t("nuevaDesc")}</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="account-name">Nombre</Label>
+              <Label htmlFor="account-name">{t("nombre")}</Label>
               <Input
                 id="account-name"
                 name="name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 required
-                placeholder="Grupo Gastronómico Norte"
+                placeholder={t("nombrePlaceholder")}
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="account-slug">Slug</Label>
+              <Label htmlFor="account-slug">{t("slug")}</Label>
               <Input
                 id="account-slug"
                 name="slug"
@@ -125,10 +125,10 @@ export function NewAccountDialog() {
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Creando…" : "Crear"}
+              {pending ? t("creando") : t("crear")}
             </Button>
           </DialogFooter>
         </form>
@@ -161,6 +161,7 @@ export function AccountRowActions({
  * una franja arriba avisando de quién es lo que se está viendo.
  */
 function AbrirPanelButton({ account }: { account: AccountRow }) {
+  const t = useTranslations("Cuentas");
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
 
@@ -182,8 +183,8 @@ function AbrirPanelButton({ account }: { account: AccountRow }) {
       type="button"
       onClick={abrir}
       disabled={pending}
-      title={`Abrir el panel de ${account.name}`}
-      aria-label={`Abrir el panel de ${account.name}`}
+      title={t("abrirPanelDe", { nombre: account.name })}
+      aria-label={t("abrirPanelDe", { nombre: account.name })}
       className="inline-flex h-7 w-7 items-center justify-center rounded-control border
                  border-ex-border text-ex-text-muted transition-colors
                  hover:border-ex-blue/40 hover:text-ex-text active:scale-[0.98]
@@ -201,6 +202,7 @@ function EditAccountDialog({
   account: AccountRow;
   distributors: Distributor[];
 }) {
+  const t = useTranslations("Cuentas");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -229,8 +231,8 @@ function EditAccountDialog({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title="Editar cuenta"
-        aria-label="Editar cuenta"
+        title={t("editar")}
+        aria-label={t("editar")}
         className="inline-flex h-7 w-7 items-center justify-center rounded-control border
                    border-ex-border text-ex-text-muted transition-colors
                    hover:border-ex-blue/40 hover:text-ex-text active:scale-[0.98]"
@@ -241,10 +243,8 @@ function EditAccountDialog({
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Editar cuenta</DialogTitle>
-            <DialogDescription>
-              Cancelar la suscripción corta la redirección de todas sus pulseras.
-            </DialogDescription>
+            <DialogTitle>{t("editar")}</DialogTitle>
+            <DialogDescription>{t("editarDesc")}</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
@@ -252,7 +252,7 @@ function EditAccountDialog({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor={`a-name-${account.id}`}>Nombre</Label>
+                <Label htmlFor={`a-name-${account.id}`}>{t("nombre")}</Label>
                 <Input
                   id={`a-name-${account.id}`}
                   name="name"
@@ -261,7 +261,7 @@ function EditAccountDialog({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor={`a-slug-${account.id}`}>Slug</Label>
+                <Label htmlFor={`a-slug-${account.id}`}>{t("slug")}</Label>
                 <Input
                   id={`a-slug-${account.id}`}
                   name="slug"
@@ -275,7 +275,7 @@ function EditAccountDialog({
 
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor={`a-status-${account.id}`}>Suscripción</Label>
+                <Label htmlFor={`a-status-${account.id}`}>{t("colSuscripcion")}</Label>
                 <Select
                   id={`a-status-${account.id}`}
                   name="subscriptionStatus"
@@ -283,13 +283,13 @@ function EditAccountDialog({
                 >
                   {ESTADOS.map((estado) => (
                     <option key={estado.value} value={estado.value}>
-                      {estado.label}
+                      {t(estado.clave)}
                     </option>
                   ))}
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor={`a-price-${account.id}`}>Precio</Label>
+                <Label htmlFor={`a-price-${account.id}`}>{t("precio")}</Label>
                 <Input
                   id={`a-price-${account.id}`}
                   name="subscriptionPrice"
@@ -299,7 +299,7 @@ function EditAccountDialog({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor={`a-expires-${account.id}`}>Vence</Label>
+                <Label htmlFor={`a-expires-${account.id}`}>{t("colVence")}</Label>
                 <Input
                   id={`a-expires-${account.id}`}
                   name="subscriptionExpiresAt"
@@ -311,13 +311,13 @@ function EditAccountDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor={`a-dist-${account.id}`}>Distribuidor</Label>
+              <Label htmlFor={`a-dist-${account.id}`}>{t("colDistribuidor")}</Label>
               <Select
                 id={`a-dist-${account.id}`}
                 name="distributorId"
                 defaultValue={account.distributorId ?? ""}
               >
-                <option value="">Sin asignar</option>
+                <option value="">{t("sinAsignar")}</option>
                 {distributors.map((dist) => (
                   <option key={dist.id} value={dist.id}>
                     {dist.name} · {dist.email}
@@ -331,10 +331,10 @@ function EditAccountDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Guardando…" : "Guardar"}
+              {pending ? t("guardando") : t("guardar")}
             </Button>
           </DialogFooter>
         </form>
@@ -344,6 +344,7 @@ function EditAccountDialog({
 }
 
 function ToggleAccountButton({ account }: { account: AccountRow }) {
+  const t = useTranslations("Cuentas");
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string | null>(null);
 
@@ -362,11 +363,9 @@ function ToggleAccountButton({ account }: { account: AccountRow }) {
       disabled={pending}
       title={
         error ??
-        (account.active
-          ? "Dar de baja (corta todas sus pulseras)"
-          : "Reactivar la cuenta")
+        (account.active ? t("darDeBajaHint") : t("reactivar"))
       }
-      aria-label={account.active ? "Dar de baja la cuenta" : "Reactivar la cuenta"}
+      aria-label={account.active ? t("darDeBaja") : t("reactivar")}
       className={
         "inline-flex h-7 w-7 items-center justify-center rounded-control border transition-colors " +
         "active:scale-[0.98] disabled:opacity-40 " +

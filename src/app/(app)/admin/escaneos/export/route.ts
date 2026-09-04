@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { NextRequest } from "next/server";
 
 import { listScansForExport } from "@/db/queries/scans";
@@ -14,7 +15,8 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const user = await getSessionUser();
   if (!user || user.role !== "admin") {
-    return new Response("No autorizado", { status: 401 });
+    const t = await getTranslations("Errores");
+    return new Response(t("noAutorizado"), { status: 401 });
   }
 
   const searchParams = request.nextUrl.searchParams;
@@ -48,8 +50,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("[admin/export] no se pudo generar el CSV", error);
-    return new Response("No se pudo generar el CSV. Revisá los logs.", {
-      status: 500,
-    });
+    const t = await getTranslations("Errores");
+    return new Response(t("csvFallido"), { status: 500 });
   }
 }

@@ -1,13 +1,14 @@
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 
 import { SelectorIdioma } from "@/components/landing/selector-idioma";
 import { getSessionUser, homeForRole } from "@/lib/session";
 import { LoginForm } from "./login-form";
 
-export const metadata = {
-  title: "Ingresar",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata() {
+  const t = await getTranslations("Login");
+  return { title: t("titulo"), robots: { index: false, follow: false } };
+}
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage({
@@ -19,7 +20,7 @@ export default async function LoginPage({
   const user = await getSessionUser();
   if (user) redirect(homeForRole(user.role));
 
-  const { error } = await searchParams;
+  const [{ error }, t] = await Promise.all([searchParams, getTranslations("Login")]);
 
   return (
     <main className="ex-scope relative flex min-h-dvh items-center justify-center bg-ex-black px-6 py-16">
@@ -33,17 +34,16 @@ export default async function LoginPage({
       <div className="w-full max-w-sm animate-fade-up">
         <div className="mb-8">
           <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-ex-text-muted">
-            Toqia
+            {t("subtitulo")}
           </p>
           <h1 className="mt-2 text-xl font-medium tracking-tight text-ex-text">
-            Ingresar
+            {t("titulo")}
           </h1>
         </div>
 
         {error === "sin-cuenta" ? (
           <p className="mb-4 rounded-control border border-ex-warning/25 bg-ex-warning/10 px-3 py-2 text-xs text-ex-warning">
-            Tu usuario no tiene un restaurante asignado. Escribinos para que lo
-            configuremos.
+            {t("errorSinCuenta")}
           </p>
         ) : null}
 
@@ -52,7 +52,7 @@ export default async function LoginPage({
         </div>
 
         <p className="mt-6 font-mono text-[11px] tracking-[0.08em] text-ex-text-disabled">
-          Acceso restringido. No hay registro público.
+          {t("accesoRestringido")}
         </p>
       </div>
     </main>

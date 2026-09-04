@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 
@@ -17,6 +18,7 @@ export function AccountFilter({
   accounts: { id: number; name: string }[];
   paramName?: string;
 }) {
+  const t = useTranslations("Admin");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -41,10 +43,10 @@ export function AccountFilter({
       value={current}
       onChange={handleChange}
       disabled={pending}
-      aria-label="Filtrar por cuenta"
+      aria-label={t("filtrarPorCuenta")}
       className="h-8 w-auto min-w-[190px] text-xs"
     >
-      <option value="">Todas las cuentas</option>
+      <option value="">{t("todasLasCuentas")}</option>
       {accounts.map((cuenta) => (
         <option key={cuenta.id} value={cuenta.id}>
           {cuenta.name}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Power, Settings2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ export function NewLocationDialog({
   accounts: AccountOption[];
   defaultAccountId?: number;
 }) {
+  const t = useTranslations("Locales");
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [slug, setSlug] = React.useState("");
@@ -66,22 +68,19 @@ export function NewLocationDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <Button variant="primary" size="sm" onClick={() => setOpen(true)}>
         <Plus />
-        Nuevo local
+        {t("nuevo")}
       </Button>
 
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Nuevo local</DialogTitle>
-            <DialogDescription>
-              El resto de los datos de la página pública los completa el propio
-              restaurante desde su panel.
-            </DialogDescription>
+            <DialogTitle>{t("nuevo")}</DialogTitle>
+            <DialogDescription>{t("nuevoDesc")}</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="loc-account">Cuenta</Label>
+              <Label htmlFor="loc-account">{t("colCuenta")}</Label>
               <Select
                 id="loc-account"
                 name="accountId"
@@ -89,12 +88,12 @@ export function NewLocationDialog({
                 defaultValue={defaultAccountId ? String(defaultAccountId) : ""}
               >
                 <option value="" disabled>
-                  Elegí una…
+                  {t("elegiUna")}
                 </option>
                 {accounts.map((cuenta) => (
                   <option key={cuenta.id} value={cuenta.id}>
                     {cuenta.name}
-                    {cuenta.active ? "" : " (baja)"}
+                    {cuenta.active ? "" : ` ${t("cuentaDeBaja")}`}
                   </option>
                 ))}
               </Select>
@@ -102,18 +101,18 @@ export function NewLocationDialog({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="loc-name">Nombre</Label>
+                <Label htmlFor="loc-name">{t("nombre")}</Label>
                 <Input
                   id="loc-name"
                   name="name"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   required
-                  placeholder="Sucursal Palermo"
+                  placeholder={t("nombrePlaceholder")}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="loc-slug">Slug</Label>
+                <Label htmlFor="loc-slug">{t("slug")}</Label>
                 <Input
                   id="loc-slug"
                   name="slug"
@@ -131,8 +130,8 @@ export function NewLocationDialog({
 
             <div className="space-y-1.5">
               <Label htmlFor="loc-review">
-                Enlace de Google Reviews{" "}
-                <span className="text-ex-text-disabled">(opcional)</span>
+                {t("googleReviewUrl")}{" "}
+                <span className="text-ex-text-disabled">{t("opcional")}</span>
               </Label>
               <Input
                 id="loc-review"
@@ -148,10 +147,10 @@ export function NewLocationDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Creando…" : "Crear"}
+              {pending ? t("creando") : t("crear")}
             </Button>
           </DialogFooter>
         </form>
@@ -182,6 +181,7 @@ function EditLocationDialog({
   location: LocationRow;
   accounts: AccountOption[];
 }) {
+  const t = useTranslations("Locales");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -206,8 +206,8 @@ function EditLocationDialog({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title="Editar local"
-        aria-label="Editar local"
+        title={t("editar")}
+        aria-label={t("editar")}
         className="inline-flex h-7 w-7 items-center justify-center rounded-control border
                    border-ex-border text-ex-text-muted transition-colors
                    hover:border-ex-blue/40 hover:text-ex-text active:scale-[0.98]"
@@ -218,14 +218,14 @@ function EditLocationDialog({
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Editar local</DialogTitle>
+            <DialogTitle>{t("editar")}</DialogTitle>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
             <input type="hidden" name="id" value={location.id} />
 
             <div className="space-y-1.5">
-              <Label htmlFor={`l-account-${location.id}`}>Cuenta</Label>
+              <Label htmlFor={`l-account-${location.id}`}>{t("colCuenta")}</Label>
               <Select
                 id={`l-account-${location.id}`}
                 name="accountId"
@@ -241,7 +241,7 @@ function EditLocationDialog({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor={`l-name-${location.id}`}>Nombre</Label>
+                <Label htmlFor={`l-name-${location.id}`}>{t("nombre")}</Label>
                 <Input
                   id={`l-name-${location.id}`}
                   name="name"
@@ -250,7 +250,7 @@ function EditLocationDialog({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor={`l-slug-${location.id}`}>Slug</Label>
+                <Label htmlFor={`l-slug-${location.id}`}>{t("slug")}</Label>
                 <Input
                   id={`l-slug-${location.id}`}
                   name="slug"
@@ -267,10 +267,10 @@ function EditLocationDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Guardando…" : "Guardar"}
+              {pending ? t("guardando") : t("guardar")}
             </Button>
           </DialogFooter>
         </form>
@@ -280,6 +280,7 @@ function EditLocationDialog({
 }
 
 function ToggleLocationButton({ location }: { location: LocationRow }) {
+  const t = useTranslations("Locales");
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string | null>(null);
 
@@ -298,9 +299,9 @@ function ToggleLocationButton({ location }: { location: LocationRow }) {
       disabled={pending}
       title={
         error ??
-        (location.active ? "Desactivar (corta sus pulseras)" : "Activar el local")
+        (location.active ? t("desactivarHint") : t("activar"))
       }
-      aria-label={location.active ? "Desactivar local" : "Activar local"}
+      aria-label={location.active ? t("desactivar") : t("activar")}
       className={
         "inline-flex h-7 w-7 items-center justify-center rounded-control border transition-colors " +
         "active:scale-[0.98] disabled:opacity-40 " +

@@ -1,3 +1,5 @@
+import { getLocale, getTranslations } from "next-intl/server";
+
 import { PageHeader } from "@/components/admin/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -17,41 +19,59 @@ import { requireDistributor } from "@/lib/session";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { NuevoRestauranteDialog } from "./dialogs";
 
-export const metadata = { title: "Restaurantes · Toqia Distribuidor" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Distribuidor");
+  return { title: t("restaurantes") };
+}
 export const dynamic = "force-dynamic";
 
+/** El tono es visual; el nombre del estado sale de las traducciones. */
 const ETIQUETA_ESTADO: Record<
   string,
-  { label: string; tone: "active" | "inactive" | "warning" | "danger" }
+  { clave: string; tone: "active" | "inactive" | "warning" | "danger" }
 > = {
-  trial: { label: "prueba", tone: "warning" },
-  active: { label: "activa", tone: "active" },
-  past_due: { label: "impaga", tone: "warning" },
-  cancelled: { label: "cancelada", tone: "danger" },
+  trial: { clave: "estadoPrueba", tone: "warning" },
+  active: { clave: "estadoActiva", tone: "active" },
+  past_due: { clave: "estadoImpaga", tone: "warning" },
+  cancelled: { clave: "estadoCancelada", tone: "danger" },
 };
 
 export default async function RestaurantesPage() {
   const user = await requireDistributor();
 
   // El filtro sale de la sesión, no de la URL.
-  const cuentas = await listAccounts({ distributorId: user.id });
+  const [cuentas, t, tc, locale] = await Promise.all([
+    listAccounts({ distributorId: user.id }),
+    getTranslations("Distribuidor"),
+    getTranslations("Cuentas"),
+    getLocale(),
+  ]);
+
+  /** El estado de suscripción, ya traducido. */
+  function estadoDe(valor: string) {
+    const estado = ETIQUETA_ESTADO[valor];
+    return {
+      label: estado ? tc(estado.clave) : valor,
+      tone: estado?.tone ?? ("inactive" as const),
+    };
+  }
 
   return (
     <>
       <PageHeader
-        title="Restaurantes"
-        subtitle="Los que diste de alta. El estado de la suscripción lo maneja Toqia."
+        title={t("restaurantes")}
+        subtitle={t("subtituloRestaurantes")}
       >
         <NuevoRestauranteDialog />
       </PageHeader>
 
       {cuentas.length === 0 ? (
         <Card>
-          <EmptyState>
-            Todavía no diste de alta ningún restaurante. Con &ldquo;Nuevo
-            restaurante&rdquo; se crea la cuenta, su local y el acceso al panel
-            de una sola vez.
-          </EmptyState>
+          <EmptyState>{t("sinRestaurantes")}</EmptyState>
         </Card>
       ) : (
         <Card className="overflow-hidden">
@@ -60,20 +80,17 @@ export default async function RestaurantesPage() {
             <Table>
               <Thead>
                 <tr>
-                  <Th>Restaurante</Th>
-                  <Th className="w-[120px]">Suscripción</Th>
-                  <Th className="w-[110px]">Alta</Th>
-                  <Th className="w-[90px] text-right">Locales</Th>
-                  <Th className="w-[90px] text-right">Pulseras</Th>
-                  <Th className="w-[100px] text-right">Escaneos</Th>
+                  <Th>{t("colRestaurante")}</Th>
+                  <Th className="w-[120px]">{tc("colSuscripcion")}</Th>
+                  <Th className="w-[110px]">{t("colAlta")}</Th>
+                  <Th className="w-[90px] text-right">{t("locales")}</Th>
+                  <Th className="w-[90px] text-right">{t("pulseras")}</Th>
+                  <Th className="w-[100px] text-right">{t("escaneos")}</Th>
                 </tr>
               </Thead>
               <tbody>
                 {cuentas.map((cuenta) => {
-                  const estado = ETIQUETA_ESTADO[cuenta.subscriptionStatus] ?? {
-                    label: cuenta.subscriptionStatus,
-                    tone: "inactive" as const,
-                  };
+                  const estado = estadoDe(cuenta.subscriptionStatus);
 
                   return (
                     <Tr
@@ -92,16 +109,16 @@ export default async function RestaurantesPage() {
                         <Badge tone={estado.tone}>{estado.label}</Badge>
                       </Td>
                       <Td className="num text-[11px]">
-                        {formatDate(cuenta.createdAt)}
+                        {formatDate(cuenta.createdAt, locale)}
                       </Td>
                       <Td className="num text-right text-sm">
-                        {formatNumber(cuenta.locationCount)}
+                        {formatNumber(cuenta.locationCount, locale)}
                       </Td>
                       <Td className="num text-right text-sm">
-                        {formatNumber(cuenta.braceletCount)}
+                        {formatNumber(cuenta.braceletCount, locale)}
                       </Td>
                       <Td className="num text-right text-sm text-ex-text">
-                        {formatNumber(cuenta.scanCount)}
+                        {formatNumber(cuenta.scanCount, locale)}
                       </Td>
                     </Tr>
                   );
@@ -113,10 +130,7 @@ export default async function RestaurantesPage() {
           {/* Tarjetas en celular: seis columnas no entran en 390px. */}
           <ul className="sm:hidden">
             {cuentas.map((cuenta) => {
-              const estado = ETIQUETA_ESTADO[cuenta.subscriptionStatus] ?? {
-                label: cuenta.subscriptionStatus,
-                tone: "inactive" as const,
-              };
+              const estado = estadoDe(cuenta.subscriptionStatus);
 
               return (
                 <RowCard
@@ -136,15 +150,15 @@ export default async function RestaurantesPage() {
                   </div>
 
                   <RowFields className="grid-cols-3">
-                    <RowField label="Locales">
-                      {formatNumber(cuenta.locationCount)}
+                    <RowField label={t("locales")}>
+                      {formatNumber(cuenta.locationCount, locale)}
                     </RowField>
-                    <RowField label="Pulseras">
-                      {formatNumber(cuenta.braceletCount)}
+                    <RowField label={t("pulseras")}>
+                      {formatNumber(cuenta.braceletCount, locale)}
                     </RowField>
-                    <RowField label="Escaneos">
+                    <RowField label={t("escaneos")}>
                       <span className="font-semibold text-ex-text">
-                        {formatNumber(cuenta.scanCount)}
+                        {formatNumber(cuenta.scanCount, locale)}
                       </span>
                     </RowField>
                   </RowFields>

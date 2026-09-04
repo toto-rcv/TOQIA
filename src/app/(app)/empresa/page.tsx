@@ -1,8 +1,12 @@
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 
 import { getSessionUser, homeForRole } from "@/lib/session";
 
-export const metadata = { title: "Acceso · Toqia", robots: { index: false } };
+export async function generateMetadata() {
+  const t = await getTranslations("Login");
+  return { title: t("acceso"), robots: { index: false } };
+}
 export const dynamic = "force-dynamic";
 
 /**

@@ -16,7 +16,7 @@ import { formatNumber } from "@/lib/utils";
  * Como son enlaces, además funciona el botón de atrás del navegador, se puede
  * compartir la URL de una página concreta y anda sin JavaScript.
  */
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 export function Pagination({
   paged,
@@ -33,6 +33,7 @@ export function Pagination({
   className?: string;
 }) {
   const t = useTranslations("Paginacion");
+  const locale = useLocale();
   const { page, limit, total, totalPages } = paged;
 
   // Con una sola página el paginador no aporta nada; se muestra el conteo,
@@ -64,7 +65,12 @@ export function Pagination({
         {total === 0 ? (
           <>{t("sinItems", { itemLabel })}</>
         ) : (
-          <>{t("rangoDeTotal", { desde: formatNumber(desde), hasta: formatNumber(hasta), total: formatNumber(total), itemLabel })}</>
+          <>{t("rangoDeTotal", {
+              desde: formatNumber(desde, locale),
+              hasta: formatNumber(hasta, locale),
+              total: formatNumber(total, locale),
+              itemLabel,
+            })}</>
         )}
       </p>
 

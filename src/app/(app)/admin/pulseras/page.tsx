@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
 
 import { AccountFilter } from "@/components/admin/account-filter";
 import { PageHeader } from "@/components/admin/page-header";
@@ -16,7 +17,14 @@ import { requireAdmin } from "@/lib/session";
 import { braceletUrl, formatDateTime, formatNumber } from "@/lib/utils";
 import { BraceletRowActions, BulkCreateDialog, NewBraceletDialog } from "./bracelet-dialogs";
 
-export const metadata = { title: "Pulseras · Toqia Admin" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Pulseras");
+  return { title: t("titulo") };
+}
 export const dynamic = "force-dynamic";
 
 export default async function AdminBraceletsPage({
@@ -25,7 +33,11 @@ export default async function AdminBraceletsPage({
   searchParams: Promise<{ cuenta?: string; local?: string; page?: string; limit?: string }>;
 }) {
   await requireAdmin();
-  const params = await searchParams;
+  const [params, t, locale] = await Promise.all([
+    searchParams,
+    getTranslations("Pulseras"),
+    getLocale(),
+  ]);
   const { cuenta, local } = params;
   const pagina = parsePageParams(params);
 
@@ -53,8 +65,8 @@ export default async function AdminBraceletsPage({
   return (
     <>
       <PageHeader
-        title="Pulseras"
-        subtitle="La URL grabada en el chip nunca cambia. Lo que cambia es la página a la que lleva."
+        title={t("titulo")}
+        subtitle={t("subtituloAdmin")}
       >
         <AccountFilter accounts={cuentas} />
         <NewBraceletDialog
@@ -72,37 +84,36 @@ export default async function AdminBraceletsPage({
       {locales.length === 0 ? (
         <Card>
           <EmptyState>
-            Primero creá un local en{" "}
-            <Link
-              href="/admin/locales"
-              className="text-ex-blue-bright underline underline-offset-4"
-            >
-              Locales
-            </Link>
-            .
+            {t.rich("primeroUnLocal", {
+              enlace: (chunks) => (
+                <Link
+                  href="/admin/locales"
+                  className="text-ex-blue-bright underline underline-offset-4"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
           </EmptyState>
         </Card>
       ) : pulseras.total === 0 ? (
         <Card>
-          <EmptyState>
-            No hay pulseras con este filtro. Usá &ldquo;Alta masiva&rdquo; para
-            generar una tanda completa.
-          </EmptyState>
+          <EmptyState>{t("sinPulserasFiltro")}</EmptyState>
         </Card>
       ) : (
         <Card className="overflow-hidden">
           <Table>
             <Thead>
               <tr>
-                <Th className="w-[120px]">Código</Th>
-                <Th className="w-[130px]">Etiqueta</Th>
-                <Th className="w-[170px]">Local</Th>
-                <Th className="w-[140px]">Camarero</Th>
-                <Th className="w-[240px]">URL del chip</Th>
-                <Th className="w-[85px] text-right">Escaneos</Th>
-                <Th className="w-[85px] text-right">Reseñas</Th>
-                <Th className="w-[135px]">Último</Th>
-                <Th className="w-[90px] text-right">Acciones</Th>
+                <Th className="w-[120px]">{t("colCodigo")}</Th>
+                <Th className="w-[130px]">{t("colEtiqueta")}</Th>
+                <Th className="w-[170px]">{t("colLocal")}</Th>
+                <Th className="w-[140px]">{t("colCamarero")}</Th>
+                <Th className="w-[240px]">{t("colUrlChip")}</Th>
+                <Th className="w-[85px] text-right">{t("colEscaneos")}</Th>
+                <Th className="w-[85px] text-right">{t("colResenas")}</Th>
+                <Th className="w-[135px]">{t("colUltimo")}</Th>
+                <Th className="w-[90px] text-right">{t("colAcciones")}</Th>
               </tr>
             </Thead>
             <tbody>
@@ -124,21 +135,25 @@ export default async function AdminBraceletsPage({
                           {pulsera.code}
                         </span>
                         <Badge tone={pulsera.deviceType === "placa" ? "accent" : "inactive"}>
-                          {pulsera.deviceType}
+                          {pulsera.deviceType === "placa"
+                            ? t("tipoPlaca")
+                            : t("tipoPulsera")}
                         </Badge>
-                        {!pulsera.active ? <Badge tone="inactive">off</Badge> : null}
+                        {!pulsera.active ? (
+                          <Badge tone="inactive">{t("off")}</Badge>
+                        ) : null}
                         {pulsera.locationId === null ? (
-                          <Badge tone="warning">stock</Badge>
+                          <Badge tone="warning">{t("stock")}</Badge>
                         ) : null}
                         {pulsera.active && pulsera.locationActive === false ? (
-                          <Badge tone="warning">local off</Badge>
+                          <Badge tone="warning">{t("localOff")}</Badge>
                         ) : null}
                         {pulsera.active && pulsera.accountActive === false ? (
-                          <Badge tone="danger">cuenta baja</Badge>
+                          <Badge tone="danger">{t("cuentaBaja")}</Badge>
                         ) : null}
                         {pulsera.overrideUrl ? (
                           <Badge tone="accent" title={pulsera.overrideUrl}>
-                            directo
+                            {t("directo")}
                           </Badge>
                         ) : null}
                       </div>
@@ -159,7 +174,7 @@ export default async function AdminBraceletsPage({
                       ) : (
                         <>
                           <span className="block truncate text-ex-text-muted">
-                            En stock
+                            {t("enStock")}
                           </span>
                           <span className="block truncate text-[10px] text-ex-text-disabled">
                             {pulsera.distributorName ?? "Toqia"}
@@ -178,18 +193,18 @@ export default async function AdminBraceletsPage({
                         >
                           {url}
                         </span>
-                        <CopyButton value={url} label="Copiar URL para grabar" />
+                        <CopyButton value={url} label={t("copiarUrl")} />
                       </div>
                     </Td>
 
                     <Td className="num text-right text-sm text-ex-text">
-                      {formatNumber(pulsera.scanCount)}
+                      {formatNumber(pulsera.scanCount, locale)}
                     </Td>
                     <Td className="num text-right text-sm text-ex-text-secondary">
-                      {formatNumber(pulsera.reviewClicks)}
+                      {formatNumber(pulsera.reviewClicks, locale)}
                     </Td>
                     <Td className="num text-[11px]">
-                      {formatDateTime(pulsera.lastScanAt)}
+                      {formatDateTime(pulsera.lastScanAt, locale)}
                     </Td>
 
                     <Td>
@@ -210,7 +225,7 @@ export default async function AdminBraceletsPage({
             paged={pulseras}
             basePath="/admin/pulseras"
             searchParams={params}
-            itemLabel="pulseras"
+            itemLabel={t("itemLabel")}
           />
         </Card>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, Settings2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ function CamposDeUsuario({
   /** Si viene, el formulario es de edición. */
   usuario?: UsuarioEditable;
 }) {
+  const t = useTranslations("Usuarios");
   const editando = usuario !== undefined;
   const [role, setRole] = React.useState(usuario?.role ?? "restaurant");
 
@@ -60,39 +62,39 @@ function CamposDeUsuario({
     <>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor={`${idPrefijo}-name`}>Nombre</Label>
+          <Label htmlFor={`${idPrefijo}-name`}>{t("colNombre")}</Label>
           <Input
             id={`${idPrefijo}-name`}
             name="name"
             required
-            placeholder="Nombre y apellido"
+            placeholder={t("nombrePlaceholder")}
             defaultValue={usuario?.name ?? ""}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor={`${idPrefijo}-role`}>Rol</Label>
+          <Label htmlFor={`${idPrefijo}-role`}>{t("colRol")}</Label>
           <Select
             id={`${idPrefijo}-role`}
             name="role"
             value={role}
             onChange={(event) => setRole(event.target.value)}
           >
-            <option value="restaurant">Restaurante</option>
-            <option value="distributor">Distribuidor</option>
-            <option value="admin">Admin</option>
+            <option value="restaurant">{t("opcionRestaurante")}</option>
+            <option value="distributor">{t("opcionDistribuidor")}</option>
+            <option value="admin">{t("opcionAdmin")}</option>
           </Select>
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor={`${idPrefijo}-email`}>Email</Label>
+        <Label htmlFor={`${idPrefijo}-email`}>{t("colEmail")}</Label>
         <Input
           id={`${idPrefijo}-email`}
           name="email"
           type="email"
           required
           spellCheck={false}
-          placeholder="dueño@restaurante.com"
+          placeholder={t("emailPlaceholder")}
           defaultValue={usuario?.email ?? ""}
         />
       </div>
@@ -101,7 +103,7 @@ function CamposDeUsuario({
           ve ese usuario. */}
       {role === "restaurant" ? (
         <div className="space-y-1.5">
-          <Label htmlFor={`${idPrefijo}-account`}>Cuenta</Label>
+          <Label htmlFor={`${idPrefijo}-account`}>{t("colCuenta")}</Label>
           <Select
             id={`${idPrefijo}-account`}
             name="accountId"
@@ -109,7 +111,7 @@ function CamposDeUsuario({
             defaultValue={usuario?.accountId ? String(usuario.accountId) : ""}
           >
             <option value="" disabled>
-              Elegí una…
+              {t("elegiUna")}
             </option>
             {accounts.map((cuenta) => (
               <option key={cuenta.id} value={cuenta.id}>
@@ -122,9 +124,9 @@ function CamposDeUsuario({
 
       <div className="space-y-1.5">
         <Label htmlFor={`${idPrefijo}-password`}>
-          Contraseña
+          {t("password")}
           {editando ? (
-            <span className="text-ex-text-disabled"> (opcional)</span>
+            <span className="text-ex-text-disabled"> {t("opcional")}</span>
           ) : null}
         </Label>
         <Input
@@ -134,12 +136,10 @@ function CamposDeUsuario({
           required={!editando}
           minLength={8}
           autoComplete="new-password"
-          placeholder={editando ? "Dejala vacía para no cambiarla" : undefined}
+          placeholder={editando ? t("passwordPlaceholder") : undefined}
         />
         <p className="text-[11px] leading-relaxed text-ex-text-muted">
-          {editando
-            ? "Si la cambiás, las sesiones abiertas siguen activas hasta que venzan."
-            : "Mínimo 8 caracteres. Pasásela al usuario por un canal seguro y pedile que la cambie."}
+          {editando ? t("passwordHintEditar") : t("passwordHintAlta")}
         </p>
       </div>
     </>
@@ -149,6 +149,7 @@ function CamposDeUsuario({
 /* ── Alta ────────────────────────────────────────────────────────────────── */
 
 export function NewUserDialog({ accounts }: { accounts: AccountOption[] }) {
+  const t = useTranslations("Usuarios");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -180,7 +181,7 @@ export function NewUserDialog({ accounts }: { accounts: AccountOption[] }) {
     >
       <Button variant="primary" size="sm" onClick={() => setOpen(true)}>
         <Plus />
-        Nuevo usuario
+        {t("nuevo")}
       </Button>
 
       <DialogContent>
@@ -188,10 +189,8 @@ export function NewUserDialog({ accounts }: { accounts: AccountOption[] }) {
             el rol elegido en el intento anterior quedaría pegado. */}
         <form ref={formRef} onSubmit={handleSubmit} key={open ? "abierto" : "cerrado"}>
           <DialogHeader>
-            <DialogTitle>Nuevo usuario</DialogTitle>
-            <DialogDescription>
-              No hay registro público: todos los accesos se crean desde acá.
-            </DialogDescription>
+            <DialogTitle>{t("nuevo")}</DialogTitle>
+            <DialogDescription>{t("nuevoDesc")}</DialogDescription>
           </DialogHeader>
 
           <DialogBody className="space-y-4">
@@ -206,10 +205,10 @@ export function NewUserDialog({ accounts }: { accounts: AccountOption[] }) {
               onClick={() => setOpen(false)}
               disabled={pending}
             >
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Creando…" : "Crear"}
+              {pending ? t("creando") : t("crear")}
             </Button>
           </DialogFooter>
         </form>
@@ -237,6 +236,7 @@ export function EditUserDialog({
   /** true si es el usuario con la sesión abierta. */
   esVos: boolean;
 }) {
+  const t = useTranslations("Usuarios");
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -267,8 +267,8 @@ export function EditUserDialog({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title={`Editar a ${usuario.name}`}
-        aria-label={`Editar a ${usuario.name}`}
+        title={t("editarA", { nombre: usuario.name })}
+        aria-label={t("editarA", { nombre: usuario.name })}
         className="inline-flex h-7 w-7 items-center justify-center rounded-control border
                    border-ex-border text-ex-text-muted transition-colors
                    hover:border-ex-blue/40 hover:text-ex-text active:scale-[0.98]"
@@ -282,7 +282,7 @@ export function EditUserDialog({
             que había escrito la vez anterior. */}
         <form onSubmit={handleSubmit} key={open ? "abierto" : "cerrado"}>
           <DialogHeader>
-            <DialogTitle>Editar usuario</DialogTitle>
+            <DialogTitle>{t("editar")}</DialogTitle>
             <DialogDescription>{usuario.email}</DialogDescription>
           </DialogHeader>
 
@@ -297,8 +297,7 @@ export function EditUserDialog({
 
             {esVos ? (
               <p className="rounded-control border border-ex-warning/25 bg-ex-warning/10 px-3 py-2 text-[11px] leading-relaxed text-ex-text">
-                Es tu propio usuario. Podés cambiar tus datos, pero no tu rol:
-                sacarte el admin te dejaría afuera de la administración.
+                {t("avisoEsVos")}
               </p>
             ) : null}
 
@@ -312,10 +311,10 @@ export function EditUserDialog({
               onClick={() => setOpen(false)}
               disabled={pending}
             >
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
-              {pending ? "Guardando…" : "Guardar"}
+              {pending ? t("guardando") : t("guardar")}
             </Button>
           </DialogFooter>
         </form>

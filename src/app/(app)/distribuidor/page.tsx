@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
+
+import { etiquetaDePeriodo } from "@/i18n/periodo";
 
 import { PageHeader } from "@/components/admin/page-header";
 import { EvolutionChart } from "@/components/stats/evolution-chart";
@@ -28,7 +31,14 @@ import { requireDistributor } from "@/lib/session";
 import { parseStatsParams, type StatsSearchParams } from "@/lib/stats-params";
 import { formatNumber } from "@/lib/utils";
 
-export const metadata = { title: "Resumen · Toqia Distribuidor" };
+/**
+ * El título de la pestaña también viaja por las traducciones: el panel está en
+ * siete idiomas y la pestaña es lo primero que se lee al volver a la ventana.
+ */
+export async function generateMetadata() {
+  const t = await getTranslations("Stats");
+  return { title: t("resumen") };
+}
 export const dynamic = "force-dynamic";
 
 /**
@@ -44,7 +54,13 @@ export default async function DistribuidorPage({
   searchParams: Promise<StatsSearchParams>;
 }) {
   const user = await requireDistributor();
-  const params = parseStatsParams(await searchParams);
+  const [crudos, t, ts, locale] = await Promise.all([
+    searchParams,
+    getTranslations("Distribuidor"),
+    getTranslations("Stats"),
+    getLocale(),
+  ]);
+  const params = parseStatsParams(crudos);
 
   const accountIds = await listAccountIdsOfDistributor(user.id);
   const scope: StatsScope = { accountIds };
@@ -61,19 +77,19 @@ export default async function DistribuidorPage({
   if (accountIds.length === 0 && stock.total === 0) {
     return (
       <>
-        <PageHeader title="Resumen" />
+        <PageHeader title={ts("resumen")} />
         <Card>
           <EmptyState>
-            Todavía no tenés cuentas asignadas ni pulseras entregadas. Cuando
-            Toqia te entregue un lote vas a poder dar de alta tu primer
-            restaurante desde{" "}
-            <Link
-              href="/distribuidor/restaurantes"
-              className="text-ex-blue underline underline-offset-4"
-            >
-              Restaurantes
-            </Link>
-            .
+            {t.rich("sinNada", {
+              enlace: (chunks) => (
+                <Link
+                  href="/distribuidor/restaurantes"
+                  className="text-ex-blue underline underline-offset-4"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
           </EmptyState>
         </Card>
       </>
@@ -85,49 +101,55 @@ export default async function DistribuidorPage({
   return (
     <>
       <PageHeader
-        title="Resumen"
-        subtitle={`${params.period.label} · las fechas se muestran en hora local.`}
+        title={ts("resumen")}
+        subtitle={`${etiquetaDePeriodo(ts, params.period, locale)} · ${ts(
+          "fechasHoraLocal"
+        )}`}
       />
 
       <div className="mb-4 grid grid-cols-2 gap-3 sm:mb-5 sm:gap-4 lg:grid-cols-4">
         <MetricTile
           value={resumen.scans}
-          label="Escaneos del período"
+          label={ts("escaneosPeriodo")}
           variation={resumen.variation.scans}
           highlight
         />
         <MetricTile
           value={resumen.reviewClicks}
-          label="Fueron a dejar reseña"
+          label={ts("fueronAResena")}
           variation={resumen.variation.reviewClicks}
         />
         <MetricTile
           value={resumen.conversionRate.toFixed(0)}
           suffix="%"
-          label="Tasa de conversión"
-          hint={`Período anterior: ${resumen.previous.conversionRate.toFixed(0)}%`}
+          label={ts("tasaConversion")}
+          hint={ts("periodoAnterior", {
+            val: resumen.previous.conversionRate.toFixed(0),
+          })}
         />
-        <MetricTile value={total} label="Escaneos históricos" />
+        <MetricTile value={total} label={ts("escaneosHistoricos")} />
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <MetricTile value={cuentas.length} label="Restaurantes" />
-        <MetricTile value={locales} label="Locales" />
+        <MetricTile value={cuentas.length} label={t("restaurantes")} />
+        <MetricTile value={locales} label={t("locales")} />
         <MetricTile
           value={stock.enStock}
-          label="Pulseras sin colocar"
-          hint={`${formatNumber(stock.total)} entregadas en total`}
+          label={t("pulserasSinColocar")}
+          hint={t("entregadasEnTotal", {
+            n: formatNumber(stock.total, locale),
+          })}
         />
-        <MetricTile value={stock.colocadas} label="Pulseras colocadas" />
+        <MetricTile value={stock.colocadas} label={t("pulserasColocadas")} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         <Card>
           <CardHeader>
             <div>
-              <CardTitle>Evolución</CardTitle>
+              <CardTitle>{ts("evolucion")}</CardTitle>
               <CardDescription className="mt-0.5">
-                Cuántos escanearon y cuántos llegaron a Google
+                {ts("subtituloEvolucion")}
               </CardDescription>
             </div>
           </CardHeader>
@@ -138,7 +160,7 @@ export default async function DistribuidorPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Tus locales</CardTitle>
+            <CardTitle>{t("tusLocales")}</CardTitle>
           </CardHeader>
           <RankingList
             medals
@@ -146,9 +168,12 @@ export default async function DistribuidorPage({
               id: fila.locationId,
               title: fila.name,
               value: fila.scans,
-              detail: `${formatNumber(fila.reviewClicks)} reseñas · ${fila.conversionRate.toFixed(0)}% de conversión`,
+              detail: ts("resenasConConversion", {
+                resenas: formatNumber(fila.reviewClicks, locale),
+                conversion: fila.conversionRate.toFixed(0),
+              }),
             }))}
-            emptyMessage="Todavía no hay escaneos en este período."
+            emptyMessage={ts("sinEscaneosPeriodo")}
           />
         </Card>
       </div>
