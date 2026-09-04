@@ -746,12 +746,12 @@
     "traduccion": "Traduction du contenu",
     "traduccionDesc": "Les noms des plats, les descriptions et les textes d'accueil sont traduits automatiquement chaque fois qu'un établissement enregistre depuis son panneau. Ceci concerne ce qui était déjà enregistré avant : la base de données est parcourue et tout ce qui manque est traduit. Le lancer deux fois ne coûte rien, car ce qui est déjà traduit n'est pas redemandé.",
     "sinTraductor": "Pas de traducteur",
-    "sinTraductorDesc": "La variable d'environnement DEEPL_API_KEY est absente. Sans elle, chaque texte s'affiche tel que l'établissement l'a écrit, comme avant : rien ne casse, mais la carte n'est pas traduite.",
+    "noSeTradujo": "Rien n'a été traduit : la traduction automatique est désactivée.",
+    "sinTraductorDesc": "La traduction automatique est désactivée dans le code (voir src/lib/traduccion/proveedor.ts). Chaque texte s'affiche tel que l'établissement l'a écrit : rien ne casse, mais la carte n'est pas traduite.",
     "traducirPendientes": "Traduire ce qui manque ({n})",
     "traduciendo": "Traduction en cours…",
     "traducidas": "Terminé : {n, plural, one {# texte traduit} other {# textes traduits}}.",
-    "nadaQueTraducir": "Il n'y avait rien en attente : tout le contenu est déjà traduit.",
-    "sinClaveDeepl": "Rien n'a été traduit : la clé DeepL est absente."
+    "nadaQueTraducir": "Il n'y avait rien en attente : tout le contenu est déjà traduit."
   },
   "VistaPrevia": {
     "aviso": "Aperçu · les clics de cet écran ne sont pas enregistrés",

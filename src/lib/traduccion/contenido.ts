@@ -17,16 +17,18 @@ import { hayTraductor, traducir } from "./proveedor";
  *
  * **Cuándo se traduce: al guardar, no al mostrar.**
  *
- * Traducir al mostrar sería una llamada a DeepL en el camino crítico de una
- * página que se abre con el celular en la mano y con la conexión del local.
+ * Traducir al mostrar sería una llamada a una API externa en el camino crítico
+ * de una página que se abre con el celular en la mano y con la conexión del
+ * local.
  * Traducir al guardar mueve ese costo al panel, donde ya se está esperando a
  * que un formulario responda, y la carta pública queda con lo que siempre tuvo:
  * una consulta a la base.
  *
- * **Qué pasa si DeepL no contesta.** Nada grave: se guarda igual y el texto se
- * muestra como lo escribió el local. Es exactamente lo que pasaba antes de que
- * esto existiera. Ninguna falla del traductor puede impedir que alguien guarde
- * un plato.
+ * **Qué pasa si el traductor no contesta.** Nada grave: se guarda igual y el
+ * texto se
+ * muestra como lo escribió el local. Es exactamente lo que pasaba antes
+ * de que esto existiera. Ninguna falla del traductor puede impedir que alguien
+ * guarde un plato.
  */
 
 /* ── Qué se traduce ───────────────────────────────────────────────────────── */
@@ -91,7 +93,7 @@ function textosDe(entidad: Entidad, campos: Record<string, unknown>): Pendiente[
  *
  * Se llama después de cada `INSERT`/`UPDATE` del panel. Es idempotente y
  * barata cuando no hay nada nuevo: si el texto no cambió desde la última vez,
- * la huella coincide y la función se va sin llamar a DeepL. Guardar el precio
+ * la huella coincide y la función se va sin llamar a nadie. Guardar el precio
  * de un plato veinte veces no cuesta veinte traducciones: cuesta cero.
  *
  * Nunca lanza. El guardado del panel ya terminó cuando esto corre, y que la
@@ -162,7 +164,7 @@ export async function traducirYGuardar(
     if (filas.length === 0) return;
 
     // Primero afuera lo viejo de esos campos: si el original cambió, sus
-    // traducciones anteriores no sirven, y las que DeepL no haya devuelto esta
+    // traducciones anteriores no sirven, y las que el traductor no haya devuelto
     // vez tienen que faltar (se muestra el original) en lugar de seguir
     // mostrando el plato anterior traducido.
     await db
@@ -215,14 +217,13 @@ type FilaTraducida = {
 };
 
 /**
- * Le pide a DeepL todos los textos en todos los idiomas.
+ * Pide todos los textos en todos los idiomas.
  *
- * Dos detalles que cambian mucho la factura:
- *
- *  1. **Un pedido por idioma, no uno por texto.** Toda la lista viaja junta.
- *  2. **El idioma original no se le pide a nadie.** El primer pedido devuelve
- *     qué idioma detectó DeepL; para ese idioma se guarda el texto tal cual,
- *     que es mejor traducción que cualquier ida y vuelta.
+ * **El idioma original no se le pide a nadie.** El primer pedido devuelve qué
+ * idioma detectó el traductor; para ese idioma se guarda el texto tal cual, que
+ * es mejor traducción que cualquier ida y vuelta. Cuando el proveedor no sabe
+ * detectar —el de respaldo no sabe— vuelve `null` y se piden los siete, que en
+ * el peor caso traduce el castellano al castellano y devuelve lo mismo.
  *
  * Guardar también el idioma original —en vez de dejar esa fila vacía— hace que
  * leer sea uniforme: la carta pide su idioma y siempre encuentra algo, sin
@@ -363,8 +364,7 @@ export async function traduccionesDe(
  * haya traducción.
  *
  * El `?? original` no es una precaución teórica: es lo que se ve cuando el
- * local acaba de cargar un plato y DeepL estaba caído, o cuando el sistema
- * corre sin `DEEPL_API_KEY`.
+ * local acaba de cargar un plato y el traductor estaba caído.
  */
 /**
  * Los textos del local (título de bienvenida, mensaje de cierre, etiqueta del

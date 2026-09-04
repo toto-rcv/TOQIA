@@ -50,18 +50,6 @@ export const env = {
   get ipHashSalt() {
     return required("IP_HASH_SALT");
   },
-  /**
-   * Clave de DeepL para traducir lo que escribe cada local (nombres de plato,
-   * títulos de bienvenida). Opcional: sin ella el sistema funciona igual y
-   * cada texto se muestra en el idioma en que lo cargó el local.
-   *
-   * Las claves gratuitas terminan en ":fx" y el proveedor deduce de ahí a qué
-   * host pegar (ver src/lib/traduccion/proveedor.ts).
-   */
-  get deeplApiKey(): string | null {
-    const valor = process.env.DEEPL_API_KEY;
-    return valor && valor.trim() !== "" ? valor.trim() : null;
-  },
   get redirectCacheTtlMs() {
     return positiveInt("REDIRECT_CACHE_TTL_SECONDS", 60) * 1000;
   },

@@ -746,12 +746,12 @@
     "traduccion": "Traducción del contenido",
     "traduccionDesc": "Los nombres de plato, las descripciones y los textos de bienvenida se traducen solos cada vez que un local guarda desde su panel. Esto es para lo que ya estaba cargado antes: recorre la base y traduce lo que falte. Correrlo dos veces no cuesta nada, porque lo que ya está traducido no se vuelve a pedir.",
     "sinTraductor": "Sin traductor",
-    "sinTraductorDesc": "Falta la variable de entorno DEEPL_API_KEY. Sin ella cada texto se muestra tal como lo escribió el local, que es como funcionaba antes: no se rompe nada, pero la carta no se traduce.",
+    "noSeTradujo": "No se tradujo nada: la traducción automática está apagada.",
+    "sinTraductorDesc": "La traducción automática está apagada en el código (ver src/lib/traduccion/proveedor.ts). Cada texto se muestra tal como lo escribió el local: no se rompe nada, pero la carta no se traduce.",
     "traducirPendientes": "Traducir lo que falta ({n})",
     "traduciendo": "Traduciendo…",
     "traducidas": "Listo: {n, plural, one {# texto traducido} other {# textos traducidos}}.",
-    "nadaQueTraducir": "No había nada pendiente: todo el contenido ya está traducido.",
-    "sinClaveDeepl": "No se tradujo nada: falta la clave de DeepL."
+    "nadaQueTraducir": "No había nada pendiente: todo el contenido ya está traducido."
   },
   "VistaPrevia": {
     "aviso": "Vista previa · los clics de esta pantalla no se registran",

@@ -746,12 +746,12 @@
     "traduccion": "Vertaling van de inhoud",
     "traduccionDesc": "Gerechtnamen, beschrijvingen en welkomstteksten worden automatisch vertaald zodra een zaak opslaat vanuit haar paneel. Dit is voor wat er al eerder was ingevoerd: de database wordt doorlopen en alles wat ontbreekt wordt vertaald. Het twee keer uitvoeren kost niets, want wat al vertaald is, wordt niet opnieuw opgevraagd.",
     "sinTraductor": "Geen vertaler",
-    "sinTraductorDesc": "De omgevingsvariabele DEEPL_API_KEY ontbreekt. Zonder die variabele wordt elke tekst getoond zoals de zaak hem heeft geschreven, zoals het eerder werkte: er gaat niets kapot, maar de kaart wordt niet vertaald.",
+    "noSeTradujo": "Er is niets vertaald: de automatische vertaling staat uit.",
+    "sinTraductorDesc": "De automatische vertaling staat uit in de code (zie src/lib/traduccion/proveedor.ts). Elke tekst wordt getoond zoals de zaak hem schreef: er gaat niets kapot, maar de kaart wordt niet vertaald.",
     "traducirPendientes": "Vertaal wat ontbreekt ({n})",
     "traduciendo": "Bezig met vertalen…",
     "traducidas": "Klaar: {n, plural, one {# tekst vertaald} other {# teksten vertaald}}.",
-    "nadaQueTraducir": "Er stond niets open: alle inhoud is al vertaald.",
-    "sinClaveDeepl": "Er is niets vertaald: de DeepL-sleutel ontbreekt."
+    "nadaQueTraducir": "Er stond niets open: alle inhoud is al vertaald."
   },
   "VistaPrevia": {
     "aviso": "Voorbeeld · kliks op dit scherm worden niet geregistreerd",

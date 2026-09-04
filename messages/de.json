@@ -746,12 +746,12 @@
     "traduccion": "Übersetzung der Inhalte",
     "traduccionDesc": "Gerichtsnamen, Beschreibungen und Begrüßungstexte werden automatisch übersetzt, sobald ein Betrieb in seinem Panel speichert. Dies ist für das gedacht, was bereits vorher erfasst wurde: Die Datenbank wird durchlaufen und alles Fehlende übersetzt. Ein zweiter Durchlauf kostet nichts, denn bereits Übersetztes wird nicht erneut angefragt.",
     "sinTraductor": "Kein Übersetzer",
-    "sinTraductorDesc": "Die Umgebungsvariable DEEPL_API_KEY fehlt. Ohne sie wird jeder Text genau so angezeigt, wie der Betrieb ihn geschrieben hat – so wie es vorher war: Es geht nichts kaputt, aber die Karte wird nicht übersetzt.",
+    "noSeTradujo": "Es wurde nichts übersetzt: die automatische Übersetzung ist aus.",
+    "sinTraductorDesc": "Die automatische Übersetzung ist im Code abgeschaltet (siehe src/lib/traduccion/proveedor.ts). Jeder Text wird so gezeigt, wie der Betrieb ihn geschrieben hat: es geht nichts kaputt, aber die Karte wird nicht übersetzt.",
     "traducirPendientes": "Fehlendes übersetzen ({n})",
     "traduciendo": "Wird übersetzt…",
     "traducidas": "Fertig: {n, plural, one {# Text übersetzt} other {# Texte übersetzt}}.",
-    "nadaQueTraducir": "Es stand nichts aus: Alle Inhalte sind bereits übersetzt.",
-    "sinClaveDeepl": "Es wurde nichts übersetzt: Der DeepL-Schlüssel fehlt."
+    "nadaQueTraducir": "Es stand nichts aus: Alle Inhalte sind bereits übersetzt."
   },
   "VistaPrevia": {
     "aviso": "Vorschau · Klicks auf diesem Bildschirm werden nicht erfasst",

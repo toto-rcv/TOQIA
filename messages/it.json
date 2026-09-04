@@ -746,12 +746,12 @@
     "traduccion": "Traduzione dei contenuti",
     "traduccionDesc": "I nomi dei piatti, le descrizioni e i testi di benvenuto vengono tradotti automaticamente ogni volta che un locale salva dal suo pannello. Questo serve per ciò che era già stato caricato prima: passa in rassegna il database e traduce ciò che manca. Eseguirlo due volte non costa nulla, perché ciò che è già tradotto non viene richiesto di nuovo.",
     "sinTraductor": "Nessun traduttore",
-    "sinTraductorDesc": "Manca la variabile d'ambiente DEEPL_API_KEY. Senza di essa ogni testo viene mostrato esattamente come l'ha scritto il locale, come funzionava prima: non si rompe nulla, ma il menù non viene tradotto.",
+    "noSeTradujo": "Non è stato tradotto nulla: la traduzione automatica è disattivata.",
+    "sinTraductorDesc": "La traduzione automatica è disattivata nel codice (vedi src/lib/traduccion/proveedor.ts). Ogni testo viene mostrato come l'ha scritto il locale: non si rompe nulla, ma il menù non viene tradotto.",
     "traducirPendientes": "Traduci ciò che manca ({n})",
     "traduciendo": "Traduzione in corso…",
     "traducidas": "Fatto: {n, plural, one {# testo tradotto} other {# testi tradotti}}.",
-    "nadaQueTraducir": "Non c'era nulla in sospeso: tutti i contenuti sono già tradotti.",
-    "sinClaveDeepl": "Non è stato tradotto nulla: manca la chiave di DeepL."
+    "nadaQueTraducir": "Non c'era nulla in sospeso: tutti i contenuti sono già tradotti."
   },
   "VistaPrevia": {
     "aviso": "Anteprima · i clic di questa schermata non vengono registrati",

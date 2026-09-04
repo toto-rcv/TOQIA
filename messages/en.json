@@ -746,12 +746,12 @@
     "traduccion": "Content translation",
     "traduccionDesc": "Dish names, descriptions and welcome texts are translated automatically whenever a venue saves from its panel. This is for what was already there before: it goes through the database and translates whatever is missing. Running it twice costs nothing, because anything already translated is not requested again.",
     "sinTraductor": "No translator",
-    "sinTraductorDesc": "The DEEPL_API_KEY environment variable is missing. Without it every text is shown exactly as the venue wrote it, which is how it worked before: nothing breaks, but the menu is not translated.",
+    "noSeTradujo": "Nothing was translated: automatic translation is turned off.",
+    "sinTraductorDesc": "Automatic translation is turned off in the code (see src/lib/traduccion/proveedor.ts). Every text is shown exactly as the venue wrote it: nothing breaks, but the menu is not translated.",
     "traducirPendientes": "Translate what's missing ({n})",
     "traduciendo": "Translating…",
     "traducidas": "Done: {n, plural, one {# text translated} other {# texts translated}}.",
-    "nadaQueTraducir": "There was nothing pending: all the content is already translated.",
-    "sinClaveDeepl": "Nothing was translated: the DeepL key is missing."
+    "nadaQueTraducir": "There was nothing pending: all the content is already translated."
   },
   "VistaPrevia": {
     "aviso": "Preview · clicks on this screen are not recorded",

@@ -25,7 +25,7 @@ export type ResultadoBackfill = {
   yaEstaban: number;
   /** Filas de traducción en la base al terminar. */
   filas: number;
-  /** false si no hay DEEPL_API_KEY: no se hizo nada y hay que decirlo. */
+  /** false si la traducción automática está apagada: no se hizo nada. */
   hayTraductor: boolean;
 };
 
@@ -95,9 +95,9 @@ export async function contarPendientes(): Promise<{
 /**
  * Traduce todo el contenido pendiente.
  *
- * De a una entidad y en serie, no todas en paralelo: son siete pedidos a DeepL
- * por entidad, y trescientos platos en paralelo serían dos mil pedidos
- * simultáneos — la API devuelve 429 y se pierde la mitad. En serie tarda más y
+ * De a una entidad y en serie, no todas en paralelo: son varios pedidos por
+ * entidad, y trescientos platos en paralelo serían miles de pedidos simultáneos
+ * — el proveedor corta por IP y se pierde la mitad. En serie tarda más y
  * termina bien, que para algo que se corre una vez es el intercambio correcto.
  */
 export async function traducirTodoElContenido(): Promise<ResultadoBackfill> {
@@ -142,7 +142,7 @@ export async function traducirTodoElContenido(): Promise<ResultadoBackfill> {
   ];
 
   for (const { entidad, fila } of trabajos) {
-    // Sin texto no hay nada que traducir y no vale gastar un viaje a DeepL.
+    // Sin texto no hay nada que traducir y no vale gastar un viaje.
     const tieneTexto = (CAMPOS_TRADUCIBLES[entidad] as readonly string[]).some(
       (campo) => {
         const valor = fila[campo];

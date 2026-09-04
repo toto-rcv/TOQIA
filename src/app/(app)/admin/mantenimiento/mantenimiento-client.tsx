@@ -73,8 +73,8 @@ export function MigrarBoton({ alDia }: { alDia: boolean }) {
 
 /**
  * Traducir tampoco destruye nada, así que va sin confirmación. Lo que sí
- * necesita es avisar que puede tardar: son siete pedidos a DeepL por plato, en
- * serie, y con una base grande esto son minutos, no segundos.
+ * necesita es avisar que puede tardar: son varios pedidos por plato, en serie,
+ * y con una base grande esto son minutos, no segundos.
  */
 export function TraducirBoton({ pendientes }: { pendientes: number }) {
   const t = useTranslations("Mantenimiento");
@@ -101,7 +101,7 @@ export function TraducirBoton({ pendientes }: { pendientes: number }) {
 
       setHecho(
         !informe.hayTraductor
-          ? t("sinClaveDeepl")
+          ? t("noSeTradujo")
           : informe.traducidas > 0
             ? t("traducidas", { n: informe.traducidas })
             : t("nadaQueTraducir")

@@ -55,8 +55,8 @@ export async function ejecutarMigraciones(): Promise<
  * Traduce a los siete idiomas todo lo que los locales cargaron antes de que
  * existiera la traducción automática.
  *
- * Puede tardar: son siete pedidos a DeepL por plato y van en serie para no
- * comerse un 429. No hay confirmación porque no destruye nada; correrlo dos
+ * Puede tardar: son varios pedidos por plato y van en serie para que el
+ * proveedor gratuito no corte por IP. No hay confirmación porque no destruye nada; correrlo dos
  * veces la segunda vez no hace ni un pedido.
  */
 export async function traducirContenido(): Promise<

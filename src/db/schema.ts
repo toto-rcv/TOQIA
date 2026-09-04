@@ -354,7 +354,7 @@ export const contentTranslations = mysqlTable(
     /**
      * Huella del texto original del que salió esta traducción.
      *
-     * Es lo que evita pagarle a DeepL dos veces por lo mismo: al guardar, si el
+     * Es lo que evita pedir dos veces la misma traducción: al guardar, si el
      * original no cambió, la huella coincide y no se traduce nada. Y al revés,
      * si cambió, la traducción vieja se borra en vez de quedar mostrando el
      * plato anterior en francés.
