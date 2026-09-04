@@ -13,12 +13,17 @@ import { formatNumber } from "@/lib/utils";
 export const metadata = { title: "Escaneos · Toqia" };
 export const dynamic = "force-dynamic";
 
+import { getTranslations } from "next-intl/server";
+
 export default async function PanelScansPage({
   searchParams,
 }: {
   searchParams: Promise<RawScanParams>;
 }) {
-  const user = await requireRestaurantUser();
+  const [user, t] = await Promise.all([
+    requireRestaurantUser(),
+    getTranslations("Escaneos"),
+  ]);
   const params = await searchParams;
   const pagina = parsePageParams(params);
 
@@ -41,11 +46,13 @@ export default async function PanelScansPage({
     listWaiterOptions([...locationIds]),
   ]);
 
+  const subtituloKey = escaneos.total === 1 ? "subtituloSingular" : "subtituloPlural";
+
   return (
     <>
       <PageHeader
-        title="Escaneos"
-        subtitle={`${formatNumber(escaneos.total)} ${escaneos.total === 1 ? "registro" : "registros"} con los filtros aplicados.`}
+        title={t("titulo")}
+        subtitle={t(subtituloKey, { n: formatNumber(escaneos.total) })}
       />
 
       <ScanFiltersBar

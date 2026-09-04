@@ -19,6 +19,8 @@ type WaiterOption = { id: number; name: string; locationId: number };
  * compartir y el botón de exportar reutiliza los mismos parámetros sin
  * duplicar estado.
  */
+import { useTranslations } from "next-intl";
+
 export function ScanFiltersBar({
   locations,
   bracelets,
@@ -30,6 +32,7 @@ export function ScanFiltersBar({
   waiters: WaiterOption[];
   exportPath: string;
 }) {
+  const t = useTranslations("Escaneos");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -91,7 +94,7 @@ export function ScanFiltersBar({
     <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-end">
       {locations.length > 1 ? (
         <div className="space-y-1">
-          <Label htmlFor="f-local">Local</Label>
+          <Label htmlFor="f-local">{t("local")}</Label>
           <Select
             id="f-local"
             value={local}
@@ -99,7 +102,7 @@ export function ScanFiltersBar({
             onChange={(event) => actualizar("local", event.target.value)}
             className="text-[13px] sm:w-[170px]"
           >
-            <option value="">Todos</option>
+            <option value="">{t("todosLosLocales")}</option>
             {locations.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.name}
@@ -110,7 +113,7 @@ export function ScanFiltersBar({
       ) : null}
 
       <div className="space-y-1.5">
-        <Label htmlFor="f-pulsera">Pulsera</Label>
+        <Label htmlFor="f-pulsera">{t("pulsera")}</Label>
         <Select
           id="f-pulsera"
           value={pulsera}
@@ -118,7 +121,7 @@ export function ScanFiltersBar({
           onChange={(event) => actualizar("pulsera", event.target.value)}
           className="font-mono text-[13px] sm:w-[130px]"
         >
-          <option value="">Todas</option>
+          <option value="">{t("todasLasPulseras")}</option>
           {pulserasVisibles.map((item) => (
             <option key={item.id} value={item.id}>
               {item.code}
@@ -128,7 +131,7 @@ export function ScanFiltersBar({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="f-camarero">Camarero</Label>
+        <Label htmlFor="f-camarero">{t("camarero")}</Label>
         <Select
           id="f-camarero"
           value={camarero}
@@ -136,7 +139,7 @@ export function ScanFiltersBar({
           onChange={(event) => actualizar("camarero", event.target.value)}
           className="text-[13px] sm:w-[160px]"
         >
-          <option value="">Todos</option>
+          <option value="">{t("todosLosCamareros")}</option>
           {camarerosVisibles.map((item) => (
             <option key={item.id} value={item.id}>
               {item.name}
@@ -146,7 +149,7 @@ export function ScanFiltersBar({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="f-desde">Desde</Label>
+        <Label htmlFor="f-desde">{t("desde")}</Label>
         <Input
           id="f-desde"
           type="date"
@@ -159,7 +162,7 @@ export function ScanFiltersBar({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="f-hasta">Hasta</Label>
+        <Label htmlFor="f-hasta">{t("hasta")}</Label>
         <Input
           id="f-hasta"
           type="date"
@@ -184,7 +187,7 @@ export function ScanFiltersBar({
             : "border-ex-border text-ex-text-secondary hover:text-ex-text"
         )}
       >
-        Solo con reseña
+        {t("soloConResena")}
       </button>
     </div>
 
@@ -197,17 +200,17 @@ export function ScanFiltersBar({
             onClick={() => startTransition(() => router.push(pathname))}
           >
             <X />
-            Limpiar filtros
+            {t("limpiarFiltros")}
           </Button>
         ) : (
-          <span className="text-[12px] text-ex-text-muted">Sin filtros aplicados</span>
+          <span className="text-[12px] text-ex-text-muted">{t("sinFiltros")}</span>
         )}
 
         <a href={exportHref} download className="shrink-0">
           <span className="ex-btn-ghost">
             <Download className="size-4" />
-            <span className="max-sm:hidden">Exportar CSV</span>
-            <span className="sm:hidden">CSV</span>
+            <span className="max-sm:hidden">{t("exportarCsv")}</span>
+            <span className="sm:hidden">{t("csv")}</span>
           </span>
         </a>
       </div>

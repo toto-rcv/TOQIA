@@ -27,12 +27,17 @@ import { WaiterSelect } from "./waiter-select";
 export const metadata = { title: "Pulseras · Toqia" };
 export const dynamic = "force-dynamic";
 
+import { getTranslations } from "next-intl/server";
+
 export default async function PanelBraceletsPage({
   searchParams,
 }: {
   searchParams: Promise<RawPageParams>;
 }) {
-  const user = await requireRestaurantUser();
+  const [user, t] = await Promise.all([
+    requireRestaurantUser(),
+    getTranslations("Pulseras"),
+  ]);
   const params = await searchParams;
 
   // La página que se pide viaja hasta el SQL: la base devuelve diez filas,
@@ -58,14 +63,14 @@ export default async function PanelBraceletsPage({
   return (
     <>
       <PageHeader
-        title="Pulseras"
-        subtitle="Asigná cada pulsera a un camarero para que sus escaneos entren al ranking."
+        title={t("titulo")}
+        subtitle={t("subtitulo")}
       />
 
       {pulseras.total === 0 ? (
         <Card>
           <EmptyState icon={<Nfc className="size-6" />}>
-            Todavía no tenés pulseras cargadas. Las da de alta el equipo de Toqia.
+            {t("sinPulseras")}
           </EmptyState>
         </Card>
       ) : (
@@ -75,14 +80,14 @@ export default async function PanelBraceletsPage({
             <Table>
               <Thead>
                 <tr>
-                  <Th className="w-[120px]">Código</Th>
-                  <Th className="w-[150px]">Etiqueta</Th>
-                  {variosLocales ? <Th className="w-[150px]">Local</Th> : null}
-                  <Th className="w-[190px]">Camarero</Th>
-                  <Th>URL del chip</Th>
-                  <Th className="w-[90px] text-right">Escaneos</Th>
-                  <Th className="w-[90px] text-right">Reseñas</Th>
-                  <Th className="w-[140px]">Último</Th>
+                  <Th className="w-[120px]">{t("colCodigo")}</Th>
+                  <Th className="w-[150px]">{t("colEtiqueta")}</Th>
+                  {variosLocales ? <Th className="w-[150px]">{t("colLocal")}</Th> : null}
+                  <Th className="w-[190px]">{t("colCamarero")}</Th>
+                  <Th>{t("colUrlChip")}</Th>
+                  <Th className="w-[90px] text-right">{t("colEscaneos")}</Th>
+                  <Th className="w-[90px] text-right">{t("colResenas")}</Th>
+                  <Th className="w-[140px]">{t("colUltimo")}</Th>
                 </tr>
               </Thead>
               <tbody>
@@ -101,7 +106,7 @@ export default async function PanelBraceletsPage({
                             {pulsera.code}
                           </span>
                           {!pulsera.active ? (
-                            <Badge tone="inactive">off</Badge>
+                            <Badge tone="inactive">{t("off")}</Badge>
                           ) : null}
                         </div>
                       </Td>
@@ -128,7 +133,7 @@ export default async function PanelBraceletsPage({
                           >
                             {url}
                           </span>
-                          <CopyButton value={url} label="Copiar URL para grabar" />
+                          <CopyButton value={url} label={t("copiarUrl")} />
                         </div>
                       </Td>
 
@@ -166,24 +171,24 @@ export default async function PanelBraceletsPage({
                       <p className="flex items-center gap-2 font-mono text-[15px] font-semibold text-ex-text">
                         {pulsera.code}
                         {!pulsera.active ? (
-                          <Badge tone="inactive">off</Badge>
+                          <Badge tone="inactive">{t("off")}</Badge>
                         ) : null}
                       </p>
                       <p className="mt-0.5 truncate text-[12.5px] text-ex-text-muted">
-                        {pulsera.label ?? (variosLocales ? pulsera.locationName : "Sin etiqueta")}
+                        {pulsera.label ?? (variosLocales ? pulsera.locationName : t("sinEtiqueta"))}
                       </p>
                     </div>
 
                     <CopyButton
                       value={url}
-                      label="Copiar URL para grabar"
+                      label={t("copiarUrl")}
                       className="h-9 w-9 shrink-0"
                     />
                   </div>
 
                   <div className="mt-3">
                     <p className="mb-1 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ex-text-muted">
-                      Camarero
+                      {t("colCamarero")}
                     </p>
                     <WaiterSelect
                       braceletId={pulsera.id}
@@ -193,17 +198,17 @@ export default async function PanelBraceletsPage({
                   </div>
 
                   <RowFields className="grid-cols-3">
-                    <RowField label="Escaneos">
+                    <RowField label={t("colEscaneos")}>
                       <span className="font-semibold tabular-nums text-ex-text">
                         {formatNumber(pulsera.scanCount)}
                       </span>
                     </RowField>
-                    <RowField label="Reseñas">
+                    <RowField label={t("colResenas")}>
                       <span className="tabular-nums">
                         {formatNumber(pulsera.reviewClicks)}
                       </span>
                     </RowField>
-                    <RowField label="Último">
+                    <RowField label={t("colUltimo")}>
                       <span className="text-[12px] tabular-nums">
                         {formatDateTime(pulsera.lastScanAt)}
                       </span>
@@ -218,7 +223,7 @@ export default async function PanelBraceletsPage({
             paged={pulseras}
             basePath="/panel/pulseras"
             searchParams={params}
-            itemLabel="pulseras"
+            itemLabel={t("itemLabel")}
           />
         </Card>
       )}

@@ -25,12 +25,17 @@ import { NewWaiterDialog, WaiterRowActions } from "./waiter-dialogs";
 export const metadata = { title: "Camareros · Toqia" };
 export const dynamic = "force-dynamic";
 
+import { getTranslations } from "next-intl/server";
+
 export default async function PanelWaitersPage({
   searchParams,
 }: {
   searchParams: Promise<RawPageParams>;
 }) {
-  const user = await requireRestaurantUser();
+  const [user, t] = await Promise.all([
+    requireRestaurantUser(),
+    getTranslations("Camareros"),
+  ]);
   const params = await searchParams;
   const pagina = parsePageParams(params);
 
@@ -44,8 +49,8 @@ export default async function PanelWaitersPage({
   return (
     <>
       <PageHeader
-        title="Camareros"
-        subtitle="Desactivar a alguien no borra sus escaneos: el historial se conserva."
+        title={t("titulo")}
+        subtitle={t("subtitulo")}
       >
         <NewWaiterDialog locations={locations} />
       </PageHeader>
@@ -53,8 +58,7 @@ export default async function PanelWaitersPage({
       {camareros.total === 0 ? (
         <Card>
           <EmptyState icon={<Users className="size-6" />}>
-            Todavía no cargaste camareros. Creá uno y después asignale pulseras
-            desde la sección Pulseras.
+            {t("sinCamareros")}
           </EmptyState>
         </Card>
       ) : (
@@ -64,12 +68,12 @@ export default async function PanelWaitersPage({
             <Table>
               <Thead>
                 <tr>
-                  <Th>Nombre</Th>
-                  {variosLocales ? <Th className="w-[200px]">Local</Th> : null}
-                  <Th className="w-[110px] text-right">Pulseras</Th>
-                  <Th className="w-[120px]">Alta</Th>
-                  <Th className="w-[110px]">Estado</Th>
-                  <Th className="w-[90px] text-right">Acciones</Th>
+                  <Th>{t("colNombre")}</Th>
+                  {variosLocales ? <Th className="w-[200px]">{t("colLocal")}</Th> : null}
+                  <Th className="w-[110px] text-right">{t("colPulseras")}</Th>
+                  <Th className="w-[120px]">{t("colAlta")}</Th>
+                  <Th className="w-[110px]">{t("colEstado")}</Th>
+                  <Th className="w-[90px] text-right">{t("colAcciones")}</Th>
                 </tr>
               </Thead>
               <tbody>
@@ -92,7 +96,7 @@ export default async function PanelWaitersPage({
                     </Td>
                     <Td>
                       <Badge tone={camarero.active ? "active" : "inactive"}>
-                        {camarero.active ? "activo" : "inactivo"}
+                        {camarero.active ? t("activo") : t("inactivo")}
                       </Badge>
                     </Td>
                     <Td>
@@ -126,19 +130,19 @@ export default async function PanelWaitersPage({
                 </div>
 
                 <RowFields className="grid-cols-3">
-                  <RowField label="Pulseras">
+                  <RowField label={t("colPulseras")}>
                     <span className="font-semibold tabular-nums text-ex-text">
                       {formatNumber(camarero.braceletCount)}
                     </span>
                   </RowField>
-                  <RowField label="Alta">
+                  <RowField label={t("colAlta")}>
                     <span className="tabular-nums">
                       {formatDate(camarero.createdAt)}
                     </span>
                   </RowField>
-                  <RowField label="Estado">
+                  <RowField label={t("colEstado")}>
                     <Badge tone={camarero.active ? "active" : "inactive"}>
-                      {camarero.active ? "activo" : "inactivo"}
+                      {camarero.active ? t("activo") : t("inactivo")}
                     </Badge>
                   </RowField>
                 </RowFields>
@@ -150,7 +154,7 @@ export default async function PanelWaitersPage({
             paged={camareros}
             basePath="/panel/camareros"
             searchParams={params}
-            itemLabel="camareros"
+            itemLabel={t("itemLabel")}
           />
         </Card>
       )}

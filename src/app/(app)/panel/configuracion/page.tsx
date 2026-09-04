@@ -15,12 +15,17 @@ import { eq } from "drizzle-orm";
 export const metadata = { title: "Mi página · Toqia" };
 export const dynamic = "force-dynamic";
 
+import { getTranslations } from "next-intl/server";
+
 export default async function ConfiguracionPage({
   searchParams,
 }: {
   searchParams: Promise<{ local?: string }>;
 }) {
-  const user = await requireRestaurantUser();
+  const [user, t] = await Promise.all([
+    requireRestaurantUser(),
+    getTranslations("Configuracion"),
+  ]);
   const { local } = await searchParams;
 
   const misLocales = await listLocations({ accountId: user.accountId });
@@ -28,10 +33,10 @@ export default async function ConfiguracionPage({
   if (misLocales.length === 0) {
     return (
       <>
-        <PageHeader title="Mi página" />
+        <PageHeader title={t("titulo")} />
         <Card>
           <EmptyState>
-            Todavía no tenés locales cargados. Los da de alta el equipo de Toqia.
+            {t("sinLocales")}
           </EmptyState>
         </Card>
       </>
@@ -54,9 +59,9 @@ export default async function ConfiguracionPage({
   if (!location) {
     return (
       <>
-        <PageHeader title="Mi página" />
+        <PageHeader title={t("titulo")} />
         <Card>
-          <EmptyState>No se encontró el local.</EmptyState>
+          <EmptyState>{t("noEncontrado")}</EmptyState>
         </Card>
       </>
     );
@@ -68,8 +73,8 @@ export default async function ConfiguracionPage({
   return (
     <>
       <PageHeader
-        title="Mi página"
-        subtitle="Esto es lo que ve el cliente cuando apoya el celular en una pulsera."
+        title={t("titulo")}
+        subtitle={t("subtitulo")}
       >
         <Link
           href={`/vista-previa?local=${location.id}`}
@@ -77,7 +82,7 @@ export default async function ConfiguracionPage({
           className="ex-btn-ghost"
         >
           <Eye className="size-4" />
-          Ver cómo queda
+          {t("verComoQueda")}
         </Link>
       </PageHeader>
 

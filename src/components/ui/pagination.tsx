@@ -16,6 +16,8 @@ import { formatNumber } from "@/lib/utils";
  * Como son enlaces, además funciona el botón de atrás del navegador, se puede
  * compartir la URL de una página concreta y anda sin JavaScript.
  */
+import { useTranslations } from "next-intl";
+
 export function Pagination({
   paged,
   basePath,
@@ -30,6 +32,7 @@ export function Pagination({
   itemLabel: string;
   className?: string;
 }) {
+  const t = useTranslations("Paginacion");
   const { page, limit, total, totalPages } = paged;
 
   // Con una sola página el paginador no aporta nada; se muestra el conteo,
@@ -59,23 +62,18 @@ export function Pagination({
     >
       <p className="text-[12.5px] text-ex-text-muted">
         {total === 0 ? (
-          <>Sin {itemLabel}</>
+          <>{t("sinItems", { itemLabel })}</>
         ) : (
-          <>
-            <span className="font-medium text-ex-text-secondary">
-              {formatNumber(desde)}–{formatNumber(hasta)}
-            </span>{" "}
-            de {formatNumber(total)} {itemLabel}
-          </>
+          <>{t("rangoDeTotal", { desde: formatNumber(desde), hasta: formatNumber(hasta), total: formatNumber(total), itemLabel })}</>
         )}
       </p>
 
       {totalPages > 1 ? (
-        <nav className="flex items-center gap-1.5" aria-label="Paginación">
+        <nav className="flex items-center gap-1.5" aria-label={t("ariaLabel")}>
           <Flecha
             href={href(page - 1)}
             disabled={page <= 1}
-            label="Página anterior"
+            label={t("anterior")}
           >
             <ChevronLeft className="size-4" aria-hidden />
           </Flecha>
@@ -119,7 +117,7 @@ export function Pagination({
           <Flecha
             href={href(page + 1)}
             disabled={page >= totalPages}
-            label="Página siguiente"
+            label={t("siguiente")}
           >
             <ChevronRight className="size-4" aria-hidden />
           </Flecha>

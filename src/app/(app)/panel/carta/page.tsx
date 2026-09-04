@@ -13,12 +13,17 @@ import { eq } from "drizzle-orm";
 export const metadata = { title: "Mi carta · Toqia" };
 export const dynamic = "force-dynamic";
 
+import { getTranslations } from "next-intl/server";
+
 export default async function CartaPanelPage({
   searchParams,
 }: {
   searchParams: Promise<{ local?: string }>;
 }) {
-  const user = await requireRestaurantUser();
+  const [user, t] = await Promise.all([
+    requireRestaurantUser(),
+    getTranslations("CartaAdmin"),
+  ]);
   const { local } = await searchParams;
 
   const misLocales = await listLocations({ accountId: user.accountId });
@@ -26,10 +31,10 @@ export default async function CartaPanelPage({
   if (misLocales.length === 0) {
     return (
       <>
-        <PageHeader title="Mi carta" />
+        <PageHeader title={t("titulo")} />
         <Card>
           <EmptyState>
-            Todavía no tenés locales cargados. Los da de alta el equipo de Toqia.
+            {t("sinLocales")}
           </EmptyState>
         </Card>
       </>
@@ -60,14 +65,22 @@ export default async function CartaPanelPage({
     0
   );
 
+  const catLabel = categorias.length === 1 ? t("categoriaSingular") : t("categoriaPlural");
+  const platoLabel = platos === 1 ? t("platoSingular") : t("platoPlural");
+
   return (
     <>
       <PageHeader
-        title="Mi carta"
+        title={t("titulo")}
         subtitle={
           platos === 0
-            ? "Cargá tu carta y el cliente la va a ver al escanear."
-            : `${categorias.length} ${categorias.length === 1 ? "categoría" : "categorías"} · ${platos} ${platos === 1 ? "plato" : "platos"}. Los cambios se ven al instante.`
+            ? t("subtituloVacia")
+            : t("subtituloResumen", {
+                categorias: categorias.length,
+                catLabel,
+                platos,
+                platoLabel,
+              })
         }
       >
         {categorias.length > 0 ? <NewCategoryDialog locationId={elegido.id} /> : null}

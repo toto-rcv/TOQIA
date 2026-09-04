@@ -12,6 +12,8 @@ import { assignWaiter } from "../actions";
  * Es la operación que más se repite cuando arranca un turno, así que se hace
  * sin diálogos ni navegación: elegís del desplegable y se guarda.
  */
+import { useTranslations } from "next-intl";
+
 export function WaiterSelect({
   braceletId,
   waiterId,
@@ -22,6 +24,7 @@ export function WaiterSelect({
   /** Solo los camareros del mismo local que la pulsera. */
   waiters: { id: number; name: string; active: boolean }[];
 }) {
+  const t = useTranslations("Pulseras");
   const [valor, setValor] = React.useState(waiterId ? String(waiterId) : "");
   const [error, setError] = React.useState<string | null>(null);
   const [pending, startTransition] = React.useTransition();
@@ -54,7 +57,7 @@ export function WaiterSelect({
   if (waiters.length === 0) {
     return (
       <span className="text-[11px] text-ex-text-disabled">
-        sin camareros en este local
+        {t("sinAsignar")}
       </span>
     );
   }
@@ -65,15 +68,15 @@ export function WaiterSelect({
         value={valor}
         onChange={handleChange}
         disabled={pending}
-        aria-label="Camarero asignado"
+        aria-label={t("colCamarero")}
         // h-10 para que en el celular sea un objetivo de toque real.
         className={cn("h-10 w-full text-[13px] lg:h-9", error && "border-ex-danger")}
       >
-        <option value="">Sin asignar</option>
+        <option value="">{t("sinAsignar")}</option>
         {waiters.map((camarero) => (
           <option key={camarero.id} value={camarero.id}>
             {camarero.name}
-            {camarero.active ? "" : " (inactivo)"}
+            {camarero.active ? "" : ` (${t("off")})`}
           </option>
         ))}
       </Select>

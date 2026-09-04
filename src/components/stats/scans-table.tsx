@@ -23,6 +23,8 @@ import { formatDateTime } from "@/lib/utils";
  * Las filas que llegan son exactamente las de la página pedida: el LIMIT lo
  * aplicó la base (ver `listScans`). Acá no se filtra ni se recorta nada.
  */
+import { useTranslations } from "next-intl";
+
 export function ScansTable({
   paged,
   basePath,
@@ -36,11 +38,13 @@ export function ScansTable({
   showAccount?: boolean;
   showLocation?: boolean;
 }) {
+  const t = useTranslations("Escaneos");
+
   if (paged.data.length === 0) {
     return (
       <Card>
         <EmptyState icon={<ScanLine className="size-6" />}>
-          No hay escaneos que coincidan con estos filtros.
+          {t("sinCoincidencias")}
         </EmptyState>
       </Card>
     );
@@ -53,14 +57,14 @@ export function ScansTable({
         <Table>
           <Thead>
             <tr>
-              <Th className="w-[165px]">Fecha y hora</Th>
-              <Th className="w-[110px]">Pulsera</Th>
-              <Th className="w-[150px]">Camarero</Th>
-              {showAccount ? <Th className="w-[160px]">Cuenta</Th> : null}
-              {showLocation ? <Th className="w-[160px]">Local</Th> : null}
-              <Th className="w-[90px] text-center">Reseña</Th>
-              <Th>Dispositivo</Th>
-              <Th className="w-[120px]">IP (hash)</Th>
+              <Th className="w-[165px]">{t("colFechaHora")}</Th>
+              <Th className="w-[110px]">{t("colPulsera")}</Th>
+              <Th className="w-[150px]">{t("colCamarero")}</Th>
+              {showAccount ? <Th className="w-[160px]">{t("colCuenta")}</Th> : null}
+              {showLocation ? <Th className="w-[160px]">{t("colLocal")}</Th> : null}
+              <Th className="w-[90px] text-center">{t("colResena")}</Th>
+              <Th>{t("colDispositivo")}</Th>
+              <Th className="w-[120px]">{t("colIp")}</Th>
             </tr>
           </Thead>
           <tbody>
@@ -119,8 +123,8 @@ export function ScansTable({
             </div>
 
             <RowFields>
-              <RowField label="Camarero">{scan.waiterName ?? "—"}</RowField>
-              <RowField label="Dispositivo">
+              <RowField label={t("colCamarero")}>{scan.waiterName ?? "—"}</RowField>
+              <RowField label={t("colDispositivo")}>
                 <span className="block truncate">
                   {dispositivo(scan.userAgent)}
                 </span>
@@ -134,7 +138,7 @@ export function ScansTable({
         paged={paged}
         basePath={basePath}
         searchParams={searchParams}
-        itemLabel="escaneos"
+        itemLabel={t("itemLabel")}
       />
     </Card>
   );
@@ -147,15 +151,17 @@ function MarcaDeResena({
   scan: ScanRow;
   conTexto?: boolean;
 }) {
+  const t = useTranslations("Escaneos");
+
   if (scan.reviewClickedAt) {
     return (
       <span
-        title={`Fue a la reseña el ${formatDateTime(scan.reviewClickedAt)}`}
+        title={t("fueAResenaEl", { fecha: formatDateTime(scan.reviewClickedAt) })}
         className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-ex-success/12
                    px-2 py-1 text-[11px] font-semibold text-ex-success"
       >
         <Check className="size-3.5" aria-hidden />
-        {conTexto ? "Reseña" : <span className="sr-only">Fue a la reseña</span>}
+        {conTexto ? t("resenaSi") : <span className="sr-only">{t("fueAResena")}</span>}
       </span>
     );
   }
@@ -166,7 +172,7 @@ function MarcaDeResena({
                  px-2 py-1 text-[11px] font-medium text-ex-text-disabled"
     >
       <Minus className="size-3.5" aria-hidden />
-      {conTexto ? "Sin reseña" : <span className="sr-only">Sin reseña</span>}
+      {conTexto ? t("resenaNo") : <span className="sr-only">{t("resenaNo")}</span>}
     </span>
   );
 }
