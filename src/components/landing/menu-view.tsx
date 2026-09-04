@@ -185,19 +185,23 @@ function Hero({
   }
 
   return (
-    <div className="relative hidden w-full overflow-hidden lg:block lg:h-[min(42vh,420px)] lg:min-h-[320px]">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={foto}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+    /* El recorte va en la caja de la foto, no acá.
+       Cuando `overflow-hidden` estaba en este contenedor, se llevaba puesto al
+       desplegable de idiomas: el menú nace dentro del hero y se despliega más
+       abajo que su borde, así que los últimos idiomas quedaban cortados y sin
+       poder tocarse. Solo la foto y su velo necesitan recorte. */
+    <div className="relative hidden w-full lg:block lg:h-[min(42vh,420px)] lg:min-h-[320px]">
+      <div aria-hidden className="absolute inset-0 overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={foto}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
 
-      {/* Velo: transparente arriba, negro sólido abajo. */}
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-gradient-to-t from-tq-night from-[6%] via-tq-night/45 via-52% to-transparent"
-      />
+        {/* Velo: transparente arriba, negro sólido abajo. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-tq-night from-[6%] via-tq-night/45 via-52% to-transparent" />
+      </div>
 
       <div className="relative mx-auto flex h-full max-w-[1140px] flex-col justify-between px-8 pb-8 pt-7">
         <div className="flex items-start justify-between gap-4">
