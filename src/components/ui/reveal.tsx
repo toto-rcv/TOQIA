@@ -4,14 +4,15 @@ import { motion } from "framer-motion";
 import type { ReactNode, ElementType } from "react";
 
 export function Reveal({
-  children,
+  children = null,
   delay = 0,
   className,
   as: Component = "div",
   x = 0,
   y = 30,
 }: {
-  children: ReactNode;
+  /** Opcional: hay usos puramente decorativos (ej. un separador) sin contenido. */
+  children?: ReactNode;
   delay?: number;
   className?: string;
   as?: ElementType;

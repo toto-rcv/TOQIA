@@ -2,9 +2,14 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
-  // 'standalone' empaqueta el server + solo las dependencias que realmente se usan
-  // en .next/standalone. Es lo que se copia al VPS y lo que arranca PM2.
-  output: "standalone",
+  // Nada de 'output: standalone' acá: ese modo empaqueta el server con una
+  // copia recortada de node_modules (pensada para copiar solo esa carpeta a
+  // un VPS y arrancarla con PM2). El hosting de Node de Hostinger ya corre
+  // el proyecto completo con su propio node_modules, así que ese empaquetado
+  // sobra — y de paso tiene un bug conocido: la copia recortada se olvida la
+  // carpeta `esm` de @swc/helpers, y el server no arranca
+  // ("Cannot find module '.../@swc/helpers/esm/_interop_require_default.js'").
+  // Si el día de mañana se vuelve a un VPS con PM2, se puede reactivar acá.
 
   // El endpoint /r/[code] tiene que ser lo más liviano posible: no queremos que
   // Next agregue headers innecesarios en cada respuesta.
