@@ -17,7 +17,7 @@ import {
 import { listAccounts } from "@/db/queries/accounts";
 import { requireDistributor } from "@/lib/session";
 import { formatDate, formatNumber } from "@/lib/utils";
-import { NuevoRestauranteDialog } from "./dialogs";
+import { DeleteAccountDialog, NuevoRestauranteDialog } from "./dialogs";
 
 /**
  * El título de la pestaña también viaja por las traducciones: el panel está en
@@ -86,6 +86,7 @@ export default async function RestaurantesPage() {
                   <Th className="w-[90px] text-right">{t("locales")}</Th>
                   <Th className="w-[90px] text-right">{t("pulseras")}</Th>
                   <Th className="w-[100px] text-right">{t("escaneos")}</Th>
+                  <Th className="w-[70px] text-right">{tc("colAcciones")}</Th>
                 </tr>
               </Thead>
               <tbody>
@@ -120,6 +121,11 @@ export default async function RestaurantesPage() {
                       <Td className="num text-right text-sm text-ex-text">
                         {formatNumber(cuenta.scanCount, locale)}
                       </Td>
+                      <Td>
+                        <div className="flex justify-end">
+                          <DeleteAccountDialog cuenta={cuenta} />
+                        </div>
+                      </Td>
                     </Tr>
                   );
                 })}
@@ -146,7 +152,10 @@ export default async function RestaurantesPage() {
                         {cuenta.slug}
                       </p>
                     </div>
-                    <Badge tone={estado.tone}>{estado.label}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge tone={estado.tone}>{estado.label}</Badge>
+                      <DeleteAccountDialog cuenta={cuenta} />
+                    </div>
                   </div>
 
                   <RowFields className="grid-cols-3">

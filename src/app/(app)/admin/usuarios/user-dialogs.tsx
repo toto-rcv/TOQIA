@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Settings2 } from "lucide-react";
+import { Plus, Settings2, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import * as React from "react";
 
@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input, Label, Select } from "@/components/ui/input";
-import { createUser, updateUser } from "../actions";
+import { createUser, deleteUser, updateUser } from "../actions";
 
 type AccountOption = { id: number; name: string };
 
@@ -318,6 +318,73 @@ export function EditUserDialog({
             </Button>
           </DialogFooter>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Borrado ─────────────────────────────────────────────────────────────── */
+
+export function DeleteUserDialog({
+  usuario,
+  esVos,
+}: {
+  usuario: { id: string; name: string };
+  /** true si es el usuario con la sesión abierta: no se puede borrar a sí mismo. */
+  esVos: boolean;
+}) {
+  const t = useTranslations("Usuarios");
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <button
+        type="button"
+        onClick={() => !esVos && setOpen(true)}
+        disabled={esVos}
+        title={esVos ? t("noPodesBorrarte") : t("borrar")}
+        aria-label={esVos ? t("noPodesBorrarte") : t("borrar")}
+        className="inline-flex h-7 w-7 items-center justify-center rounded-control border
+                   border-ex-border text-ex-text-muted transition-colors
+                   hover:border-ex-danger/40 hover:text-ex-danger active:scale-[0.98]
+                   disabled:opacity-40 disabled:hover:border-ex-border disabled:hover:text-ex-text-muted"
+      >
+        <Trash2 className="size-3.5" />
+      </button>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("borrarA", { nombre: usuario.name })}</DialogTitle>
+          <DialogDescription>{t("borrarUsuarioDesc")}</DialogDescription>
+        </DialogHeader>
+
+        <DialogBody>{error ? <ErrorBox message={error} /> : null}</DialogBody>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+            {t("cancelar")}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={pending}
+            onClick={() => {
+              setError(null);
+              startTransition(async () => {
+                const resultado = await deleteUser(usuario.id);
+                if (!resultado.ok) {
+                  setError(resultado.error);
+                  return;
+                }
+                setOpen(false);
+              });
+            }}
+          >
+            {pending ? t("borrando") : t("borrarIgual")}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

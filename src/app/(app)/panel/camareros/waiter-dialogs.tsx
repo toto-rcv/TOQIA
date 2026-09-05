@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Power, Settings2 } from "lucide-react";
+import { Plus, Power, Settings2, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import * as React from "react";
 
@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input, Label, Select } from "@/components/ui/input";
-import { createWaiter, toggleWaiter, updateWaiter } from "../actions";
+import { createWaiter, deleteWaiter, toggleWaiter, updateWaiter } from "../actions";
 
 type LocationOption = { id: number; name: string };
 type WaiterRow = { id: number; name: string; active: boolean; locationId: number };
@@ -111,6 +111,7 @@ export function WaiterRowActions({ waiter }: { waiter: WaiterRow }) {
     <div className="flex items-center justify-end gap-1.5">
       <EditWaiterDialog waiter={waiter} />
       <ToggleWaiterButton waiter={waiter} />
+      <DeleteWaiterDialog waiter={waiter} />
     </div>
   );
 }
@@ -219,6 +220,62 @@ function ToggleWaiterButton({ waiter }: { waiter: WaiterRow }) {
     >
       <Power className="size-3.5" />
     </button>
+  );
+}
+
+function DeleteWaiterDialog({ waiter }: { waiter: WaiterRow }) {
+  const t = useTranslations("Camareros");
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        title={t("borrar")}
+        aria-label={t("borrar")}
+        className="inline-flex h-7 w-7 items-center justify-center rounded-control border
+                   border-ex-border text-ex-text-muted transition-colors
+                   hover:border-ex-danger/40 hover:text-ex-danger active:scale-[0.98]"
+      >
+        <Trash2 className="size-3.5" />
+      </button>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("borrarNombre", { nombre: waiter.name })}</DialogTitle>
+          <DialogDescription>{t("borrarCamareroDesc")}</DialogDescription>
+        </DialogHeader>
+
+        <DialogBody>{error ? <ErrorBox message={error} /> : null}</DialogBody>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+            {t("cancelar")}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={pending}
+            onClick={() => {
+              setError(null);
+              startTransition(async () => {
+                const resultado = await deleteWaiter(waiter.id);
+                if (!resultado.ok) {
+                  setError(resultado.error);
+                  return;
+                }
+                setOpen(false);
+              });
+            }}
+          >
+            {pending ? t("borrando") : t("borrarIgual")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

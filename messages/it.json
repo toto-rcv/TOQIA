@@ -296,7 +296,12 @@
     "activar": "Attiva",
     "desactivarHint": "Disattiva (i suoi braccialetti continuano a funzionare)",
     "subtituloAdmin": "Li gestisce ogni attività dal proprio pannello. Qui si vedono tutti.",
-    "sinCamarerosAdmin": "Nessuna attività ha ancora inserito dipendenti."
+    "sinCamarerosAdmin": "Nessuna attività ha ancora inserito dipendenti.",
+    "borrar": "Elimina dipendente",
+    "borrarNombre": "Elimina {nombre}",
+    "borrarCamareroDesc": "I suoi braccialetti non vengono eliminati: restano senza assegnazione. La cronologia delle scansioni si conserva. Non si può annullare.",
+    "borrarIgual": "Elimina comunque",
+    "borrando": "Eliminando…"
   },
   "Pulseras": {
     "titulo": "Braccialetti",
@@ -365,7 +370,12 @@
     "desactivar": "Disattiva braccialetto",
     "activar": "Attiva braccialetto",
     "destinoDirecto": "Destinazione diretta",
-    "destinoDirectoHint": "Se lo compili, questo braccialetto salta la pagina del locale e va direttamente qui. La scansione viene comunque registrata."
+    "destinoDirectoHint": "Se lo compili, questo braccialetto salta la pagina del locale e va direttamente qui. La scansione viene comunque registrata.",
+    "borrar": "Elimina braccialetto",
+    "borrarCodigo": "Elimina {code}",
+    "borrarPulseraDesc": "Verranno eliminate anche le sue {n, plural, one {# scansione} other {# scansioni}}. Non si può annullare. Se vuoi solo disattivarlo, usa il pulsante di accensione.",
+    "borrarIgual": "Elimina comunque",
+    "borrando": "Eliminando…"
   },
   "CartaAdmin": {
     "titulo": "Il mio catalogo",
@@ -711,7 +721,15 @@
     "confirmacionExacta": "Per confermare devi scrivere esattamente “{frase}”.",
     "noAutorizado": "Non autorizzato",
     "csvFallido": "Non è stato possibile generare il CSV. Controlla i log.",
-    "noSePudoTraducir": "Impossibile tradurre: {detalle}"
+    "noSePudoTraducir": "Impossibile tradurre: {detalle}",
+    "noSePudoBorrarCuenta": "Non è stato possibile eliminare l'account",
+    "noSePudoBorrarLocal": "Non è stato possibile eliminare il locale",
+    "noSePudoBorrarPulsera": "Non è stato possibile eliminare il braccialetto",
+    "noSePudoBorrarUsuario": "Non è stato possibile eliminare l'utente",
+    "noSePudoBorrarCamarero": "Non è stato possibile eliminare il dipendente",
+    "noPodesBorrarteVos": "Non puoi eliminare il tuo stesso utente. Chiedi a un altro admin di farlo.",
+    "ultimoAdminNoSeBorra": "È l'unico admin rimasto: non si può eliminare. Crea prima un altro admin.",
+    "cuentaAjena": "Quell'account non è tuo."
   },
   "Mantenimiento": {
     "titulo": "Manutenzione",
@@ -792,7 +810,13 @@
     "guardando": "Salvataggio…",
     "editar": "Modifica utente",
     "editarA": "Modifica {nombre}",
-    "avisoEsVos": "È il tuo utente. Puoi cambiare i tuoi dati, ma non il tuo ruolo: togliendoti l'admin resteresti fuori dall'amministrazione."
+    "avisoEsVos": "È il tuo utente. Puoi cambiare i tuoi dati, ma non il tuo ruolo: togliendoti l'admin resteresti fuori dall'amministrazione.",
+    "borrar": "Elimina utente",
+    "borrarA": "Elimina {nombre}",
+    "borrarUsuarioDesc": "Non si può annullare.",
+    "borrarIgual": "Elimina comunque",
+    "borrando": "Eliminando…",
+    "noPodesBorrarte": "Non puoi eliminare il tuo stesso utente."
   },
   "Locales": {
     "titulo": "Locali",
@@ -830,7 +854,12 @@
     "editar": "Modifica locale",
     "desactivar": "Disattiva locale",
     "activar": "Attiva il locale",
-    "desactivarHint": "Disattiva (interrompe i suoi braccialetti)"
+    "desactivarHint": "Disattiva (interrompe i suoi braccialetti)",
+    "borrar": "Elimina locale",
+    "borrarNombre": "Elimina “{nombre}”",
+    "borrarLocalDesc": "Verranno eliminati anche i suoi {pulseras, plural, one {# braccialetto} other {# braccialetti}}, camerieri, categorie e piatti, con tutte le scansioni. Non si può annullare.",
+    "borrarIgual": "Elimina comunque",
+    "borrando": "Eliminando…"
   },
   "Cuentas": {
     "titulo": "Account",
@@ -872,7 +901,12 @@
     "reactivar": "Riattiva l'account",
     "rubro": "Settore",
     "rubroPlaceholder": "Ferramenta, Parrucchiere, Ristorante…",
-    "rubroAyuda": "È quello che vede l'attività nel suo pannello al posto della parola “Attività”. Se lo lasci vuoto si mostra “Attività”."
+    "rubroAyuda": "È quello che vede l'attività nel suo pannello al posto della parola “Attività”. Se lo lasci vuoto si mostra “Attività”.",
+    "borrar": "Elimina account",
+    "borrarNombre": "Elimina “{nombre}”",
+    "borrarCuentaDesc": "Verranno eliminati anche i suoi {locales, plural, one {# locale} other {# locali}} e {pulseras, plural, one {# braccialetto} other {# braccialetti}}, con tutte le scansioni, i camerieri e gli utenti del pannello. Non si può annullare.",
+    "borrarIgual": "Elimina comunque",
+    "borrando": "Eliminando…"
   },
   "Distribuidor": {
     "sinNada": "Non hai ancora account assegnati né braccialetti consegnati. Quando Toqia ti consegnerà un lotto potrai creare la tua prima attività da <enlace>Attività</enlace>.",
@@ -921,6 +955,12 @@
     "filtroTodas": "Tutti",
     "rubro": "Settore",
     "rubroPlaceholder": "Ferramenta, Parrucchiere, Ristorante…",
-    "rubroAyuda": "È quello che vede l'attività nel suo pannello al posto della parola “Attività”. Se lo lasci vuoto si mostra “Attività”."
+    "rubroAyuda": "È quello che vede l'attività nel suo pannello al posto della parola “Attività”. Se lo lasci vuoto si mostra “Attività”.",
+    "borrarEmpresa": "Elimina attività",
+    "borrarNombre": "Elimina “{nombre}”",
+    "borrarEmpresaDesc": "Verranno eliminati anche i suoi {locales, plural, one {# locale} other {# locali}} e {pulseras, plural, one {# braccialetto} other {# braccialetti}}, con tutte le scansioni e i camerieri. Non si può annullare.",
+    "borrarIgual": "Elimina comunque",
+    "borrando": "Eliminando…",
+    "colAcciones": "Azioni"
   }
 }

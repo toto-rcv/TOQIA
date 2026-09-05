@@ -11,6 +11,7 @@ import { listWaiters } from "@/db/queries/waiters";
 import { parsePageParams } from "@/lib/pagination";
 import { requireAdmin } from "@/lib/session";
 import { formatDate, formatNumber } from "@/lib/utils";
+import { DeleteWaiterDialog } from "./waiter-dialogs";
 
 /**
  * El título de la pestaña también viaja por las traducciones: el panel está en
@@ -75,6 +76,7 @@ export default async function AdminWaitersPage({
                 <Th className="w-[110px] text-right">{t("colPulseras")}</Th>
                 <Th className="w-[120px]">{t("colAlta")}</Th>
                 <Th className="w-[100px]">{t("colEstado")}</Th>
+                <Th className="w-[80px] text-right">{t("colAcciones")}</Th>
               </tr>
             </Thead>
             <tbody>
@@ -93,6 +95,11 @@ export default async function AdminWaitersPage({
                     <Badge tone={camarero.active ? "active" : "inactive"}>
                       {camarero.active ? t("activo") : t("inactivo")}
                     </Badge>
+                  </Td>
+                  <Td>
+                    <div className="flex justify-end">
+                      <DeleteWaiterDialog waiter={camarero} />
+                    </div>
                   </Td>
                 </Tr>
               ))}

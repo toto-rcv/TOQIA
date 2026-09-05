@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Power, Settings2 } from "lucide-react";
+import { Plus, Power, Settings2, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import * as React from "react";
 
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input, Label, Select } from "@/components/ui/input";
 import { slugify } from "@/lib/validation";
-import { createLocation, toggleLocation, updateLocation } from "../actions";
+import { createLocation, deleteLocation, toggleLocation, updateLocation } from "../actions";
 
 type AccountOption = { id: number; name: string; active: boolean };
 type LocationRow = {
@@ -25,6 +25,7 @@ type LocationRow = {
   name: string;
   slug: string;
   active: boolean;
+  braceletCount: number;
 };
 
 export function NewLocationDialog({
@@ -170,6 +171,7 @@ export function LocationRowActions({
     <div className="flex items-center justify-end gap-1.5">
       <EditLocationDialog location={location} accounts={accounts} />
       <ToggleLocationButton location={location} />
+      <DeleteLocationDialog location={location} />
     </div>
   );
 }
@@ -314,6 +316,64 @@ function ToggleLocationButton({ location }: { location: LocationRow }) {
     >
       <Power className="size-3.5" />
     </button>
+  );
+}
+
+function DeleteLocationDialog({ location }: { location: LocationRow }) {
+  const t = useTranslations("Locales");
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        title={t("borrar")}
+        aria-label={t("borrar")}
+        className="inline-flex h-7 w-7 items-center justify-center rounded-control border
+                   border-ex-border text-ex-text-muted transition-colors
+                   hover:border-ex-danger/40 hover:text-ex-danger active:scale-[0.98]"
+      >
+        <Trash2 className="size-3.5" />
+      </button>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("borrarNombre", { nombre: location.name })}</DialogTitle>
+          <DialogDescription>
+            {t("borrarLocalDesc", { pulseras: location.braceletCount })}
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogBody>{error ? <ErrorBox message={error} /> : null}</DialogBody>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+            {t("cancelar")}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={pending}
+            onClick={() => {
+              setError(null);
+              startTransition(async () => {
+                const resultado = await deleteLocation(location.id);
+                if (!resultado.ok) {
+                  setError(resultado.error);
+                  return;
+                }
+                setOpen(false);
+              });
+            }}
+          >
+            {pending ? t("borrando") : t("borrarIgual")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

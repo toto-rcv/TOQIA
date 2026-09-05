@@ -81,7 +81,7 @@ export default async function PanelWaitersPage({
                   <Th className="w-[110px] text-right">{t("colPulseras")}</Th>
                   <Th className="w-[120px]">{t("colAlta")}</Th>
                   <Th className="w-[110px]">{t("colEstado")}</Th>
-                  <Th className="w-[90px] text-right">{t("colAcciones")}</Th>
+                  <Th className="w-[120px] text-right">{t("colAcciones")}</Th>
                 </tr>
               </Thead>
               <tbody>

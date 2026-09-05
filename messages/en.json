@@ -296,7 +296,12 @@
     "activar": "Activate",
     "desactivarHint": "Deactivate (their bracelets keep working)",
     "subtituloAdmin": "Each business manages them from its own panel. Here you can see them all.",
-    "sinCamarerosAdmin": "No business has added staff members yet."
+    "sinCamarerosAdmin": "No business has added staff members yet.",
+    "borrar": "Delete employee",
+    "borrarNombre": "Delete {nombre}",
+    "borrarCamareroDesc": "Their bracelets are not deleted: they're left unassigned. The scan history is kept. This cannot be undone.",
+    "borrarIgual": "Delete anyway",
+    "borrando": "Deleting…"
   },
   "Pulseras": {
     "titulo": "Wristbands",
@@ -365,7 +370,12 @@
     "desactivar": "Deactivate bracelet",
     "activar": "Activate bracelet",
     "destinoDirecto": "Direct destination",
-    "destinoDirectoHint": "If you fill this in, the bracelet skips the venue page and goes straight here. The scan is still recorded."
+    "destinoDirectoHint": "If you fill this in, the bracelet skips the venue page and goes straight here. The scan is still recorded.",
+    "borrar": "Delete bracelet",
+    "borrarCodigo": "Delete {code}",
+    "borrarPulseraDesc": "This also deletes its {n, plural, one {# scan} other {# scans}}. This cannot be undone. If you only want to turn it off, use the power button.",
+    "borrarIgual": "Delete anyway",
+    "borrando": "Deleting…"
   },
   "CartaAdmin": {
     "titulo": "My catalogue",
@@ -711,7 +721,15 @@
     "confirmacionExacta": "To confirm you have to type exactly “{frase}”.",
     "noAutorizado": "Not authorised",
     "csvFallido": "The CSV could not be generated. Check the logs.",
-    "noSePudoTraducir": "Could not translate: {detalle}"
+    "noSePudoTraducir": "Could not translate: {detalle}",
+    "noSePudoBorrarCuenta": "Could not delete the account",
+    "noSePudoBorrarLocal": "Could not delete the location",
+    "noSePudoBorrarPulsera": "Could not delete the bracelet",
+    "noSePudoBorrarUsuario": "Could not delete the user",
+    "noSePudoBorrarCamarero": "Could not delete the employee",
+    "noPodesBorrarteVos": "You can't delete your own user. Ask another admin to do it.",
+    "ultimoAdminNoSeBorra": "It's the only admin left: it can't be deleted. Create another admin first.",
+    "cuentaAjena": "That account isn't yours."
   },
   "Mantenimiento": {
     "titulo": "Maintenance",
@@ -792,7 +810,13 @@
     "guardando": "Saving…",
     "editar": "Edit user",
     "editarA": "Edit {nombre}",
-    "avisoEsVos": "This is your own user. You can change your details, but not your role: removing your admin role would lock you out of the administration."
+    "avisoEsVos": "This is your own user. You can change your details, but not your role: removing your admin role would lock you out of the administration.",
+    "borrar": "Delete user",
+    "borrarA": "Delete {nombre}",
+    "borrarUsuarioDesc": "This cannot be undone.",
+    "borrarIgual": "Delete anyway",
+    "borrando": "Deleting…",
+    "noPodesBorrarte": "You can't delete your own user."
   },
   "Locales": {
     "titulo": "Venues",
@@ -830,7 +854,12 @@
     "editar": "Edit venue",
     "desactivar": "Deactivate venue",
     "activar": "Activate the venue",
-    "desactivarHint": "Deactivate (cuts off its bracelets)"
+    "desactivarHint": "Deactivate (cuts off its bracelets)",
+    "borrar": "Delete location",
+    "borrarNombre": "Delete “{nombre}”",
+    "borrarLocalDesc": "This also deletes its {pulseras, plural, one {# bracelet} other {# bracelets}}, staff, categories and dishes, along with all its scans. This cannot be undone.",
+    "borrarIgual": "Delete anyway",
+    "borrando": "Deleting…"
   },
   "Cuentas": {
     "titulo": "Accounts",
@@ -872,7 +901,12 @@
     "reactivar": "Reopen the account",
     "rubro": "Business type",
     "rubroPlaceholder": "Hardware store, Hair salon, Restaurant…",
-    "rubroAyuda": "It is what the business sees in its panel instead of the word “Business”. If you leave it empty, “Business” is shown."
+    "rubroAyuda": "It is what the business sees in its panel instead of the word “Business”. If you leave it empty, “Business” is shown.",
+    "borrar": "Delete account",
+    "borrarNombre": "Delete “{nombre}”",
+    "borrarCuentaDesc": "This also deletes its {locales, plural, one {# location} other {# locations}} and {pulseras, plural, one {# bracelet} other {# bracelets}}, along with all its scans, staff and panel users. This cannot be undone.",
+    "borrarIgual": "Delete anyway",
+    "borrando": "Deleting…"
   },
   "Distribuidor": {
     "sinNada": "You have no accounts assigned and no bracelets delivered yet. Once Toqia delivers a batch you'll be able to create your first business from <enlace>Businesses</enlace>.",
@@ -921,6 +955,12 @@
     "filtroTodas": "All",
     "rubro": "Business type",
     "rubroPlaceholder": "Hardware store, Hair salon, Restaurant…",
-    "rubroAyuda": "It is what the business sees in its panel instead of the word “Business”. If you leave it empty, “Business” is shown."
+    "rubroAyuda": "It is what the business sees in its panel instead of the word “Business”. If you leave it empty, “Business” is shown.",
+    "borrarEmpresa": "Delete business",
+    "borrarNombre": "Delete “{nombre}”",
+    "borrarEmpresaDesc": "This also deletes its {locales, plural, one {# location} other {# locations}} and {pulseras, plural, one {# bracelet} other {# bracelets}}, along with all its scans and staff. This cannot be undone.",
+    "borrarIgual": "Delete anyway",
+    "borrando": "Deleting…",
+    "colAcciones": "Actions"
   }
 }

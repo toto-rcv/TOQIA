@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Plus } from "lucide-react";
+import { Check, Copy, Plus, Trash2 } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input, Label } from "@/components/ui/input";
-import { crearEmpresa } from "../actions";
+import { crearEmpresa, deleteAccount } from "../actions";
 
 /**
  * Alta de un restaurante nuevo.
@@ -261,6 +261,84 @@ function CredencialesDialog({
         <DialogFooter>
           <Button type="button" variant="primary" onClick={onClose}>
             {t("listo")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Borrado ─────────────────────────────────────────────────────────────── */
+
+type CuentaRow = {
+  id: number;
+  name: string;
+  locationCount: number;
+  braceletCount: number;
+};
+
+export function DeleteAccountDialog({ cuenta }: { cuenta: CuentaRow }) {
+  const t = useTranslations("Distribuidor");
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        title={t("borrarEmpresa")}
+        aria-label={t("borrarEmpresa")}
+        className="inline-flex h-7 w-7 items-center justify-center rounded-control border
+                   border-ex-border text-ex-text-muted transition-colors
+                   hover:border-ex-danger/40 hover:text-ex-danger active:scale-[0.98]"
+      >
+        <Trash2 className="size-3.5" />
+      </button>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("borrarNombre", { nombre: cuenta.name })}</DialogTitle>
+          <DialogDescription>
+            {t("borrarEmpresaDesc", {
+              locales: cuenta.locationCount,
+              pulseras: cuenta.braceletCount,
+            })}
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogBody>
+          {error ? (
+            <p role="alert" className="text-[12px] leading-relaxed text-ex-danger">
+              {error}
+            </p>
+          ) : null}
+        </DialogBody>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+            {t("cancelar")}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={pending}
+            onClick={() => {
+              setError(null);
+              startTransition(async () => {
+                const resultado = await deleteAccount(cuenta.id);
+                if (!resultado.ok) {
+                  setError(resultado.error);
+                  return;
+                }
+                setOpen(false);
+                router.refresh();
+              });
+            }}
+          >
+            {pending ? t("borrando") : t("borrarIgual")}
           </Button>
         </DialogFooter>
       </DialogContent>

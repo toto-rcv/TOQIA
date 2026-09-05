@@ -8,7 +8,7 @@ import { listAccountOptions } from "@/db/queries/accounts";
 import { listUsers } from "@/db/queries/users";
 import { requireAdmin } from "@/lib/session";
 import { formatDate } from "@/lib/utils";
-import { EditUserDialog, NewUserDialog } from "./user-dialogs";
+import { DeleteUserDialog, EditUserDialog, NewUserDialog } from "./user-dialogs";
 
 /**
  * El título de la pestaña también viaja por las traducciones: el panel está en
@@ -60,7 +60,7 @@ export default async function AdminUsersPage() {
                 <Th className="w-[130px]">{t("colRol")}</Th>
                 <Th className="w-[220px]">{t("colCuenta")}</Th>
                 <Th className="w-[120px]">{t("colAlta")}</Th>
-                <Th className="w-[80px] text-right">{t("colAcciones")}</Th>
+                <Th className="w-[110px] text-right">{t("colAcciones")}</Th>
               </tr>
             </Thead>
             <tbody>
@@ -90,7 +90,7 @@ export default async function AdminUsersPage() {
                     </Td>
                     <Td className="num text-[11px]">{formatDate(usuario.createdAt, locale)}</Td>
                     <Td>
-                      <div className="flex justify-end">
+                      <div className="flex justify-end gap-1.5">
                         <EditUserDialog
                           usuario={{
                             id: usuario.id,
@@ -100,6 +100,10 @@ export default async function AdminUsersPage() {
                             accountId: usuario.accountId,
                           }}
                           accounts={cuentas}
+                          esVos={usuario.id === actual.id}
+                        />
+                        <DeleteUserDialog
+                          usuario={{ id: usuario.id, name: usuario.name }}
                           esVos={usuario.id === actual.id}
                         />
                       </div>

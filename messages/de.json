@@ -296,7 +296,12 @@
     "activar": "Aktivieren",
     "desactivarHint": "Deaktivieren (seine Armbänder funktionieren weiter)",
     "subtituloAdmin": "Jedes Unternehmen verwaltet sie im eigenen Panel. Hier sind sie alle zu sehen.",
-    "sinCamarerosAdmin": "Noch kein Unternehmen hat Mitarbeiter angelegt."
+    "sinCamarerosAdmin": "Noch kein Unternehmen hat Mitarbeiter angelegt.",
+    "borrar": "Mitarbeiter löschen",
+    "borrarNombre": "{nombre} löschen",
+    "borrarCamareroDesc": "Seine Armbänder werden nicht gelöscht: Sie bleiben ohne Zuweisung. Der Scan-Verlauf bleibt erhalten. Das lässt sich nicht rückgängig machen.",
+    "borrarIgual": "Trotzdem löschen",
+    "borrando": "Wird gelöscht…"
   },
   "Pulseras": {
     "titulo": "Armbänder",
@@ -365,7 +370,12 @@
     "desactivar": "Armband deaktivieren",
     "activar": "Armband aktivieren",
     "destinoDirecto": "Direktes Ziel",
-    "destinoDirectoHint": "Wenn du das ausfüllst, überspringt dieses Armband die Standortseite und geht direkt hierhin. Der Scan wird trotzdem erfasst."
+    "destinoDirectoHint": "Wenn du das ausfüllst, überspringt dieses Armband die Standortseite und geht direkt hierhin. Der Scan wird trotzdem erfasst.",
+    "borrar": "Armband löschen",
+    "borrarCodigo": "{code} löschen",
+    "borrarPulseraDesc": "Damit werden auch {n, plural, one {# Scan} other {# Scans}} gelöscht. Das lässt sich nicht rückgängig machen. Wenn du es nur deaktivieren willst, nutze den Ein/Aus-Knopf.",
+    "borrarIgual": "Trotzdem löschen",
+    "borrando": "Wird gelöscht…"
   },
   "CartaAdmin": {
     "titulo": "Mein Katalog",
@@ -711,7 +721,15 @@
     "confirmacionExacta": "Zur Bestätigung musst du genau „{frase}“ eingeben.",
     "noAutorizado": "Nicht berechtigt",
     "csvFallido": "Die CSV-Datei konnte nicht erzeugt werden. Sieh in den Logs nach.",
-    "noSePudoTraducir": "Übersetzung nicht möglich: {detalle}"
+    "noSePudoTraducir": "Übersetzung nicht möglich: {detalle}",
+    "noSePudoBorrarCuenta": "Konto konnte nicht gelöscht werden",
+    "noSePudoBorrarLocal": "Standort konnte nicht gelöscht werden",
+    "noSePudoBorrarPulsera": "Armband konnte nicht gelöscht werden",
+    "noSePudoBorrarUsuario": "Nutzer konnte nicht gelöscht werden",
+    "noSePudoBorrarCamarero": "Mitarbeiter konnte nicht gelöscht werden",
+    "noPodesBorrarteVos": "Du kannst dich nicht selbst löschen. Bitte einen anderen Admin darum.",
+    "ultimoAdminNoSeBorra": "Das ist der letzte verbleibende Admin: er kann nicht gelöscht werden. Leg vorher einen weiteren Admin an.",
+    "cuentaAjena": "Dieses Konto gehört dir nicht."
   },
   "Mantenimiento": {
     "titulo": "Wartung",
@@ -792,7 +810,13 @@
     "guardando": "Wird gespeichert…",
     "editar": "Benutzer bearbeiten",
     "editarA": "{nombre} bearbeiten",
-    "avisoEsVos": "Das ist dein eigener Benutzer. Du kannst deine Daten ändern, aber nicht deine Rolle: dir den Admin zu nehmen würde dich aus der Verwaltung aussperren."
+    "avisoEsVos": "Das ist dein eigener Benutzer. Du kannst deine Daten ändern, aber nicht deine Rolle: dir den Admin zu nehmen würde dich aus der Verwaltung aussperren.",
+    "borrar": "Nutzer löschen",
+    "borrarA": "{nombre} löschen",
+    "borrarUsuarioDesc": "Das lässt sich nicht rückgängig machen.",
+    "borrarIgual": "Trotzdem löschen",
+    "borrando": "Wird gelöscht…",
+    "noPodesBorrarte": "Du kannst dich nicht selbst löschen."
   },
   "Locales": {
     "titulo": "Standorte",
@@ -830,7 +854,12 @@
     "editar": "Standort bearbeiten",
     "desactivar": "Standort deaktivieren",
     "activar": "Standort aktivieren",
-    "desactivarHint": "Deaktivieren (schaltet seine Armbänder ab)"
+    "desactivarHint": "Deaktivieren (schaltet seine Armbänder ab)",
+    "borrar": "Standort löschen",
+    "borrarNombre": "„{nombre}“ löschen",
+    "borrarLocalDesc": "Damit werden auch {pulseras, plural, one {# Armband} other {# Armbänder}}, Mitarbeiter, Kategorien und Gerichte gelöscht, samt allen Scans. Das lässt sich nicht rückgängig machen.",
+    "borrarIgual": "Trotzdem löschen",
+    "borrando": "Wird gelöscht…"
   },
   "Cuentas": {
     "titulo": "Konten",
@@ -872,7 +901,12 @@
     "reactivar": "Konto reaktivieren",
     "rubro": "Branche",
     "rubroPlaceholder": "Eisenwarenhandlung, Friseursalon, Restaurant…",
-    "rubroAyuda": "Das sieht das Unternehmen in seinem Panel anstelle des Wortes „Unternehmen“. Wenn du es leer lässt, wird „Unternehmen“ angezeigt."
+    "rubroAyuda": "Das sieht das Unternehmen in seinem Panel anstelle des Wortes „Unternehmen“. Wenn du es leer lässt, wird „Unternehmen“ angezeigt.",
+    "borrar": "Konto löschen",
+    "borrarNombre": "„{nombre}“ löschen",
+    "borrarCuentaDesc": "Damit werden auch {locales, plural, one {# Standort} other {# Standorte}} und {pulseras, plural, one {# Armband} other {# Armbänder}} gelöscht, samt allen Scans, Mitarbeitern und Panel-Nutzern. Das lässt sich nicht rückgängig machen.",
+    "borrarIgual": "Trotzdem löschen",
+    "borrando": "Wird gelöscht…"
   },
   "Distribuidor": {
     "sinNada": "Du hast noch keine zugewiesenen Konten und keine gelieferten Armbänder. Sobald Toqia dir eine Charge liefert, kannst du dein erstes Unternehmen unter <enlace>Unternehmen</enlace> anlegen.",
@@ -921,6 +955,12 @@
     "filtroTodas": "Alle",
     "rubro": "Branche",
     "rubroPlaceholder": "Eisenwarenhandlung, Friseursalon, Restaurant…",
-    "rubroAyuda": "Das sieht das Unternehmen in seinem Panel anstelle des Wortes „Unternehmen“. Wenn du es leer lässt, wird „Unternehmen“ angezeigt."
+    "rubroAyuda": "Das sieht das Unternehmen in seinem Panel anstelle des Wortes „Unternehmen“. Wenn du es leer lässt, wird „Unternehmen“ angezeigt.",
+    "borrarEmpresa": "Unternehmen löschen",
+    "borrarNombre": "„{nombre}“ löschen",
+    "borrarEmpresaDesc": "Damit werden auch {locales, plural, one {# Standort} other {# Standorte}} und {pulseras, plural, one {# Armband} other {# Armbänder}} gelöscht, samt allen Scans und Mitarbeitern. Das lässt sich nicht rückgängig machen.",
+    "borrarIgual": "Trotzdem löschen",
+    "borrando": "Wird gelöscht…",
+    "colAcciones": "Aktionen"
   }
 }

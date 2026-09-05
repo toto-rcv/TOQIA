@@ -296,7 +296,12 @@
     "activar": "Activer",
     "desactivarHint": "Désactiver (ses bracelets continuent de fonctionner)",
     "subtituloAdmin": "Chaque entreprise les gère depuis son panneau. Ici on les voit tous.",
-    "sinCamarerosAdmin": "Aucune entreprise n'a encore ajouté d'employés."
+    "sinCamarerosAdmin": "Aucune entreprise n'a encore ajouté d'employés.",
+    "borrar": "Supprimer l'employé",
+    "borrarNombre": "Supprimer {nombre}",
+    "borrarCamareroDesc": "Ses bracelets ne sont pas supprimés : ils restent non assignés. L'historique des scans est conservé. Action irréversible.",
+    "borrarIgual": "Supprimer quand même",
+    "borrando": "Suppression…"
   },
   "Pulseras": {
     "titulo": "Bracelets",
@@ -365,7 +370,12 @@
     "desactivar": "Désactiver le bracelet",
     "activar": "Activer le bracelet",
     "destinoDirecto": "Destination directe",
-    "destinoDirectoHint": "Si vous la remplissez, ce bracelet saute la page de l'établissement et va directement ici. Le scan est enregistré quand même."
+    "destinoDirectoHint": "Si vous la remplissez, ce bracelet saute la page de l'établissement et va directement ici. Le scan est enregistré quand même.",
+    "borrar": "Supprimer le bracelet",
+    "borrarCodigo": "Supprimer {code}",
+    "borrarPulseraDesc": "Cela supprime aussi ses {n, plural, one {# scan} other {# scans}}. Action irréversible. Si vous voulez seulement le désactiver, utilisez le bouton d'alimentation.",
+    "borrarIgual": "Supprimer quand même",
+    "borrando": "Suppression…"
   },
   "CartaAdmin": {
     "titulo": "Mon catalogue",
@@ -711,7 +721,15 @@
     "confirmacionExacta": "Pour confirmer, vous devez taper exactement « {frase} ».",
     "noAutorizado": "Non autorisé",
     "csvFallido": "Le CSV n'a pas pu être généré. Consultez les journaux.",
-    "noSePudoTraducir": "Impossible de traduire : {detalle}"
+    "noSePudoTraducir": "Impossible de traduire : {detalle}",
+    "noSePudoBorrarCuenta": "Impossible de supprimer le compte",
+    "noSePudoBorrarLocal": "Impossible de supprimer l'établissement",
+    "noSePudoBorrarPulsera": "Impossible de supprimer le bracelet",
+    "noSePudoBorrarUsuario": "Impossible de supprimer l'utilisateur",
+    "noSePudoBorrarCamarero": "Impossible de supprimer l'employé",
+    "noPodesBorrarteVos": "Vous ne pouvez pas vous supprimer vous-même. Demandez à un autre admin de le faire.",
+    "ultimoAdminNoSeBorra": "C'est le seul admin restant : impossible de le supprimer. Créez d'abord un autre admin.",
+    "cuentaAjena": "Ce compte ne vous appartient pas."
   },
   "Mantenimiento": {
     "titulo": "Maintenance",
@@ -792,7 +810,13 @@
     "guardando": "Enregistrement…",
     "editar": "Modifier l'utilisateur",
     "editarA": "Modifier {nombre}",
-    "avisoEsVos": "C'est votre propre utilisateur. Vous pouvez changer vos données, mais pas votre rôle : vous retirer l'admin vous mettrait dehors de l'administration."
+    "avisoEsVos": "C'est votre propre utilisateur. Vous pouvez changer vos données, mais pas votre rôle : vous retirer l'admin vous mettrait dehors de l'administration.",
+    "borrar": "Supprimer l'utilisateur",
+    "borrarA": "Supprimer {nombre}",
+    "borrarUsuarioDesc": "Action irréversible.",
+    "borrarIgual": "Supprimer quand même",
+    "borrando": "Suppression…",
+    "noPodesBorrarte": "Vous ne pouvez pas supprimer votre propre utilisateur."
   },
   "Locales": {
     "titulo": "Établissements",
@@ -830,7 +854,12 @@
     "editar": "Modifier l'établissement",
     "desactivar": "Désactiver l'établissement",
     "activar": "Activer l'établissement",
-    "desactivarHint": "Désactiver (coupe ses bracelets)"
+    "desactivarHint": "Désactiver (coupe ses bracelets)",
+    "borrar": "Supprimer l'établissement",
+    "borrarNombre": "Supprimer « {nombre} »",
+    "borrarLocalDesc": "Cela supprime aussi ses {pulseras, plural, one {# bracelet} other {# bracelets}}, employés, catégories et plats, avec tous ses scans. Action irréversible.",
+    "borrarIgual": "Supprimer quand même",
+    "borrando": "Suppression…"
   },
   "Cuentas": {
     "titulo": "Comptes",
@@ -872,7 +901,12 @@
     "reactivar": "Réactiver le compte",
     "rubro": "Secteur d'activité",
     "rubroPlaceholder": "Quincaillerie, Salon de coiffure, Restaurant…",
-    "rubroAyuda": "C'est ce que l'entreprise voit dans son panneau à la place du mot « Entreprise ». Si vous le laissez vide, « Entreprise » s'affiche."
+    "rubroAyuda": "C'est ce que l'entreprise voit dans son panneau à la place du mot « Entreprise ». Si vous le laissez vide, « Entreprise » s'affiche.",
+    "borrar": "Supprimer le compte",
+    "borrarNombre": "Supprimer « {nombre} »",
+    "borrarCuentaDesc": "Cela supprime aussi ses {locales, plural, one {# établissement} other {# établissements}} et {pulseras, plural, one {# bracelet} other {# bracelets}}, avec tous ses scans, employés et utilisateurs du panneau. Action irréversible.",
+    "borrarIgual": "Supprimer quand même",
+    "borrando": "Suppression…"
   },
   "Distribuidor": {
     "sinNada": "Vous n'avez encore ni comptes assignés ni bracelets livrés. Quand Toqia vous livrera un lot, vous pourrez créer votre première entreprise depuis <enlace>Entreprises</enlace>.",
@@ -921,6 +955,12 @@
     "filtroTodas": "Tous",
     "rubro": "Secteur d'activité",
     "rubroPlaceholder": "Quincaillerie, Salon de coiffure, Restaurant…",
-    "rubroAyuda": "C'est ce que l'entreprise voit dans son panneau à la place du mot « Entreprise ». Si vous le laissez vide, « Entreprise » s'affiche."
+    "rubroAyuda": "C'est ce que l'entreprise voit dans son panneau à la place du mot « Entreprise ». Si vous le laissez vide, « Entreprise » s'affiche.",
+    "borrarEmpresa": "Supprimer l'entreprise",
+    "borrarNombre": "Supprimer « {nombre} »",
+    "borrarEmpresaDesc": "Cela supprime aussi ses {locales, plural, one {# établissement} other {# établissements}} et {pulseras, plural, one {# bracelet} other {# bracelets}}, avec tous ses scans et employés. Action irréversible.",
+    "borrarIgual": "Supprimer quand même",
+    "borrando": "Suppression…",
+    "colAcciones": "Actions"
   }
 }

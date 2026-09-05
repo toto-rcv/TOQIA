@@ -296,7 +296,12 @@
     "activar": "Activar",
     "desactivarHint": "Desactivar (sus pulseras siguen funcionando)",
     "subtituloAdmin": "Los administra cada empresa desde su panel. Acá se ven todos.",
-    "sinCamarerosAdmin": "Todavía ninguna empresa cargó empleados."
+    "sinCamarerosAdmin": "Todavía ninguna empresa cargó empleados.",
+    "borrar": "Borrar empleado",
+    "borrarNombre": "Borrar a {nombre}",
+    "borrarCamareroDesc": "Sus pulseras no se borran: quedan sin asignar. El historial de escaneos se conserva. No se puede deshacer.",
+    "borrarIgual": "Borrar igual",
+    "borrando": "Borrando…"
   },
   "Pulseras": {
     "titulo": "Pulseras",
@@ -365,7 +370,12 @@
     "desactivar": "Desactivar pulsera",
     "activar": "Activar pulsera",
     "destinoDirecto": "Destino directo",
-    "destinoDirectoHint": "Si lo cargás, esta pulsera saltea la página del local y va directo acá. El escaneo se registra igual."
+    "destinoDirectoHint": "Si lo cargás, esta pulsera saltea la página del local y va directo acá. El escaneo se registra igual.",
+    "borrar": "Borrar pulsera",
+    "borrarCodigo": "Borrar {code}",
+    "borrarPulseraDesc": "Se borran también sus {n, plural, one {# escaneo} other {# escaneos}}. No se puede deshacer. Si solo querés cortarla, usá el botón de apagar.",
+    "borrarIgual": "Borrar igual",
+    "borrando": "Borrando…"
   },
   "CartaAdmin": {
     "titulo": "Mi catálogo",
@@ -711,7 +721,15 @@
     "confirmacionExacta": "Para confirmar tenés que escribir exactamente “{frase}”.",
     "noAutorizado": "No autorizado",
     "csvFallido": "No se pudo generar el CSV. Revisá los logs.",
-    "noSePudoTraducir": "No se pudo traducir: {detalle}"
+    "noSePudoTraducir": "No se pudo traducir: {detalle}",
+    "noSePudoBorrarCuenta": "No se pudo borrar la cuenta",
+    "noSePudoBorrarLocal": "No se pudo borrar el local",
+    "noSePudoBorrarPulsera": "No se pudo borrar la pulsera",
+    "noSePudoBorrarUsuario": "No se pudo borrar el usuario",
+    "noSePudoBorrarCamarero": "No se pudo borrar el empleado",
+    "noPodesBorrarteVos": "No podés borrarte a vos mismo. Pedile a otro admin que lo haga.",
+    "ultimoAdminNoSeBorra": "Es el único admin que queda: no se puede borrar. Creá otro admin antes.",
+    "cuentaAjena": "Esa cuenta no es tuya."
   },
   "Mantenimiento": {
     "titulo": "Mantenimiento",
@@ -792,7 +810,13 @@
     "guardando": "Guardando…",
     "editar": "Editar usuario",
     "editarA": "Editar a {nombre}",
-    "avisoEsVos": "Es tu propio usuario. Podés cambiar tus datos, pero no tu rol: sacarte el admin te dejaría afuera de la administración."
+    "avisoEsVos": "Es tu propio usuario. Podés cambiar tus datos, pero no tu rol: sacarte el admin te dejaría afuera de la administración.",
+    "borrar": "Borrar usuario",
+    "borrarA": "Borrar a {nombre}",
+    "borrarUsuarioDesc": "No se puede deshacer.",
+    "borrarIgual": "Borrar igual",
+    "borrando": "Borrando…",
+    "noPodesBorrarte": "No podés borrar tu propio usuario."
   },
   "Locales": {
     "titulo": "Locales",
@@ -830,7 +854,12 @@
     "editar": "Editar local",
     "desactivar": "Desactivar local",
     "activar": "Activar el local",
-    "desactivarHint": "Desactivar (corta sus pulseras)"
+    "desactivarHint": "Desactivar (corta sus pulseras)",
+    "borrar": "Borrar local",
+    "borrarNombre": "Borrar “{nombre}”",
+    "borrarLocalDesc": "Se borran también sus {pulseras, plural, one {# pulsera} other {# pulseras}}, camareros, categorías y platos, con todos sus escaneos. No se puede deshacer.",
+    "borrarIgual": "Borrar igual",
+    "borrando": "Borrando…"
   },
   "Cuentas": {
     "titulo": "Cuentas",
@@ -872,7 +901,12 @@
     "reactivar": "Reactivar la cuenta",
     "rubro": "Rubro",
     "rubroPlaceholder": "Ferretería, Peluquería, Restaurante…",
-    "rubroAyuda": "Es lo que ve la empresa en su panel en lugar de la palabra “Empresa”. Si lo dejás vacío se muestra “Empresa”."
+    "rubroAyuda": "Es lo que ve la empresa en su panel en lugar de la palabra “Empresa”. Si lo dejás vacío se muestra “Empresa”.",
+    "borrar": "Borrar cuenta",
+    "borrarNombre": "Borrar “{nombre}”",
+    "borrarCuentaDesc": "Se borran también sus {locales, plural, one {# local} other {# locales}} y {pulseras, plural, one {# pulsera} other {# pulseras}}, con todos sus escaneos, camareros y usuarios del panel. No se puede deshacer.",
+    "borrarIgual": "Borrar igual",
+    "borrando": "Borrando…"
   },
   "Distribuidor": {
     "sinNada": "Todavía no tenés cuentas asignadas ni pulseras entregadas. Cuando Toqia te entregue un lote vas a poder dar de alta tu primera empresa desde <enlace>Empresas</enlace>.",
@@ -921,6 +955,12 @@
     "filtroTodas": "Todas",
     "rubro": "Rubro",
     "rubroPlaceholder": "Ferretería, Peluquería, Restaurante…",
-    "rubroAyuda": "Es lo que ve la empresa en su panel en lugar de la palabra “Empresa”. Si lo dejás vacío se muestra “Empresa”."
+    "rubroAyuda": "Es lo que ve la empresa en su panel en lugar de la palabra “Empresa”. Si lo dejás vacío se muestra “Empresa”.",
+    "borrarEmpresa": "Borrar empresa",
+    "borrarNombre": "Borrar “{nombre}”",
+    "borrarEmpresaDesc": "Se borran también sus {locales, plural, one {# local} other {# locales}} y {pulseras, plural, one {# pulsera} other {# pulseras}}, con todos sus escaneos y camareros. No se puede deshacer.",
+    "borrarIgual": "Borrar igual",
+    "borrando": "Borrando…",
+    "colAcciones": "Acciones"
   }
 }

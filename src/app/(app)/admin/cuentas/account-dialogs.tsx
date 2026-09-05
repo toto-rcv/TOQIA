@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { ExternalLink, Plus, Power, Settings2 } from "lucide-react";
+import { ExternalLink, Plus, Power, Settings2, Trash2 } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { Input, Label, Select } from "@/components/ui/input";
 import { slugify } from "@/lib/validation";
 import {
   createAccount,
+  deleteAccount,
   entrarAlPanelDe,
   toggleAccount,
   updateAccount,
@@ -36,6 +37,8 @@ type AccountRow = {
   subscriptionPrice: string | null;
   subscriptionExpiresAt: Date | null;
   distributorId: string | null;
+  locationCount: number;
+  braceletCount: number;
 };
 
 /** El valor va a la base; el nombre visible sale de las traducciones. */
@@ -161,6 +164,7 @@ export function AccountRowActions({
       <AbrirPanelButton account={account} />
       <EditAccountDialog account={account} distributors={distributors} />
       <ToggleAccountButton account={account} />
+      <DeleteAccountDialog account={account} />
     </div>
   );
 }
@@ -402,6 +406,67 @@ function ToggleAccountButton({ account }: { account: AccountRow }) {
     >
       <Power className="size-3.5" />
     </button>
+  );
+}
+
+function DeleteAccountDialog({ account }: { account: AccountRow }) {
+  const t = useTranslations("Cuentas");
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        title={t("borrar")}
+        aria-label={t("borrar")}
+        className="inline-flex h-7 w-7 items-center justify-center rounded-control border
+                   border-ex-border text-ex-text-muted transition-colors
+                   hover:border-ex-danger/40 hover:text-ex-danger active:scale-[0.98]"
+      >
+        <Trash2 className="size-3.5" />
+      </button>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("borrarNombre", { nombre: account.name })}</DialogTitle>
+          <DialogDescription>
+            {t("borrarCuentaDesc", {
+              locales: account.locationCount,
+              pulseras: account.braceletCount,
+            })}
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogBody>{error ? <ErrorBox message={error} /> : null}</DialogBody>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+            {t("cancelar")}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={pending}
+            onClick={() => {
+              setError(null);
+              startTransition(async () => {
+                const resultado = await deleteAccount(account.id);
+                if (!resultado.ok) {
+                  setError(resultado.error);
+                  return;
+                }
+                setOpen(false);
+              });
+            }}
+          >
+            {pending ? t("borrando") : t("borrarIgual")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

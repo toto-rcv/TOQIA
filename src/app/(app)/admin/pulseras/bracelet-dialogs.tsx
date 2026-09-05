@@ -1,6 +1,6 @@
 "use client";
 
-import { Layers, Plus, Power, Settings2 } from "lucide-react";
+import { Layers, Plus, Power, Settings2, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import * as React from "react";
 
@@ -19,6 +19,7 @@ import type { BraceletListItem } from "@/db/queries/bracelets";
 import {
   createBracelet,
   createBraceletsBulk,
+  deleteBracelet,
   toggleBracelet,
   updateBracelet,
 } from "../actions";
@@ -417,6 +418,7 @@ export function BraceletRowActions({
         waiters={waiters}
       />
       <ToggleBraceletButton bracelet={bracelet} />
+      <DeleteBraceletDialog bracelet={bracelet} />
     </div>
   );
 }
@@ -606,6 +608,64 @@ function ToggleBraceletButton({ bracelet }: { bracelet: BraceletListItem }) {
     >
       <Power className="size-3.5" />
     </button>
+  );
+}
+
+function DeleteBraceletDialog({ bracelet }: { bracelet: BraceletListItem }) {
+  const t = useTranslations("Pulseras");
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [pending, startTransition] = React.useTransition();
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        title={t("borrar")}
+        aria-label={t("borrar")}
+        className="inline-flex h-7 w-7 items-center justify-center rounded-control border
+                   border-ex-border text-ex-text-muted transition-colors
+                   hover:border-ex-danger/40 hover:text-ex-danger active:scale-[0.98]"
+      >
+        <Trash2 className="size-3.5" />
+      </button>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("borrarCodigo", { code: bracelet.code })}</DialogTitle>
+          <DialogDescription>
+            {t("borrarPulseraDesc", { n: bracelet.scanCount })}
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogBody>{error ? <ErrorBox message={error} /> : null}</DialogBody>
+
+        <DialogFooter>
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+            {t("cancelar")}
+          </Button>
+          <Button
+            type="button"
+            variant="danger"
+            disabled={pending}
+            onClick={() => {
+              setError(null);
+              startTransition(async () => {
+                const resultado = await deleteBracelet(bracelet.id);
+                if (!resultado.ok) {
+                  setError(resultado.error);
+                  return;
+                }
+                setOpen(false);
+              });
+            }}
+          >
+            {pending ? t("borrando") : t("borrarIgual")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

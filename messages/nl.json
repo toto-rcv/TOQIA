@@ -296,7 +296,12 @@
     "activar": "Activeren",
     "desactivarHint": "Deactiveren (zijn armbanden blijven werken)",
     "subtituloAdmin": "Elk bedrijf beheert ze in het eigen panel. Hier zie je ze allemaal.",
-    "sinCamarerosAdmin": "Nog geen enkel bedrijf heeft medewerkers toegevoegd."
+    "sinCamarerosAdmin": "Nog geen enkel bedrijf heeft medewerkers toegevoegd.",
+    "borrar": "Medewerker verwijderen",
+    "borrarNombre": "{nombre} verwijderen",
+    "borrarCamareroDesc": "Zijn polsbandjes worden niet verwijderd: ze blijven zonder toewijzing achter. De scangeschiedenis blijft bewaard. Dit kan niet ongedaan worden gemaakt.",
+    "borrarIgual": "Toch verwijderen",
+    "borrando": "Bezig met verwijderen…"
   },
   "Pulseras": {
     "titulo": "Armbanden",
@@ -365,7 +370,12 @@
     "desactivar": "Armband deactiveren",
     "activar": "Armband activeren",
     "destinoDirecto": "Directe bestemming",
-    "destinoDirectoHint": "Als je dit invult, slaat deze armband de vestigingspagina over en gaat direct hierheen. De scan wordt gewoon geregistreerd."
+    "destinoDirectoHint": "Als je dit invult, slaat deze armband de vestigingspagina over en gaat direct hierheen. De scan wordt gewoon geregistreerd.",
+    "borrar": "Polsbandje verwijderen",
+    "borrarCodigo": "{code} verwijderen",
+    "borrarPulseraDesc": "Hiermee worden ook {n, plural, one {# scan} other {# scans}} verwijderd. Dit kan niet ongedaan worden gemaakt. Wil je het alleen uitschakelen, gebruik dan de aan/uit-knop.",
+    "borrarIgual": "Toch verwijderen",
+    "borrando": "Bezig met verwijderen…"
   },
   "CartaAdmin": {
     "titulo": "Mijn menu",
@@ -711,7 +721,15 @@
     "confirmacionExacta": "Om te bevestigen moet je precies “{frase}” typen.",
     "noAutorizado": "Niet toegestaan",
     "csvFallido": "De CSV kon niet worden gegenereerd. Bekijk de logs.",
-    "noSePudoTraducir": "Vertalen is niet gelukt: {detalle}"
+    "noSePudoTraducir": "Vertalen is niet gelukt: {detalle}",
+    "noSePudoBorrarCuenta": "Kon het account niet verwijderen",
+    "noSePudoBorrarLocal": "Kon de vestiging niet verwijderen",
+    "noSePudoBorrarPulsera": "Kon het polsbandje niet verwijderen",
+    "noSePudoBorrarUsuario": "Kon de gebruiker niet verwijderen",
+    "noSePudoBorrarCamarero": "Kon de medewerker niet verwijderen",
+    "noPodesBorrarteVos": "Je kunt jezelf niet verwijderen. Vraag een andere beheerder om dit te doen.",
+    "ultimoAdminNoSeBorra": "Dit is de laatste beheerder: die kan niet worden verwijderd. Maak eerst een andere beheerder aan.",
+    "cuentaAjena": "Dat account is niet van jou."
   },
   "Mantenimiento": {
     "titulo": "Onderhoud",
@@ -792,7 +810,13 @@
     "guardando": "Bezig met opslaan…",
     "editar": "Gebruiker bewerken",
     "editarA": "{nombre} bewerken",
-    "avisoEsVos": "Dit is je eigen gebruiker. Je kunt je gegevens wijzigen, maar niet je rol: jezelf de admin afnemen zou je buiten het beheer zetten."
+    "avisoEsVos": "Dit is je eigen gebruiker. Je kunt je gegevens wijzigen, maar niet je rol: jezelf de admin afnemen zou je buiten het beheer zetten.",
+    "borrar": "Gebruiker verwijderen",
+    "borrarA": "{nombre} verwijderen",
+    "borrarUsuarioDesc": "Dit kan niet ongedaan worden gemaakt.",
+    "borrarIgual": "Toch verwijderen",
+    "borrando": "Bezig met verwijderen…",
+    "noPodesBorrarte": "Je kunt je eigen gebruiker niet verwijderen."
   },
   "Locales": {
     "titulo": "Vestigingen",
@@ -830,7 +854,12 @@
     "editar": "Vestiging bewerken",
     "desactivar": "Vestiging deactiveren",
     "activar": "Vestiging activeren",
-    "desactivarHint": "Deactiveren (schakelt haar armbanden uit)"
+    "desactivarHint": "Deactiveren (schakelt haar armbanden uit)",
+    "borrar": "Vestiging verwijderen",
+    "borrarNombre": "“{nombre}” verwijderen",
+    "borrarLocalDesc": "Hiermee worden ook {pulseras, plural, one {# polsbandje} other {# polsbandjes}}, medewerkers, categorieën en gerechten verwijderd, samen met alle scans. Dit kan niet ongedaan worden gemaakt.",
+    "borrarIgual": "Toch verwijderen",
+    "borrando": "Bezig met verwijderen…"
   },
   "Cuentas": {
     "titulo": "Accounts",
@@ -872,7 +901,12 @@
     "reactivar": "Account heropenen",
     "rubro": "Branche",
     "rubroPlaceholder": "IJzerhandel, Kapsalon, Bedrijf…",
-    "rubroAyuda": "Dit ziet het bedrijf in zijn eigen paneel in plaats van het woord “Bedrijf”. Laat je het leeg, dan staat er “Bedrijf”."
+    "rubroAyuda": "Dit ziet het bedrijf in zijn eigen paneel in plaats van het woord “Bedrijf”. Laat je het leeg, dan staat er “Bedrijf”.",
+    "borrar": "Account verwijderen",
+    "borrarNombre": "“{nombre}” verwijderen",
+    "borrarCuentaDesc": "Hiermee worden ook {locales, plural, one {# vestiging} other {# vestigingen}} en {pulseras, plural, one {# polsbandje} other {# polsbandjes}} verwijderd, samen met alle scans, medewerkers en paneelgebruikers. Dit kan niet ongedaan worden gemaakt.",
+    "borrarIgual": "Toch verwijderen",
+    "borrando": "Bezig met verwijderen…"
   },
   "Distribuidor": {
     "sinNada": "Je hebt nog geen toegewezen accounts en geen geleverde armbanden. Zodra Toqia je een partij levert, kun je je eerste bedrijf aanmaken vanuit <enlace>Bedrijven</enlace>.",
@@ -921,6 +955,12 @@
     "filtroTodas": "Alle",
     "rubro": "Branche",
     "rubroPlaceholder": "IJzerhandel, Kapsalon, Bedrijf…",
-    "rubroAyuda": "Dit ziet het bedrijf in zijn eigen paneel in plaats van het woord “Bedrijf”. Laat je het leeg, dan staat er “Bedrijf”."
+    "rubroAyuda": "Dit ziet het bedrijf in zijn eigen paneel in plaats van het woord “Bedrijf”. Laat je het leeg, dan staat er “Bedrijf”.",
+    "borrarEmpresa": "Bedrijf verwijderen",
+    "borrarNombre": "“{nombre}” verwijderen",
+    "borrarEmpresaDesc": "Hiermee worden ook {locales, plural, one {# vestiging} other {# vestigingen}} en {pulseras, plural, one {# polsbandje} other {# polsbandjes}} verwijderd, samen met alle scans en medewerkers. Dit kan niet ongedaan worden gemaakt.",
+    "borrarIgual": "Toch verwijderen",
+    "borrando": "Bezig met verwijderen…",
+    "colAcciones": "Acties"
   }
 }

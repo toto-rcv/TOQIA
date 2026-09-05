@@ -28,6 +28,7 @@ import {
   getLocationBySlug,
 } from "@/db/queries/locations";
 import { auth } from "@/lib/auth";
+import { borrarCuentaEnCascada, borrarLocalEnCascada } from "@/lib/borrado-en-cascada";
 import { invalidateAll, invalidateBracelet } from "@/lib/redirect-cache";
 import { mensajeDeError } from "@/lib/errores-db";
 import { COOKIE_CUENTA_ADMIN, requireAdmin } from "@/lib/session";
@@ -224,6 +225,30 @@ export async function toggleAccount(
   }
 }
 
+/**
+ * Borra una cuenta entera: sus locales, camareros, pulseras, categorías,
+ * platos, archivos, escaneos y usuarios del panel se van con ella (ver
+ * src/lib/borrado-en-cascada.ts). No hay vuelta atrás: no es un toggle.
+ */
+export async function deleteAccount(id: number): Promise<ActionResult> {
+  await requireAdmin();
+  const t = await getTranslations("Errores");
+
+  try {
+    const actual = await getAccountById(id);
+    if (!actual) return fail(t("cuentaNoExiste"));
+
+    await borrarCuentaEnCascada(id);
+
+    revalidarAdmin();
+    revalidatePath("/admin/usuarios");
+    return ok();
+  } catch (cause) {
+    console.error("[admin] no se pudo borrar la cuenta", { id, cause });
+    return fail(await mensajeDeError("noSePudoBorrarCuenta", cause));
+  }
+}
+
 /* ── Locales ─────────────────────────────────────────────────────────────── */
 
 export async function createLocation(formData: FormData): Promise<ActionResult> {
@@ -325,6 +350,27 @@ export async function toggleLocation(
   } catch (cause) {
     console.error("[admin] no se pudo cambiar el estado del local", { id, cause });
     return fail(await mensajeDeError("noSePudoCambiarEstadoLocal", cause));
+  }
+}
+
+/**
+ * Borra un local entero: sus camareros, pulseras, categorías, platos,
+ * archivos y escaneos se van con él (ver src/lib/borrado-en-cascada.ts).
+ */
+export async function deleteLocation(id: number): Promise<ActionResult> {
+  await requireAdmin();
+  const t = await getTranslations("Errores");
+
+  try {
+    if (!(await getLocationById(id))) return fail(t("localYaNoExiste"));
+
+    await borrarLocalEnCascada(id);
+
+    revalidarAdmin();
+    return ok();
+  } catch (cause) {
+    console.error("[admin] no se pudo borrar el local", { id, cause });
+    return fail(await mensajeDeError("noSePudoBorrarLocal", cause));
   }
 }
 
@@ -585,6 +631,26 @@ export async function toggleBracelet(
   } catch (cause) {
     console.error("[admin] no se pudo cambiar el estado de la pulsera", { id, cause });
     return fail(await mensajeDeError("noSePudoCambiarEstadoPulsera", cause));
+  }
+}
+
+/** Borra una pulsera. Sus escaneos se van con ella. */
+export async function deleteBracelet(id: number): Promise<ActionResult> {
+  await requireAdmin();
+  const t = await getTranslations("Errores");
+
+  try {
+    const actual = await getBraceletById(id);
+    if (!actual) return fail(t("pulseraNoExiste"));
+
+    await db.delete(bracelets).where(eq(bracelets.id, id));
+
+    invalidateBracelet(actual.code);
+    revalidarAdmin();
+    return ok();
+  } catch (cause) {
+    console.error("[admin] no se pudo borrar la pulsera", { id, cause });
+    return fail(await mensajeDeError("noSePudoBorrarPulsera", cause));
   }
 }
 
@@ -852,6 +918,92 @@ export async function updateUser(formData: FormData): Promise<ActionResult> {
     if (esClaveDuplicada(cause)) return fail(t("otroEmailYaUsado"));
     console.error("[admin] no se pudo actualizar el usuario", { userId, cause });
     return fail(await mensajeDeError("noSePudoGuardarUsuario", cause));
+  }
+}
+
+/**
+ * Borra un usuario.
+ *
+ * Dos cosas que no deja hacer, igual que `updateUser` —que nadie se quede
+ * afuera del sistema sin querer—:
+ *
+ *   - Borrarte a vos mismo.
+ *   - Borrar al último admin que queda.
+ *
+ * Si era un distribuidor, las cuentas que tenía asignadas quedan sin
+ * distribuidor (no se borran: son cuentas de restaurantes que siguen
+ * funcionando).
+ */
+export async function deleteUser(id: string): Promise<ActionResult> {
+  const actual = await requireAdmin();
+  const t = await getTranslations("Errores");
+
+  if (id === actual.id) return fail(t("noPodesBorrarteVos"));
+
+  try {
+    const existentes = await db
+      .select({ id: user.id, role: user.role })
+      .from(user)
+      .where(eq(user.id, id))
+      .limit(1);
+
+    const usuario = existentes[0];
+    if (!usuario) return fail(t("usuarioNoExiste"));
+
+    if (usuario.role === "admin") {
+      const [conteo] = await db
+        .select({ total: sql<number>`COUNT(*)`.mapWith(Number) })
+        .from(user)
+        .where(eq(user.role, "admin"));
+
+      if ((conteo?.total ?? 0) <= 1) {
+        return fail(t("ultimoAdminNoSeBorra"));
+      }
+    }
+
+    if (usuario.role === "distributor") {
+      await db.update(accounts).set({ distributorId: null }).where(eq(accounts.distributorId, id));
+    }
+
+    await db.delete(user).where(eq(user.id, id));
+
+    revalidarAdmin();
+    revalidatePath("/admin/usuarios");
+    return ok();
+  } catch (cause) {
+    console.error("[admin] no se pudo borrar el usuario", { id, cause });
+    return fail(await mensajeDeError("noSePudoBorrarUsuario", cause));
+  }
+}
+
+/* ── Camareros ───────────────────────────────────────────────────────────── */
+
+/**
+ * Borra un camarero, desde el admin.
+ *
+ * Normalmente los administra cada empresa desde su propio panel; esto es
+ * para cuando hace falta limpiar uno desde acá. Sus pulseras no se borran:
+ * se quedan sin camarero asignado (ver `bracelets.waiterId` en el esquema).
+ */
+export async function deleteWaiter(id: number): Promise<ActionResult> {
+  await requireAdmin();
+  const t = await getTranslations("Errores");
+
+  try {
+    const filas = await db
+      .select({ id: waiters.id })
+      .from(waiters)
+      .where(eq(waiters.id, id))
+      .limit(1);
+    if (!filas[0]) return fail(t("camareroNoExiste"));
+
+    await db.delete(waiters).where(eq(waiters.id, id));
+
+    revalidarAdmin();
+    return ok();
+  } catch (cause) {
+    console.error("[admin] no se pudo borrar el empleado", { id, cause });
+    return fail(await mensajeDeError("noSePudoBorrarCamarero", cause));
   }
 }
 

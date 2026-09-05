@@ -136,6 +136,25 @@ export async function toggleWaiter(
   }
 }
 
+/** Borra un camarero. Sus pulseras no se borran: se quedan sin asignar. */
+export async function deleteWaiter(id: number): Promise<ActionResult> {
+  const user = await requireRestaurantUser();
+  const t = await getTranslations("Errores");
+
+  try {
+    const actual = await getWaiterForAccount(id, user.accountId);
+    if (!actual) return fail(t("camareroNoExiste"));
+
+    await db.delete(waiters).where(eq(waiters.id, id));
+
+    revalidarPanel();
+    return ok();
+  } catch (cause) {
+    console.error("[panel] no se pudo borrar el camarero", { id, cause });
+    return fail(await mensajeDeError("noSePudoBorrarCamarero", cause));
+  }
+}
+
 /* ── Asignar pulsera a camarero ──────────────────────────────────────────── */
 
 /**

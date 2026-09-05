@@ -7,8 +7,9 @@ import { getTranslations } from "next-intl/server";
 import { bracelets, db } from "@/db";
 import { getBraceletForDistributor } from "@/db/queries/bracelets";
 import { getLocationById } from "@/db/queries/locations";
-import { listAccountIdsOfDistributor } from "@/db/queries/accounts";
+import { getAccountById, listAccountIdsOfDistributor } from "@/db/queries/accounts";
 import { altaDeEmpresa } from "@/lib/alta-empresa";
+import { borrarCuentaEnCascada } from "@/lib/borrado-en-cascada";
 import { invalidateBracelet } from "@/lib/redirect-cache";
 import { mensajeDeError } from "@/lib/errores-db";
 import { requireDistributor } from "@/lib/session";
@@ -62,6 +63,38 @@ export async function crearEmpresa(
 
   revalidar();
   return ok();
+}
+
+/* ── Borrar una empresa ──────────────────────────────────────────────────── */
+
+/**
+ * Borra una de las empresas de este distribuidor: sus locales, camareros,
+ * pulseras, categorías, platos, archivos y escaneos se van con ella (ver
+ * src/lib/borrado-en-cascada.ts). No hay vuelta atrás.
+ */
+export async function deleteAccount(accountId: number): Promise<ActionResult> {
+  const distribuidor = await requireDistributor();
+  const t = await getTranslations("Errores");
+
+  try {
+    const cuenta = await getAccountById(accountId);
+    if (!cuenta) return fail(t("cuentaNoExiste"));
+
+    // La comprobación que importa: la cuenta tiene que ser de este
+    // distribuidor. Sin esto, cambiar el número del formulario alcanzaría
+    // para borrar la empresa de otro.
+    if (cuenta.distributorId !== distribuidor.id) {
+      return fail(t("cuentaAjena"));
+    }
+
+    await borrarCuentaEnCascada(accountId);
+
+    revalidar();
+    return ok();
+  } catch (cause) {
+    console.error("[distribuidor] no se pudo borrar la empresa", { accountId, cause });
+    return fail(await mensajeDeError("noSePudoBorrarCuenta", cause));
+  }
 }
 
 /* ── Colocar una pulsera ──────────────────────────────────────────────────── */
