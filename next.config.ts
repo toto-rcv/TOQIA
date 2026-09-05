@@ -11,6 +11,19 @@ const nextConfig: NextConfig = {
   // ("Cannot find module '.../@swc/helpers/esm/_interop_require_default.js'").
   // Si el día de mañana se vuelve a un VPS con PM2, se puede reactivar acá.
 
+  // El hosting de Node de Hostinger arma su propia carpeta node_modules por
+  // build (hbuilds/versions/<uuid>/nodejs/node_modules) a partir de los
+  // manifiestos de "output file tracing" que Next genera SIEMPRE al buildear
+  // (los .nft.json en .next/), sin importar el `output` de arriba. Ese
+  // tracing tiene un bug conocido con @swc/helpers: no detecta el uso de la
+  // carpeta esm/ (la resuelve el require-hook de Next en runtime, no un
+  // import estático), así que la deja afuera y el server no arranca
+  // ("Cannot find module '.../@swc/helpers/esm/_interop_require_default.js'").
+  // Se lo forzamos a incluir para todas las rutas.
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/@swc/helpers/**/*"],
+  },
+
   // El endpoint /r/[code] tiene que ser lo más liviano posible: no queremos que
   // Next agregue headers innecesarios en cada respuesta.
   poweredByHeader: false,
