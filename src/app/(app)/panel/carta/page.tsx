@@ -85,8 +85,8 @@ export default async function CartaPanelPage({
             : t("subtituloResumen", {
                 categorias: categorias.length,
                 catLabel,
-                platos,
-                platoLabel,
+                productos: platos,
+                productoLabel: platoLabel,
               })
         }
       >

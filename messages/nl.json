@@ -380,7 +380,7 @@
   "CartaAdmin": {
     "titulo": "Mijn menu",
     "subtituloVacia": "Voeg je producten toe en klanten zien ze bij het scannen.",
-    "subtituloResumen": "{categorias} {catLabel} · {platos} {platoLabel}. Wijzigingen zijn direct zichtbaar.",
+    "subtituloResumen": "{categorias} {catLabel} · {productos} {productoLabel}. Wijzigingen zijn direct zichtbaar.",
     "categoriaSingular": "categorie",
     "categoriaPlural": "categorieën",
     "platoSingular": "product",

@@ -380,7 +380,7 @@
   "CartaAdmin": {
     "titulo": "Моё каталог",
     "subtituloVacia": "Добавьте позиции вашего каталог, и клиенты увидят их при сканировании.",
-    "subtituloResumen": "Категорий: {categorias} · Позиций: {platos}. Изменения применяются мгновенно.",
+    "subtituloResumen": "Категорий: {categorias} · Позиций: {productos}. Изменения применяются мгновенно.",
     "categoriaSingular": "категория",
     "categoriaPlural": "категории",
     "platoSingular": "товар",
