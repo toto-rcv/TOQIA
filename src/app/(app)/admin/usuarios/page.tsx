@@ -8,6 +8,7 @@ import { listAccountOptions } from "@/db/queries/accounts";
 import { listUsers } from "@/db/queries/users";
 import { requireAdmin } from "@/lib/session";
 import { formatDate } from "@/lib/utils";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 import { DeleteUserDialog, EditUserDialog, NewUserDialog } from "./user-dialogs";
 
 /**
@@ -30,11 +31,12 @@ const ROLES: Record<string, { clave: string; tone: "accent" | "warning" | "inact
 export default async function AdminUsersPage() {
   const actual = await requireAdmin();
 
-  const [usuarios, cuentas, t, locale] = await Promise.all([
+  const [usuarios, cuentas, t, locale, timeZone] = await Promise.all([
     listUsers(),
     listAccountOptions(),
     getTranslations("Usuarios"),
     getLocale(),
+    getViewerTimeZone(),
   ]);
 
   return (
@@ -88,7 +90,7 @@ export default async function AdminUsersPage() {
                         <span className="text-ex-text-disabled">—</span>
                       )}
                     </Td>
-                    <Td className="num text-[11px]">{formatDate(usuario.createdAt, locale)}</Td>
+                    <Td className="num text-[11px]">{formatDate(usuario.createdAt, locale, timeZone)}</Td>
                     <Td>
                       <div className="flex justify-end gap-1.5">
                         <EditUserDialog

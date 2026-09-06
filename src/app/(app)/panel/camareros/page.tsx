@@ -20,6 +20,7 @@ import { listWaiters } from "@/db/queries/waiters";
 import { parsePageParams, type RawPageParams } from "@/lib/pagination";
 import { requireRestaurantUser } from "@/lib/session";
 import { formatDate, formatNumber } from "@/lib/utils";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 import { NewWaiterDialog, WaiterRowActions } from "./waiter-dialogs";
 
 /**
@@ -39,10 +40,11 @@ export default async function PanelWaitersPage({
 }: {
   searchParams: Promise<RawPageParams>;
 }) {
-  const [user, t, locale] = await Promise.all([
+  const [user, t, locale, timeZone] = await Promise.all([
     requireRestaurantUser(),
     getTranslations("Camareros"),
     getLocale(),
+    getViewerTimeZone(),
   ]);
   const params = await searchParams;
   const pagina = parsePageParams(params);
@@ -100,7 +102,7 @@ export default async function PanelWaitersPage({
                       {formatNumber(camarero.braceletCount, locale)}
                     </Td>
                     <Td className="text-[12px] tabular-nums">
-                      {formatDate(camarero.createdAt, locale)}
+                      {formatDate(camarero.createdAt, locale, timeZone)}
                     </Td>
                     <Td>
                       <Badge tone={camarero.active ? "active" : "inactive"}>
@@ -145,7 +147,7 @@ export default async function PanelWaitersPage({
                   </RowField>
                   <RowField label={t("colAlta")}>
                     <span className="tabular-nums">
-                      {formatDate(camarero.createdAt, locale)}
+                      {formatDate(camarero.createdAt, locale, timeZone)}
                     </span>
                   </RowField>
                   <RowField label={t("colEstado")}>

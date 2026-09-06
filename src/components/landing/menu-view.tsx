@@ -358,7 +358,8 @@ function Plato({
  *
  * `currency` es el símbolo que cargó el local ("€", "$"), no un código ISO, así
  * que no se puede usar `style: "currency"` — el formateo es del número y el
- * símbolo se antepone aparte.
+ * símbolo se pone aparte, después: "9,90 €" y no "€9,90", que es como se
+ * escribe en la mayoría de las cartas europeas.
  */
 function formatPrice(price: string, currency: string, idioma: string): string {
   const numero = Number(price);
@@ -369,5 +370,5 @@ function formatPrice(price: string, currency: string, idioma: string): string {
     maximumFractionDigits: 2,
   }).format(numero);
 
-  return `${currency}${texto}`;
+  return `${texto} ${currency}`;
 }

@@ -27,6 +27,7 @@ import { listLocations } from "@/db/queries/locations";
 import { parsePageParams } from "@/lib/pagination";
 import { requireDistributor } from "@/lib/session";
 import { braceletUrl, formatDateTime, formatNumber } from "@/lib/utils";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 import { ColocarSelect } from "./colocar";
 
 /**
@@ -53,11 +54,12 @@ export default async function PulserasDistribuidorPage({
   searchParams: Promise<{ estado?: string; page?: string; limit?: string }>;
 }) {
   const user = await requireDistributor();
-  const [params, t, tp, locale] = await Promise.all([
+  const [params, t, tp, locale, timeZone] = await Promise.all([
     searchParams,
     getTranslations("Distribuidor"),
     getTranslations("Pulseras"),
     getLocale(),
+    getViewerTimeZone(),
   ]);
   const pagina = parsePageParams(params);
 
@@ -172,7 +174,7 @@ export default async function PulserasDistribuidorPage({
                         {formatNumber(pulsera.reviewClicks, locale)}
                       </Td>
                       <Td className="num text-[11px]">
-                        {formatDateTime(pulsera.lastScanAt, locale)}
+                        {formatDateTime(pulsera.lastScanAt, locale, timeZone)}
                       </Td>
                     </Tr>
                   );
@@ -219,7 +221,7 @@ export default async function PulserasDistribuidorPage({
                   </RowField>
                   <RowField label={tp("colUltimo")}>
                     <span className="text-[11px]">
-                      {formatDateTime(pulsera.lastScanAt, locale)}
+                      {formatDateTime(pulsera.lastScanAt, locale, timeZone)}
                     </span>
                   </RowField>
                 </RowFields>

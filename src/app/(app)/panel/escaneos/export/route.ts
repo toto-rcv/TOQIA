@@ -5,6 +5,7 @@ import { listLocationOptions } from "@/db/queries/locations";
 import { listScansForExport } from "@/db/queries/scans";
 import { parseScanFilters, scansToCsv, type RawScanParams } from "@/lib/scan-params";
 import { getSessionUser } from "@/lib/session";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,7 +48,10 @@ export async function GET(request: NextRequest) {
     filters.accountId = user.accountId;
 
     const rows = await listScansForExport(filters);
-    const csv = scansToCsv(rows, { includeAccount: false });
+    const csv = scansToCsv(rows, {
+      includeAccount: false,
+      timeZone: await getViewerTimeZone(),
+    });
     const nombre = `escaneos-${new Date().toISOString().slice(0, 10)}.csv`;
 
     return new Response(csv, {

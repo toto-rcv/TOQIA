@@ -487,6 +487,8 @@
     "mapsUrlHint": "Optional. If you leave it empty but filled in the address, the button searches for that address on Maps.",
     "textoBotonCarta": "Button text",
     "textoBotonCartaHint": "Use whatever fits your business: “Price list”, “Catalogue”, “See services”. If you leave it empty it says <defecto>View menu</defecto>. Up to 40 characters, but don't go past two or three words: the button is small and the text wraps.",
+    "iconoBotonCartaElegido": "It shows on the button that opens the menu.",
+    "iconoBotonCartaVacio": "Left unset, the button shows the usual cutlery icon.",
     "toqiaTitulo": "The Toqia catalogue",
     "toqiaDetalle": "The one you fill in under “My catalogue”, with categories, prices and photos. Changes show instantly and nothing has to be uploaded.",
     "pdfTitulo": "My catalogue as a PDF",
@@ -534,6 +536,8 @@
     "todasLasCuentas": "All accounts"
   },
   "Iconos": {
+    "etiqueta": "Icon",
+    "opcional": "(optional)",
     "grupo": {
       "comer": "To eat",
       "postres": "Desserts",

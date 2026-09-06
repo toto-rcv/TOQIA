@@ -487,6 +487,8 @@
     "mapsUrlHint": "Optional. Wenn du ihn leer lässt, aber die Adresse ausgefüllt hast, sucht der Button diese Adresse in Maps.",
     "textoBotonCarta": "Button-Text",
     "textoBotonCartaHint": "Nimm, was zu deinem Betrieb passt: „Preisliste“, „Katalog“, „Leistungen ansehen“. Wenn du es leer lässt, steht dort <defecto>Menü ansehen</defecto>. Bis zu 40 Zeichen, aber bleib bei zwei oder drei Wörtern: der Button ist klein und der Text bricht um.",
+    "iconoBotonCartaElegido": "Es wird auf dem Button gezeigt, der die Karte öffnet.",
+    "iconoBotonCartaVacio": "Ohne Auswahl zeigt der Button das gewohnte Besteck-Symbol.",
     "toqiaTitulo": "Der Toqia-Katalog",
     "toqiaDetalle": "Der, den du unter „Mein Katalog“ pflegst, mit Kategorien, Preisen und Fotos. Änderungen sind sofort sichtbar und es muss nichts hochgeladen werden.",
     "pdfTitulo": "Mein Katalog als PDF",
@@ -534,6 +536,8 @@
     "todasLasCuentas": "Alle Konten"
   },
   "Iconos": {
+    "etiqueta": "Symbol",
+    "opcional": "(optional)",
     "grupo": {
       "comer": "Zum Essen",
       "postres": "Desserts",

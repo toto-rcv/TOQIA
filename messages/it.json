@@ -487,6 +487,8 @@
     "mapsUrlHint": "Facoltativo. Se lo lasci vuoto ma hai inserito l'indirizzo, il pulsante cerca quell'indirizzo su Maps.",
     "textoBotonCarta": "Testo del pulsante",
     "textoBotonCartaHint": "Metti quello che corrisponde alla tua attività: “Listino prezzi”, “Catalogo”, “Vedi servizi”. Se lo lasci vuoto dice <defecto>Vedi il menù</defecto>. Entrano fino a 40 caratteri, ma non superare due o tre parole: il pulsante è piccolo e il testo va a capo.",
+    "iconoBotonCartaElegido": "Si mostra sul pulsante che apre il menù.",
+    "iconoBotonCartaVacio": "Senza scegliere, il pulsante mostra la solita icona delle posate.",
     "toqiaTitulo": "Il catalogo di Toqia",
     "toqiaDetalle": "Quello che compili in “Il mio catalogo”, con categorie, prezzi e foto. Le modifiche si vedono subito e non c'è niente da caricare.",
     "pdfTitulo": "Il mio catalogo in PDF",
@@ -534,6 +536,8 @@
     "todasLasCuentas": "Tutti gli account"
   },
   "Iconos": {
+    "etiqueta": "Icona",
+    "opcional": "(facoltativo)",
     "grupo": {
       "comer": "Da mangiare",
       "postres": "Dolci",

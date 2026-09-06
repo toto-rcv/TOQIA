@@ -22,6 +22,7 @@ import { listWaiterOptions } from "@/db/queries/waiters";
 import { parsePageParams, type RawPageParams } from "@/lib/pagination";
 import { requireRestaurantUser } from "@/lib/session";
 import { braceletUrl, formatDateTime, formatNumber } from "@/lib/utils";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 import { WaiterSelect } from "./waiter-select";
 
 /**
@@ -41,10 +42,11 @@ export default async function PanelBraceletsPage({
 }: {
   searchParams: Promise<RawPageParams>;
 }) {
-  const [user, t, locale] = await Promise.all([
+  const [user, t, locale, timeZone] = await Promise.all([
     requireRestaurantUser(),
     getTranslations("Pulseras"),
     getLocale(),
+    getViewerTimeZone(),
   ]);
   const params = await searchParams;
 
@@ -154,7 +156,7 @@ export default async function PanelBraceletsPage({
                       </Td>
 
                       <Td className="text-[12px] tabular-nums">
-                        {formatDateTime(pulsera.lastScanAt, locale)}
+                        {formatDateTime(pulsera.lastScanAt, locale, timeZone)}
                       </Td>
                     </Tr>
                   );
@@ -218,7 +220,7 @@ export default async function PanelBraceletsPage({
                     </RowField>
                     <RowField label={t("colUltimo")}>
                       <span className="text-[12px] tabular-nums">
-                        {formatDateTime(pulsera.lastScanAt, locale)}
+                        {formatDateTime(pulsera.lastScanAt, locale, timeZone)}
                       </span>
                     </RowField>
                   </RowFields>

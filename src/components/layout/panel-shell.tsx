@@ -1,5 +1,6 @@
 import { SelectorIdioma } from "@/components/landing/selector-idioma";
 import { PanelNav, type NavItem } from "@/components/layout/panel-nav";
+import { TimezoneLocator } from "@/components/layout/timezone-locator";
 
 /**
  * Estructura común de los tres paneles internos.
@@ -33,6 +34,13 @@ export function PanelShell({
 }) {
   return (
     <div className="ex-scope min-h-dvh bg-ex-black text-ex-text">
+      {/* No dibuja nada: detecta el huso horario real de quien entró al
+          panel (ver el comentario del componente) para que las fechas de
+          escaneos se muestren en su hora. Va acá y no en el layout raíz
+          porque ese layout también envuelve la landing y la carta públicas,
+          donde no hay ningún motivo para pedirle ubicación a un cliente. */}
+      <TimezoneLocator />
+
       <PanelNav
         title={title}
         badge={badge}

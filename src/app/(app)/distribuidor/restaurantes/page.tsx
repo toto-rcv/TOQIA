@@ -17,6 +17,7 @@ import {
 import { listAccounts } from "@/db/queries/accounts";
 import { requireDistributor } from "@/lib/session";
 import { formatDate, formatNumber } from "@/lib/utils";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 import { DeleteAccountDialog, NuevoRestauranteDialog } from "./dialogs";
 
 /**
@@ -44,11 +45,12 @@ export default async function RestaurantesPage() {
   const user = await requireDistributor();
 
   // El filtro sale de la sesión, no de la URL.
-  const [cuentas, t, tc, locale] = await Promise.all([
+  const [cuentas, t, tc, locale, timeZone] = await Promise.all([
     listAccounts({ distributorId: user.id }),
     getTranslations("Distribuidor"),
     getTranslations("Cuentas"),
     getLocale(),
+    getViewerTimeZone(),
   ]);
 
   /** El estado de suscripción, ya traducido. */
@@ -110,7 +112,7 @@ export default async function RestaurantesPage() {
                         <Badge tone={estado.tone}>{estado.label}</Badge>
                       </Td>
                       <Td className="num text-[11px]">
-                        {formatDate(cuenta.createdAt, locale)}
+                        {formatDate(cuenta.createdAt, locale, timeZone)}
                       </Td>
                       <Td className="num text-right text-sm">
                         {formatNumber(cuenta.locationCount, locale)}

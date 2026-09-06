@@ -11,6 +11,7 @@ import {
   getLocationForAccount,
 } from "@/db/queries/locations";
 import { getWaiterForAccount } from "@/db/queries/waiters";
+import { normalizeMenuIcon } from "@/lib/menu-icons";
 import {
   ErrorDeArchivo,
   resolverCampoDeArchivo,
@@ -217,6 +218,7 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
   const welcomeTitle = readString(formData.get("welcomeTitle"));
   const closingMessage = readString(formData.get("closingMessage"));
   const menuButtonLabel = readString(formData.get("menuButtonLabel"));
+  const menuButtonIcon = normalizeMenuIcon(readString(formData.get("menuButtonIcon")));
   const currency = readString(formData.get("currency")) || "€";
 
   // Qué carta se muestra. Cualquier cosa que no sea "pdf" cae en "toqia":
@@ -369,6 +371,7 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
         currency,
         menuMode,
         menuButtonLabel: vacioANull(menuButtonLabel),
+        menuButtonIcon,
         googleReviewUrl: porClave.googleReviewUrl,
         instagramUrl: porClave.instagramUrl,
         websiteUrl: porClave.websiteUrl,

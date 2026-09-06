@@ -487,6 +487,8 @@
     "mapsUrlHint": "Opcional. Si lo dejás vacío pero cargaste la dirección, el botón busca esa dirección en Maps.",
     "textoBotonCarta": "Texto del botón",
     "textoBotonCartaHint": "Poné lo que corresponda a tu negocio: “Lista de precios”, “Catálogo”, “Ver servicios”. Si lo dejás vacío dice <defecto>Ver menú</defecto>. Entran hasta 40 caracteres, pero de dos o tres palabras no pasés: el botón es chico y el texto se parte.",
+    "iconoBotonCartaElegido": "Se muestra en el botón que abre la carta.",
+    "iconoBotonCartaVacio": "Sin elegir, el botón se muestra con los cubiertos de siempre.",
     "toqiaTitulo": "El catálogo de Toqia",
     "toqiaDetalle": "El que cargás en “Mi catálogo”, con categorías, precios y fotos. Los cambios se ven al instante y no hay que subir nada.",
     "pdfTitulo": "Mi catálogo en PDF",
@@ -534,6 +536,8 @@
     "todasLasCuentas": "Todas las cuentas"
   },
   "Iconos": {
+    "etiqueta": "Ícono",
+    "opcional": "(opcional)",
     "grupo": {
       "comer": "Para comer",
       "postres": "Postres",

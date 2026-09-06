@@ -18,6 +18,7 @@ import type { Paged } from "@/lib/pagination";
 import { useLocale } from "next-intl";
 
 import { formatDateTime } from "@/lib/utils";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 
 /**
  * Tabla paginada de escaneos. La comparten /panel y /admin.
@@ -27,7 +28,7 @@ import { formatDateTime } from "@/lib/utils";
  */
 import { useTranslations } from "next-intl";
 
-export function ScansTable({
+export async function ScansTable({
   paged,
   basePath,
   searchParams,
@@ -42,6 +43,7 @@ export function ScansTable({
 }) {
   const t = useTranslations("Escaneos");
   const locale = useLocale();
+  const timeZone = await getViewerTimeZone();
 
   if (paged.data.length === 0) {
     return (
@@ -74,7 +76,7 @@ export function ScansTable({
             {paged.data.map((scan) => (
               <Tr key={scan.id}>
                 <Td className="text-[13px] tabular-nums text-ex-text">
-                  {formatDateTime(scan.scannedAt, locale)}
+                  {formatDateTime(scan.scannedAt, locale, timeZone)}
                 </Td>
                 <Td className="font-mono text-[13px] font-medium text-ex-text">
                   {scan.braceletCode}
@@ -115,7 +117,7 @@ export function ScansTable({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[14.5px] font-semibold tabular-nums text-ex-text">
-                  {formatDateTime(scan.scannedAt, locale)}
+                  {formatDateTime(scan.scannedAt, locale, timeZone)}
                 </p>
                 <p className="mt-0.5 font-mono text-[12.5px] text-ex-text-muted">
                   {scan.braceletCode}
@@ -147,7 +149,7 @@ export function ScansTable({
   );
 }
 
-function MarcaDeResena({
+async function MarcaDeResena({
   scan,
   conTexto = false,
 }: {
@@ -156,11 +158,12 @@ function MarcaDeResena({
 }) {
   const t = useTranslations("Escaneos");
   const locale = useLocale();
+  const timeZone = await getViewerTimeZone();
 
   if (scan.reviewClickedAt) {
     return (
       <span
-        title={t("fueAResenaEl", { fecha: formatDateTime(scan.reviewClickedAt, locale) })}
+        title={t("fueAResenaEl", { fecha: formatDateTime(scan.reviewClickedAt, locale, timeZone) })}
         className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-ex-success/12
                    px-2 py-1 text-[11px] font-semibold text-ex-success"
       >

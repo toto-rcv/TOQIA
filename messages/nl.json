@@ -487,6 +487,8 @@
     "mapsUrlHint": "Optioneel. Laat je hem leeg maar heb je het adres ingevuld, dan zoekt de knop dat adres op in Maps.",
     "textoBotonCarta": "Tekst van de knop",
     "textoBotonCartaHint": "Zet wat bij jouw zaak past: “Prijslijst”, “Catalogus”, “Diensten bekijken”. Laat je het leeg, dan staat er <defecto>Menu bekijken</defecto>. Tot 40 tekens, maar blijf bij twee of drie woorden: de knop is klein en de tekst breekt af.",
+    "iconoBotonCartaElegido": "Het wordt getoond op de knop die de kaart opent.",
+    "iconoBotonCartaVacio": "Zonder keuze toont de knop het gebruikelijke bestekpictogram.",
     "toqiaTitulo": "De Toqia-kaart",
     "toqiaDetalle": "Die je invult bij “Mijn kaart”, met categorieën, prijzen en foto's. Wijzigingen zijn meteen zichtbaar en er hoeft niets geüpload te worden.",
     "pdfTitulo": "Mijn kaart als PDF",
@@ -534,6 +536,8 @@
     "todasLasCuentas": "Alle accounts"
   },
   "Iconos": {
+    "etiqueta": "Pictogram",
+    "opcional": "(optioneel)",
     "grupo": {
       "comer": "Om te eten",
       "postres": "Desserts",

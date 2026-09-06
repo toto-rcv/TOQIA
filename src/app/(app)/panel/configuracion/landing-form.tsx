@@ -7,6 +7,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { FileField } from "@/components/ui/file-field";
 import { Input, Label } from "@/components/ui/input";
+import { SelectorDeIcono } from "@/components/landing/icon-selector";
 import { updateLanding } from "../actions";
 
 type Location = {
@@ -31,6 +32,7 @@ type Location = {
   closingImageUrl: string | null;
   menuMode: string;
   menuButtonLabel: string | null;
+  menuButtonIcon: string | null;
   currency: string;
 };
 
@@ -211,6 +213,7 @@ export function LandingForm({
 
       <SelectorDeCarta
         etiquetaInicial={location.menuButtonLabel ?? ""}
+        iconoInicial={location.menuButtonIcon}
         modoInicial={location.menuMode === "pdf" ? "pdf" : "toqia"}
         pdfActual={location.menuUrl}
         tieneCartaToqia={tieneCartaToqia}
@@ -307,11 +310,13 @@ function Seccion({
  */
 function SelectorDeCarta({
   etiquetaInicial,
+  iconoInicial,
   modoInicial,
   pdfActual,
   tieneCartaToqia,
 }: {
   etiquetaInicial: string;
+  iconoInicial: string | null;
   modoInicial: "toqia" | "pdf";
   pdfActual: string | null;
   tieneCartaToqia: boolean;
@@ -355,6 +360,15 @@ function SelectorDeCarta({
               ),
             })}
           </p>
+        </div>
+
+        <div className="mt-4">
+          <SelectorDeIcono
+            name="menuButtonIcon"
+            inicial={iconoInicial}
+            ayudaElegido={t("iconoBotonCartaElegido")}
+            ayudaVacio={t("iconoBotonCartaVacio")}
+          />
         </div>
       </div>
 

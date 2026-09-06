@@ -392,6 +392,7 @@ async function agregarColumnas(ctx: Contexto) {
     ["locations", "closing_image_url", "text"],
     ["locations", "currency", "varchar(8) NOT NULL DEFAULT '€'"],
     ["locations", "menu_button_label", "varchar(40)"],
+    ["locations", "menu_button_icon", "varchar(40)"],
     ["accounts", "business_type", "varchar(60)"],
   ];
 

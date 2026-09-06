@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { listScansForExport } from "@/db/queries/scans";
 import { parseScanFilters, scansToCsv, type RawScanParams } from "@/lib/scan-params";
 import { getSessionUser } from "@/lib/session";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,7 +38,10 @@ export async function GET(request: NextRequest) {
     if (Number.isFinite(cuentaId)) filters.accountId = cuentaId;
 
     const rows = await listScansForExport(filters);
-    const csv = scansToCsv(rows, { includeAccount: true });
+    const csv = scansToCsv(rows, {
+      includeAccount: true,
+      timeZone: await getViewerTimeZone(),
+    });
     const nombre = `escaneos-toqia-${new Date().toISOString().slice(0, 10)}.csv`;
 
     return new Response(csv, {

@@ -23,10 +23,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MenuIcon } from "@/components/landing/menu-icons";
+import { SelectorDeIcono } from "@/components/landing/icon-selector";
 import { FileField } from "@/components/ui/file-field";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import type { MenuCategoryRow } from "@/db/queries/menu";
-import { MENU_ICON_GROUPS } from "@/lib/menu-icons";
 import { cn } from "@/lib/utils";
 import {
   createCategory,
@@ -378,7 +378,11 @@ export function NewCategoryDialog({ locationId }: { locationId: number }) {
               />
             </div>
 
-            <SelectorDeIcono />
+            <SelectorDeIcono
+              name="icon"
+              ayudaElegido={t("iconoElegido")}
+              ayudaVacio={t("iconoVacio")}
+            />
 
             {error ? <ErrorBox message={error} /> : null}
           </DialogBody>
@@ -459,7 +463,12 @@ function EditCategoryDialog({
               />
             </div>
 
-            <SelectorDeIcono inicial={categoria.icon} />
+            <SelectorDeIcono
+              name="icon"
+              inicial={categoria.icon}
+              ayudaElegido={t("iconoElegido")}
+              ayudaVacio={t("iconoVacio")}
+            />
 
             {error ? <ErrorBox message={error} /> : null}
           </DialogBody>
@@ -783,78 +792,6 @@ function ItemFields({
   );
 }
 
-/* ── Selector de ícono ───────────────────────────────────────────────────── */
-
-/**
- * Elegir el dibujito que acompaña al nombre de la categoría.
- *
- * Es una grilla de botones y no un desplegable a propósito: el ícono se elige
- * mirándolo. En una lista de nombres ("empanada", "picada") habría que
- * imaginarse cada uno.
- *
- * Lo que viaja al servidor es el id, en un input oculto. El servidor igual lo
- * valida contra el catálogo: nunca se guarda lo que llegó sin revisar.
- */
-function SelectorDeIcono({ inicial }: { inicial?: string | null }) {
-  const t = useTranslations("CartaAdmin");
-  const ti = useTranslations("Iconos");
-  const [elegido, setElegido] = React.useState<string | null>(inicial ?? null);
-
-  return (
-    <div className="space-y-2">
-      {/* No es un <label>: no hay un control único al que apuntar, son
-          veintisiete botones. El grupo se anuncia por el texto de arriba. */}
-      <p className="block text-[12px] font-semibold uppercase tracking-[0.04em] text-ex-text-muted">
-        {t("icono")}{" "}
-        <span className="normal-case text-ex-text-disabled">{t("opcional")}</span>
-      </p>
-
-      <div className="max-h-[188px] space-y-3 overflow-y-auto rounded-control border border-ex-border p-3">
-        {MENU_ICON_GROUPS.map((grupo) => (
-          <div key={grupo.id}>
-            <p className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ex-text-muted">
-              {ti(`grupo.${grupo.id}`)}
-            </p>
-
-            <div className="flex flex-wrap gap-1.5">
-              {grupo.icons.map((icono) => {
-                const activo = elegido === icono.id;
-
-                return (
-                  <button
-                    key={icono.id}
-                    type="button"
-                    title={ti(icono.id)}
-                    aria-label={ti(icono.id)}
-                    aria-pressed={activo}
-                    // Volver a tocar el que ya está elegido lo saca: es la
-                    // forma más natural de decir "ninguno".
-                    onClick={() => setElegido(activo ? null : icono.id)}
-                    className={cn(
-                      "grid size-10 place-items-center rounded-control border transition-colors",
-                      activo
-                        ? "border-ex-blue bg-ex-blue-wash text-ex-blue-deep"
-                        : "border-ex-border text-ex-text-secondary hover:border-ex-blue/45 hover:text-ex-text"
-                    )}
-                  >
-                    <MenuIcon name={icono.id} className="size-[18px]" />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <p className="text-[11px] text-ex-text-muted">
-        {elegido ? t("iconoElegido") : t("iconoVacio")}
-      </p>
-
-      <input type="hidden" name="icon" value={elegido ?? ""} />
-    </div>
-  );
-}
-
 /* ── Piezas chicas ───────────────────────────────────────────────────────── */
 
 function IconButton({
@@ -903,12 +840,12 @@ function ErrorBox({ message }: { message: string }) {
 }
 
 /**
- * Igual que en la carta pública: "$6500" y no "6500.00 $".
+ * Igual que en la carta pública: "6500 $" y no "$6500.00".
  *
  * El separador decimal sale del idioma activo (12,50 en castellano, 12.50 en
  * inglés): el número tiene que leerse igual acá que en la página del cliente.
  * `currency` es el símbolo que cargó el local ("€", "$"), no un código ISO,
- * así que se formatea el número y el símbolo se antepone aparte.
+ * así que se formatea el número y el símbolo se pone aparte, después.
  */
 function formatearPrecio(
   price: string,
@@ -925,5 +862,5 @@ function formatearPrecio(
         maximumFractionDigits: 2,
       });
 
-  return `${currency}${texto}`;
+  return `${texto} ${currency}`;
 }

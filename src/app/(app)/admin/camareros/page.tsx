@@ -11,6 +11,7 @@ import { listWaiters } from "@/db/queries/waiters";
 import { parsePageParams } from "@/lib/pagination";
 import { requireAdmin } from "@/lib/session";
 import { formatDate, formatNumber } from "@/lib/utils";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 import { DeleteWaiterDialog } from "./waiter-dialogs";
 
 /**
@@ -37,10 +38,11 @@ export default async function AdminWaitersPage({
   searchParams: Promise<{ cuenta?: string; page?: string; limit?: string }>;
 }) {
   await requireAdmin();
-  const [params, t, locale] = await Promise.all([
+  const [params, t, locale, timeZone] = await Promise.all([
     searchParams,
     getTranslations("Camareros"),
     getLocale(),
+    getViewerTimeZone(),
   ]);
   const { cuenta } = params;
   const pagina = parsePageParams(params);
@@ -90,7 +92,7 @@ export default async function AdminWaitersPage({
                   <Td className="num text-right text-sm text-ex-text">
                     {formatNumber(camarero.braceletCount, locale)}
                   </Td>
-                  <Td className="num text-[11px]">{formatDate(camarero.createdAt, locale)}</Td>
+                  <Td className="num text-[11px]">{formatDate(camarero.createdAt, locale, timeZone)}</Td>
                   <Td>
                     <Badge tone={camarero.active ? "active" : "inactive"}>
                       {camarero.active ? t("activo") : t("inactivo")}

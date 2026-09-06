@@ -1,4 +1,5 @@
 import type { ScanFilters } from "@/db/queries/scans";
+import { DEFAULT_TIME_ZONE } from "@/lib/timezone";
 
 export type RawScanParams = {
   cuenta?: string;
@@ -88,7 +89,7 @@ export function scansToCsv(
     userAgent: string | null;
     ipHash: string | null;
   }[],
-  options: { includeAccount: boolean }
+  options: { includeAccount: boolean; timeZone?: string }
 ): string {
   const encabezado = [
     "id",
@@ -112,7 +113,7 @@ export function scansToCsv(
       [
         fila.id,
         fila.scannedAt.toISOString(),
-        formatLocal(fila.scannedAt),
+        formatLocal(fila.scannedAt, options.timeZone),
         fila.braceletCode,
         fila.braceletLabel ?? "",
         ...(options.includeAccount ? [fila.accountName] : []),
@@ -132,7 +133,7 @@ export function scansToCsv(
   return `﻿${lineas.join("\r\n")}\r\n`;
 }
 
-function formatLocal(date: Date): string {
+function formatLocal(date: Date, timeZone: string = DEFAULT_TIME_ZONE): string {
   return new Intl.DateTimeFormat("es-AR", {
     day: "2-digit",
     month: "2-digit",
@@ -140,6 +141,7 @@ function formatLocal(date: Date): string {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
+    timeZone,
   }).format(date);
 }
 

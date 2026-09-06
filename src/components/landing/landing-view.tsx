@@ -1,14 +1,8 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import {
-  CalendarDays,
-  Globe,
-  MapPin,
-  Phone,
-  Star,
-  UtensilsCrossed,
-} from "lucide-react";
+import { CalendarDays, Globe, MapPin, Phone, Star } from "lucide-react";
 
+import { MenuIcon } from "./menu-icons";
 import { ReviewButton } from "./review-button";
 import {
   mapsUrlFor,
@@ -49,6 +43,8 @@ export type LandingData = {
   menuMode: string;
   /** Qué dice el botón que abre la carta. Vacío = "Ver menú". */
   menuButtonLabel: string | null;
+  /** Id del catálogo de íconos (`lib/menu-icons.ts`). Nulo = cubiertos cruzados. */
+  menuButtonIcon: string | null;
 };
 
 /**
@@ -157,7 +153,12 @@ export async function LandingView({
         ta("menu")
       ),
       sub: ta("menuSub"),
-      icon: <UtensilsCrossed className="size-6 text-tq-ink" aria-hidden />,
+      icon: (
+        <MenuIcon
+          name={landing.menuButtonIcon ?? "cubiertos"}
+          className="size-6 text-tq-ink"
+        />
+      ),
     },
     {
       href: mapsUrlFor(landing.mapsUrl, landing.address),

@@ -45,12 +45,14 @@
     "react-dom": "^19.2.0",
     "recharts": "^3.1.0",
     "tailwind-merge": "^3.2.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
+    "@types/tz-lookup": "^6.1.2",
     "autoprefixer": "^10.4.21",
     "dotenv": "^16.4.7",
     "drizzle-kit": "^0.31.10",

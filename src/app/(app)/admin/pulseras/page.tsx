@@ -15,6 +15,7 @@ import { listWaiterOptions } from "@/db/queries/waiters";
 import { parsePageParams } from "@/lib/pagination";
 import { requireAdmin } from "@/lib/session";
 import { braceletUrl, formatDateTime, formatNumber } from "@/lib/utils";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 import { BraceletRowActions, BulkCreateDialog, NewBraceletDialog } from "./bracelet-dialogs";
 
 /**
@@ -33,10 +34,11 @@ export default async function AdminBraceletsPage({
   searchParams: Promise<{ cuenta?: string; local?: string; page?: string; limit?: string }>;
 }) {
   await requireAdmin();
-  const [params, t, locale] = await Promise.all([
+  const [params, t, locale, timeZone] = await Promise.all([
     searchParams,
     getTranslations("Pulseras"),
     getLocale(),
+    getViewerTimeZone(),
   ]);
   const { cuenta, local } = params;
   const pagina = parsePageParams(params);
@@ -204,7 +206,7 @@ export default async function AdminBraceletsPage({
                       {formatNumber(pulsera.reviewClicks, locale)}
                     </Td>
                     <Td className="num text-[11px]">
-                      {formatDateTime(pulsera.lastScanAt, locale)}
+                      {formatDateTime(pulsera.lastScanAt, locale, timeZone)}
                     </Td>
 
                     <Td>

@@ -9,6 +9,7 @@ import { EmptyState, Table, Td, Th, Thead, Tr } from "@/components/ui/table";
 import { listAccounts, listDistributors } from "@/db/queries/accounts";
 import { requireAdmin } from "@/lib/session";
 import { formatDate, formatNumber } from "@/lib/utils";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 import { AccountRowActions, NewAccountDialog } from "./account-dialogs";
 
 /**
@@ -41,12 +42,13 @@ export default async function AdminAccountsPage({
 
   // Se llega con ?elegir=1 desde /panel: un admin sin restaurante elegido no
   // tiene panel que mirar, y el aviso le dice qué le falta hacer.
-  const [{ elegir }, cuentas, distribuidores, t, locale] = await Promise.all([
+  const [{ elegir }, cuentas, distribuidores, t, locale, timeZone] = await Promise.all([
     searchParams,
     listAccounts(),
     listDistributors(),
     getTranslations("Cuentas"),
     getLocale(),
+    getViewerTimeZone(),
   ]);
 
   const ahora = Date.now();
@@ -135,7 +137,7 @@ export default async function AdminAccountsPage({
                       }
                     >
                       {cuenta.subscriptionExpiresAt
-                        ? formatDate(cuenta.subscriptionExpiresAt, locale)
+                        ? formatDate(cuenta.subscriptionExpiresAt, locale, timeZone)
                         : "—"}
                     </Td>
 

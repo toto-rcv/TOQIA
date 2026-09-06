@@ -159,6 +159,12 @@ export const locations = mysqlTable(
        existen. Además deja a Toqia salir de gastronomía sin tocar código: un
        comercio pone "Catálogo", una peluquería "Lista de precios". */
     menuButtonLabel: varchar("menu_button_label", { length: 40 }),
+    /* Ícono del botón que abre la carta, un id del mismo catálogo que las
+       categorías del menú (ver `lib/menu-icons.ts`). Nulo = usar el ícono de
+       siempre (cubiertos cruzados): así un local que ya existía no pierde su
+       ícono el día que se agregó esta columna, y uno nuevo ve algo coherente
+       sin tener que elegir nada. */
+    menuButtonIcon: varchar("menu_button_icon", { length: 40 }),
     // Moneda con la que se muestran los precios de la carta.
     currency: varchar("currency", { length: 8 }).notNull().default("€"),
 
