@@ -18,7 +18,6 @@ import type { Paged } from "@/lib/pagination";
 import { useLocale } from "next-intl";
 
 import { formatDateTime } from "@/lib/utils";
-import { getViewerTimeZone } from "@/lib/timezone-server";
 
 /**
  * Tabla paginada de escaneos. La comparten /panel y /admin.
@@ -28,22 +27,23 @@ import { getViewerTimeZone } from "@/lib/timezone-server";
  */
 import { useTranslations } from "next-intl";
 
-export async function ScansTable({
+export function ScansTable({
   paged,
   basePath,
   searchParams,
   showAccount = false,
   showLocation = true,
+  timeZone,
 }: {
   paged: Paged<ScanRow>;
   basePath: string;
   searchParams: Record<string, string | string[] | undefined>;
   showAccount?: boolean;
   showLocation?: boolean;
+  timeZone: string;
 }) {
   const t = useTranslations("Escaneos");
   const locale = useLocale();
-  const timeZone = await getViewerTimeZone();
 
   if (paged.data.length === 0) {
     return (
@@ -89,7 +89,7 @@ export async function ScansTable({
                   <Td className="text-[13px]">{scan.locationName}</Td>
                 ) : null}
                 <Td className="text-center">
-                  <MarcaDeResena scan={scan} />
+                  <MarcaDeResena scan={scan} timeZone={timeZone} />
                 </Td>
                 <Td className="max-w-0">
                   <span
@@ -124,7 +124,7 @@ export async function ScansTable({
                   {showLocation ? ` · ${scan.locationName}` : ""}
                 </p>
               </div>
-              <MarcaDeResena scan={scan} conTexto />
+              <MarcaDeResena scan={scan} conTexto timeZone={timeZone} />
             </div>
 
             <RowFields>
@@ -149,16 +149,17 @@ export async function ScansTable({
   );
 }
 
-async function MarcaDeResena({
+function MarcaDeResena({
   scan,
   conTexto = false,
+  timeZone,
 }: {
   scan: ScanRow;
   conTexto?: boolean;
+  timeZone: string;
 }) {
   const t = useTranslations("Escaneos");
   const locale = useLocale();
-  const timeZone = await getViewerTimeZone();
 
   if (scan.reviewClickedAt) {
     return (

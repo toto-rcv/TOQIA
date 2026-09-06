@@ -9,6 +9,7 @@ import { parsePageParams } from "@/lib/pagination";
 import { parseScanFilters, type RawScanParams } from "@/lib/scan-params";
 import { requireRestaurantUser } from "@/lib/session";
 import { formatNumber } from "@/lib/utils";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 
 /**
  * El título de la pestaña también viaja por las traducciones: el panel está en
@@ -27,10 +28,11 @@ export default async function PanelScansPage({
 }: {
   searchParams: Promise<RawScanParams>;
 }) {
-  const [user, t, locale] = await Promise.all([
+  const [user, t, locale, timeZone] = await Promise.all([
     requireRestaurantUser(),
     getTranslations("Escaneos"),
     getLocale(),
+    getViewerTimeZone(),
   ]);
   const params = await searchParams;
   const pagina = parsePageParams(params);
@@ -75,6 +77,7 @@ export default async function PanelScansPage({
         basePath="/panel/escaneos"
         searchParams={params as Record<string, string | undefined>}
         showLocation={locations.length > 1}
+        timeZone={timeZone}
       />
     </>
   );

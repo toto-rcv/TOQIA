@@ -13,6 +13,7 @@ import { parsePageParams } from "@/lib/pagination";
 import { parseScanFilters, type RawScanParams } from "@/lib/scan-params";
 import { requireAdmin } from "@/lib/session";
 import { formatNumber } from "@/lib/utils";
+import { getViewerTimeZone } from "@/lib/timezone-server";
 
 /**
  * El título de la pestaña también viaja por las traducciones: el panel está en
@@ -31,10 +32,11 @@ export default async function AdminScansPage({
   searchParams: Promise<RawScanParams>;
 }) {
   await requireAdmin();
-  const [params, t, locale] = await Promise.all([
+  const [params, t, locale, timeZone] = await Promise.all([
     searchParams,
     getTranslations("Escaneos"),
     getLocale(),
+    getViewerTimeZone(),
   ]);
   const pagina = parsePageParams(params);
 
@@ -78,6 +80,7 @@ export default async function AdminScansPage({
         basePath="/admin/escaneos"
         searchParams={params as Record<string, string | undefined>}
         showAccount
+        timeZone={timeZone}
       />
     </>
   );
