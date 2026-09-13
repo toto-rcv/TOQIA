@@ -8,7 +8,8 @@
     "sinEnlace": "Deze zaak heeft haar reviewlink nog niet ingesteld.",
     "descubrirMas": "Meer ontdekken",
     "cierre": "Bedankt dat je deel uitmaakt van onze ervaring",
-    "descripcion": "Vertel ons wat je van {nombre} vond."
+    "descripcion": "Vertel ons wat je van {nombre} vond.",
+    "cerrar": "Sluiten"
   },
   "Accesos": {
     "menu": "Menukaart",
@@ -25,7 +26,25 @@
     "reservarSub": "Maak je reservering",
     "sitioWeb": "Website",
     "sitioWebSub": "Over ons",
-    "mensajeReserva": "Hallo, ik wil graag een reservering maken"
+    "mensajeReserva": "Hallo, ik wil graag een reservering maken",
+    "horarios": "Openingstijden",
+    "horariosSub": "Wanneer we open zijn",
+    "wifi": "Wifi",
+    "wifiSub": "Verbinden"
+  },
+  "Horarios": {
+    "titulo": "Openingstijden",
+    "subtitulo": "Wanneer je welkom bent"
+  },
+  "Wifi": {
+    "titulo": "Wifi van de zaak",
+    "subtitulo": "Maak verbinding en geniet van je bezoek",
+    "red": "Netwerk",
+    "clave": "Wachtwoord",
+    "copiar": "Kopiëren",
+    "copiarClave": "Wachtwoord kopiëren",
+    "copiado": "Gekopieerd!",
+    "sinClave": "Open netwerk — geen wachtwoord nodig."
   },
   "Carta": {
     "titulo": "Menukaart",
@@ -145,7 +164,7 @@
   "Nav": {
     "resumen": "Overzicht",
     "panel": "Dashboard",
-    "pulseras": "Armbanden",
+    "pulseras": "Apparaten",
     "catalogo": "Catalogus",
     "escaneos": "Scans",
     "empleados": "Medewerkers",
@@ -502,7 +521,30 @@
     "addressPlaceholder": "Hoofdstraat 742, Amsterdam",
     "verMenuDefecto": "Menu bekijken",
     "avisoSinPlatos": "Je hebt nog geen product toegevoegd: tot dat gebeurt verschijnt de knop “{boton}” niet op je pagina.",
-    "avisoSinPdf": "Upload het bestand hieronder, anders verschijnt de knop “{boton}” niet."
+    "avisoSinPdf": "Upload het bestand hieronder, anders verschijnt de knop “{boton}” niet.",
+    "secHorarios": "Openingstijden",
+    "secHorariosDesc": "Ze openen via een knop op je pagina. Zonder blokken verschijnt de knop niet.",
+    "sinHorarios": "Nog geen tijden ingevuld. Voeg een blok toe voor elk onderdeel met eigen tijden.",
+    "agregarBloque": "Blok toevoegen",
+    "quitarBloque": "Blok verwijderen",
+    "maximoBloques": "Je zit op {n} blokken.",
+    "bloqueTitulo": "Naam van het blok",
+    "bloqueTituloPlaceholder": "Keuken",
+    "bloqueHorarios": "Dagen en tijden",
+    "bloqueHorariosHint": "Eén regel per dag of periode. Scheid je de dag van de tijd met twee spaties, dan komen ze op je pagina in twee kolommen; anders wordt de regel in zijn geheel getoond.",
+    "iconoBloqueElegido": "Staat naast de naam van het blok.",
+    "iconoBloqueVacio": "Zonder icoon toont het blok alleen zijn naam.",
+    "notaPanel": "Opmerking",
+    "notaPanelHint": "Staat onderaan het paneel, in klein. Optioneel.",
+    "hoursNotePlaceholder": "Op feestdagen kunnen de tijden afwijken.",
+    "secWifi": "Wifi",
+    "secWifiDesc": "Zodat de klant verbindt zonder te vragen. Zonder netwerk verschijnt de knop niet.",
+    "wifiSsid": "Naam van het netwerk",
+    "wifiSsidPlaceholder": "MijnZaak_Gasten",
+    "wifiPassword": "Wachtwoord",
+    "wifiPasswordPlaceholder": "de netwerksleutel",
+    "wifiPasswordHint": "Laat leeg als het netwerk open is. Let op: iedereen die scant ziet het.",
+    "wifiNotePlaceholder": "Beschikbaar in de hele zaak."
   },
   "Archivos": {
     "quitar": "Verwijderen",
@@ -542,7 +584,10 @@
       "comer": "Om te eten",
       "postres": "Desserts",
       "bebidas": "Dranken",
-      "generales": "Algemeen"
+      "generales": "Algemeen",
+      "servicios": "Diensten",
+      "comercio": "Winkels",
+      "local": "Ter plaatse"
     },
     "hamburguesa": "Burger",
     "pizza": "Pizza",
@@ -570,7 +615,33 @@
     "agua": "Water",
     "cubiertos": "Bestek",
     "olla": "Keuken",
-    "picada": "Om te delen"
+    "picada": "Om te delen",
+    "peluqueria": "Kapper",
+    "belleza": "Beauty",
+    "gimnasio": "Sportschool",
+    "salud": "Gezondheid",
+    "mascotas": "Huisdieren",
+    "taller": "Werkplaats",
+    "auto": "Auto",
+    "limpieza": "Schoonmaak",
+    "tienda": "Winkel",
+    "ropa": "Kleding",
+    "calzado": "Schoenen",
+    "joyas": "Sieraden",
+    "libros": "Boeken",
+    "flores": "Bloemen",
+    "regalos": "Cadeaus",
+    "tecnologia": "Techniek",
+    "horarios": "Openingstijden",
+    "wifi": "Wifi",
+    "ubicacion": "Locatie",
+    "estacionamiento": "Parkeren",
+    "terraza": "Terras",
+    "musica": "Muziek",
+    "evento": "Evenementen",
+    "entrada": "Tickets",
+    "pago": "Betalingen",
+    "info": "Informatie"
   },
   "Campos": {
     "nombre": "De naam",
@@ -593,7 +664,11 @@
     "fotoCierre": "De afsluitfoto",
     "cartaPdf": "De kaart als PDF",
     "fotoPlato": "De foto van het product",
-    "imagenCarta": "De afbeelding van de kaart"
+    "imagenCarta": "De afbeelding van de kaart",
+    "notaHorarios": "De opmerking bij de openingstijden",
+    "redWifi": "De naam van het wifinetwerk",
+    "claveWifi": "Het wifiwachtwoord",
+    "notaWifi": "De opmerking bij de wifi"
   },
   "Errores": {
     "campoVacio": "{campo} mag niet leeg zijn.",

@@ -7,6 +7,7 @@ import {
   decimal,
   index,
   int,
+  json,
   mysqlEnum,
   mysqlTable,
   smallint,
@@ -15,6 +16,11 @@ import {
   uniqueIndex,
   varchar,
 } from "drizzle-orm/mysql-core";
+
+// Import relativo y no por el alias `@/`: drizzle-kit carga este archivo por
+// su cuenta, fuera del resolvedor de rutas de Next, y con el alias no lo
+// encontraría.
+import type { BloqueDeHorario } from "../lib/horarios";
 
 /* ───────────────────────────────────────────────────────────────────────────
    Jerarquía del dominio
@@ -167,6 +173,24 @@ export const locations = mysqlTable(
     menuButtonIcon: varchar("menu_button_icon", { length: 40 }),
     // Moneda con la que se muestran los precios de la carta.
     currency: varchar("currency", { length: 8 }).notNull().default("€"),
+
+    /* ── Horarios y Wi-Fi ─────────────────────────────────────────────────
+       Los dos únicos accesos que no llevan a ninguna parte: abren un panel
+       con lo que el local cargó. Existen porque son las dos preguntas que un
+       cliente sentado a la mesa termina buscando en Google — a qué hora
+       cierran y cuál es la clave del Wi-Fi—, que es justo el viaje que esta
+       página existe para evitar.
+
+       Los horarios van en JSON y no en columnas fijas: ver `lib/horarios.ts`
+       para por qué no hay un esquema de días y turnos. Como toda columna de
+       esta tabla, vacío significa que el botón no se muestra. */
+    hoursBlocks: json("hours_blocks").$type<BloqueDeHorario[]>(),
+    hoursNote: varchar("hours_note", { length: 300 }),
+
+    wifiSsid: varchar("wifi_ssid", { length: 100 }),
+    // Puede quedar vacía: hay locales con la red abierta.
+    wifiPassword: varchar("wifi_password", { length: 100 }),
+    wifiNote: varchar("wifi_note", { length: 160 }),
 
     createdAt: datetime("created_at")
       .notNull()

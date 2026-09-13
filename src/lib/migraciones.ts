@@ -394,6 +394,11 @@ async function agregarColumnas(ctx: Contexto) {
     ["locations", "menu_button_label", "varchar(40)"],
     ["locations", "menu_button_icon", "varchar(40)"],
     ["accounts", "business_type", "varchar(60)"],
+    ["locations", "hours_blocks", "json"],
+    ["locations", "hours_note", "varchar(300)"],
+    ["locations", "wifi_ssid", "varchar(100)"],
+    ["locations", "wifi_password", "varchar(100)"],
+    ["locations", "wifi_note", "varchar(160)"],
   ];
 
   for (const [tabla, columna, definicion] of nuevas) {

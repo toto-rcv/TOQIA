@@ -8,7 +8,8 @@
     "sinEnlace": "Это заведение ещё не настроило ссылку на отзывы.",
     "descubrirMas": "Узнать больше",
     "cierre": "Спасибо, что были частью нашего вечера",
-    "descripcion": "Расскажите, как вам «{nombre}»."
+    "descripcion": "Расскажите, как вам «{nombre}».",
+    "cerrar": "Закрыть"
   },
   "Accesos": {
     "menu": "Меню",
@@ -25,7 +26,25 @@
     "reservarSub": "Забронируйте",
     "sitioWeb": "Сайт",
     "sitioWebSub": "О нас",
-    "mensajeReserva": "Здравствуйте, я хотел бы сделать бронирование"
+    "mensajeReserva": "Здравствуйте, я хотел бы сделать бронирование",
+    "horarios": "Часы работы",
+    "horariosSub": "Когда мы открыты",
+    "wifi": "Wi-Fi",
+    "wifiSub": "Подключиться"
+  },
+  "Horarios": {
+    "titulo": "Часы работы",
+    "subtitulo": "Когда мы вас ждём"
+  },
+  "Wifi": {
+    "titulo": "Wi-Fi заведения",
+    "subtitulo": "Подключайтесь и отдыхайте",
+    "red": "Сеть",
+    "clave": "Пароль",
+    "copiar": "Копировать",
+    "copiarClave": "Скопировать пароль",
+    "copiado": "Скопировано!",
+    "sinClave": "Сеть открытая — пароль не нужен."
   },
   "Carta": {
     "titulo": "Меню",
@@ -145,7 +164,7 @@
   "Nav": {
     "resumen": "Обзор",
     "panel": "Панель управления",
-    "pulseras": "Браслеты",
+    "pulseras": "Устройства",
     "catalogo": "Каталог",
     "escaneos": "Сканирования",
     "empleados": "Сотрудники",
@@ -502,7 +521,30 @@
     "addressPlaceholder": "ул. Главная, 742",
     "verMenuDefecto": "Смотреть каталог",
     "avisoSinPlatos": "Вы ещё не добавили ни одного товара: пока этого нет, кнопка «{boton}» не появится на вашей странице.",
-    "avisoSinPdf": "Загрузите файл ниже, иначе кнопка «{boton}» не появится."
+    "avisoSinPdf": "Загрузите файл ниже, иначе кнопка «{boton}» не появится.",
+    "secHorarios": "Часы работы",
+    "secHorariosDesc": "Открываются кнопкой на вашей странице. Без блоков кнопка не показывается.",
+    "sinHorarios": "Часы работы ещё не заданы. Добавьте блок для каждого, у кого свой график.",
+    "agregarBloque": "Добавить блок",
+    "quitarBloque": "Удалить блок",
+    "maximoBloques": "Достигнут предел: {n} блоков.",
+    "bloqueTitulo": "Название блока",
+    "bloqueTituloPlaceholder": "Кухня",
+    "bloqueHorarios": "Дни и часы",
+    "bloqueHorariosHint": "По одной строке на день или период. Если отделить день от времени двумя пробелами, на странице они встанут в две колонки; иначе строка покажется целиком.",
+    "iconoBloqueElegido": "Показывается рядом с названием блока.",
+    "iconoBloqueVacio": "Без значка в блоке будет только название.",
+    "notaPanel": "Примечание",
+    "notaPanelHint": "Показывается внизу панели мелким шрифтом. Необязательно.",
+    "hoursNotePlaceholder": "В праздники часы работы могут отличаться.",
+    "secWifi": "Wi-Fi",
+    "secWifiDesc": "Чтобы гость подключился, не спрашивая. Без сети кнопка не показывается.",
+    "wifiSsid": "Название сети",
+    "wifiSsidPlaceholder": "MyPlace_Guest",
+    "wifiPassword": "Пароль",
+    "wifiPasswordPlaceholder": "ключ сети",
+    "wifiPasswordHint": "Если сеть открытая, оставьте пустым. Учтите: его увидит каждый, кто отсканирует.",
+    "wifiNotePlaceholder": "Доступен по всему заведению."
   },
   "Archivos": {
     "quitar": "Убрать",
@@ -542,7 +584,10 @@
       "comer": "Еда",
       "postres": "Десерты",
       "bebidas": "Напитки",
-      "generales": "Общее"
+      "generales": "Общее",
+      "servicios": "Услуги",
+      "comercio": "Магазин",
+      "local": "На месте"
     },
     "hamburguesa": "Бургер",
     "pizza": "Пицца",
@@ -570,7 +615,33 @@
     "agua": "Вода",
     "cubiertos": "Приборы",
     "olla": "Кухня",
-    "picada": "Чтобы разделить"
+    "picada": "Чтобы разделить",
+    "peluqueria": "Парикмахерская",
+    "belleza": "Красота",
+    "gimnasio": "Спортзал",
+    "salud": "Здоровье",
+    "mascotas": "Питомцы",
+    "taller": "Мастерская",
+    "auto": "Авто",
+    "limpieza": "Уборка",
+    "tienda": "Магазин",
+    "ropa": "Одежда",
+    "calzado": "Обувь",
+    "joyas": "Украшения",
+    "libros": "Книги",
+    "flores": "Цветы",
+    "regalos": "Подарки",
+    "tecnologia": "Техника",
+    "horarios": "Часы работы",
+    "wifi": "Wi-Fi",
+    "ubicacion": "Адрес",
+    "estacionamiento": "Парковка",
+    "terraza": "Терраса",
+    "musica": "Музыка",
+    "evento": "События",
+    "entrada": "Билеты",
+    "pago": "Оплата",
+    "info": "Информация"
   },
   "Campos": {
     "nombre": "Название",
@@ -593,7 +664,11 @@
     "fotoCierre": "Фото в конце",
     "cartaPdf": "Каталог в PDF",
     "fotoPlato": "Фото товара",
-    "imagenCarta": "Изображение каталог"
+    "imagenCarta": "Изображение каталог",
+    "notaHorarios": "Примечание к часам работы",
+    "redWifi": "Название сети Wi-Fi",
+    "claveWifi": "Пароль от Wi-Fi",
+    "notaWifi": "Примечание к Wi-Fi"
   },
   "Errores": {
     "campoVacio": "Поле «{campo}» не может быть пустым.",

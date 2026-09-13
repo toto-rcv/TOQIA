@@ -8,7 +8,8 @@
     "sinEnlace": "Cet établissement n'a pas encore configuré son lien d'avis.",
     "descubrirMas": "En découvrir plus",
     "cierre": "Merci de faire partie de notre expérience",
-    "descripcion": "Dites-nous ce que vous avez pensé de {nombre}."
+    "descripcion": "Dites-nous ce que vous avez pensé de {nombre}.",
+    "cerrar": "Fermer"
   },
   "Accesos": {
     "menu": "Voir la carte",
@@ -25,7 +26,25 @@
     "reservarSub": "Faites votre réservation",
     "sitioWeb": "Site web",
     "sitioWebSub": "Nous découvrir",
-    "mensajeReserva": "Bonjour, je souhaiterais faire une réservation"
+    "mensajeReserva": "Bonjour, je souhaiterais faire une réservation",
+    "horarios": "Horaires",
+    "horariosSub": "Quand on ouvre",
+    "wifi": "Wi-Fi",
+    "wifiSub": "Se connecter"
+  },
+  "Horarios": {
+    "titulo": "Horaires",
+    "subtitulo": "Quand nous vous attendons"
+  },
+  "Wifi": {
+    "titulo": "Wi-Fi de l'établissement",
+    "subtitulo": "Connectez-vous et profitez",
+    "red": "Réseau",
+    "clave": "Mot de passe",
+    "copiar": "Copier",
+    "copiarClave": "Copier le mot de passe",
+    "copiado": "Copié !",
+    "sinClave": "Réseau ouvert : aucun mot de passe nécessaire."
   },
   "Carta": {
     "titulo": "Carte",
@@ -145,7 +164,7 @@
   "Nav": {
     "resumen": "Aperçu",
     "panel": "Tableau de bord",
-    "pulseras": "Bracelets",
+    "pulseras": "Appareils",
     "catalogo": "Catalogue",
     "escaneos": "Scans",
     "empleados": "Employés",
@@ -502,7 +521,30 @@
     "addressPlaceholder": "12 rue des Lilas, Paris",
     "verMenuDefecto": "Voir le menu",
     "avisoSinPlatos": "Vous n'avez encore ajouté aucun article : tant que ce n'est pas fait, le bouton « {boton} » n'apparaît pas sur votre page.",
-    "avisoSinPdf": "Téléversez le fichier ci-dessous, sinon le bouton « {boton} » n'apparaîtra pas."
+    "avisoSinPdf": "Téléversez le fichier ci-dessous, sinon le bouton « {boton} » n'apparaîtra pas.",
+    "secHorarios": "Horaires",
+    "secHorariosDesc": "Ils s'ouvrent depuis un bouton de votre page. Sans aucun bloc, le bouton n'apparaît pas.",
+    "sinHorarios": "Aucun horaire pour l'instant. Ajoutez un bloc par élément ayant son propre horaire.",
+    "agregarBloque": "Ajouter un bloc",
+    "quitarBloque": "Supprimer le bloc",
+    "maximoBloques": "Vous avez atteint {n} blocs.",
+    "bloqueTitulo": "Nom du bloc",
+    "bloqueTituloPlaceholder": "Cuisine",
+    "bloqueHorarios": "Jours et horaires",
+    "bloqueHorariosHint": "Une ligne par jour ou par plage. Si vous séparez le jour de l'horaire par deux espaces, ils s'alignent en deux colonnes sur la page ; sinon la ligne s'affiche telle quelle.",
+    "iconoBloqueElegido": "S'affiche à côté du nom du bloc.",
+    "iconoBloqueVacio": "Sans icône, le bloc n'affiche que son nom.",
+    "notaPanel": "Précision",
+    "notaPanelHint": "S'affiche en bas du panneau, en petit. Facultatif.",
+    "hoursNotePlaceholder": "Les horaires peuvent changer les jours fériés.",
+    "secWifi": "Wi-Fi",
+    "secWifiDesc": "Pour que le client se connecte sans demander. Sans réseau, le bouton n'apparaît pas.",
+    "wifiSsid": "Nom du réseau",
+    "wifiSsidPlaceholder": "MonResto_Invites",
+    "wifiPassword": "Mot de passe",
+    "wifiPasswordPlaceholder": "la clé du réseau",
+    "wifiPasswordHint": "Laissez vide si le réseau est ouvert. Attention : toute personne qui scanne le voit.",
+    "wifiNotePlaceholder": "Disponible dans tout l'établissement."
   },
   "Archivos": {
     "quitar": "Retirer",
@@ -542,7 +584,10 @@
       "comer": "À manger",
       "postres": "Desserts",
       "bebidas": "Boissons",
-      "generales": "Généraux"
+      "generales": "Généraux",
+      "servicios": "Services",
+      "comercio": "Commerce",
+      "local": "Sur place"
     },
     "hamburguesa": "Burger",
     "pizza": "Pizza",
@@ -570,7 +615,33 @@
     "agua": "Eau",
     "cubiertos": "Couverts",
     "olla": "Cuisine",
-    "picada": "À partager"
+    "picada": "À partager",
+    "peluqueria": "Coiffure",
+    "belleza": "Beauté",
+    "gimnasio": "Salle de sport",
+    "salud": "Santé",
+    "mascotas": "Animaux",
+    "taller": "Atelier",
+    "auto": "Auto",
+    "limpieza": "Nettoyage",
+    "tienda": "Boutique",
+    "ropa": "Vêtements",
+    "calzado": "Chaussures",
+    "joyas": "Bijoux",
+    "libros": "Livres",
+    "flores": "Fleurs",
+    "regalos": "Cadeaux",
+    "tecnologia": "Technologie",
+    "horarios": "Horaires",
+    "wifi": "Wi-Fi",
+    "ubicacion": "Adresse",
+    "estacionamiento": "Parking",
+    "terraza": "Terrasse",
+    "musica": "Musique",
+    "evento": "Événements",
+    "entrada": "Billets",
+    "pago": "Paiements",
+    "info": "Informations"
   },
   "Campos": {
     "nombre": "Le nom",
@@ -593,7 +664,11 @@
     "fotoCierre": "La photo de clôture",
     "cartaPdf": "Le catalogue en PDF",
     "fotoPlato": "La photo de l'article",
-    "imagenCarta": "L'image du catalogue"
+    "imagenCarta": "L'image du catalogue",
+    "notaHorarios": "La précision des horaires",
+    "redWifi": "Le nom du réseau Wi-Fi",
+    "claveWifi": "Le mot de passe du Wi-Fi",
+    "notaWifi": "La précision du Wi-Fi"
   },
   "Errores": {
     "campoVacio": "{campo} ne peut pas être vide.",

@@ -8,7 +8,8 @@
     "sinEnlace": "This venue hasn't set up its review link yet.",
     "descubrirMas": "Discover more",
     "cierre": "Thank you for being part of our experience",
-    "descripcion": "Tell us what you thought of {nombre}."
+    "descripcion": "Tell us what you thought of {nombre}.",
+    "cerrar": "Close"
   },
   "Accesos": {
     "menu": "View menu",
@@ -25,7 +26,25 @@
     "reservarSub": "Make your booking",
     "sitioWeb": "Website",
     "sitioWebSub": "About us",
-    "mensajeReserva": "Hi, I'd like to make a booking"
+    "mensajeReserva": "Hi, I'd like to make a booking",
+    "horarios": "Opening hours",
+    "horariosSub": "When we're open",
+    "wifi": "Wi-Fi",
+    "wifiSub": "Get connected"
+  },
+  "Horarios": {
+    "titulo": "Opening hours",
+    "subtitulo": "When to find us"
+  },
+  "Wifi": {
+    "titulo": "Venue Wi-Fi",
+    "subtitulo": "Connect and enjoy your visit",
+    "red": "Network",
+    "clave": "Password",
+    "copiar": "Copy",
+    "copiarClave": "Copy password",
+    "copiado": "Copied!",
+    "sinClave": "This is an open network — no password needed."
   },
   "Carta": {
     "titulo": "Menu",
@@ -145,7 +164,7 @@
   "Nav": {
     "resumen": "Summary",
     "panel": "Dashboard",
-    "pulseras": "Wristbands",
+    "pulseras": "Devices",
     "catalogo": "Catalogue",
     "escaneos": "Scans",
     "empleados": "Staff",
@@ -502,7 +521,30 @@
     "addressPlaceholder": "742 Evergreen Terrace",
     "verMenuDefecto": "View menu",
     "avisoSinPlatos": "You haven't added any dishes yet: until you do, the “{boton}” button will not show on your page.",
-    "avisoSinPdf": "Upload the file below, or the “{boton}” button will not show."
+    "avisoSinPdf": "Upload the file below, or the “{boton}” button will not show.",
+    "secHorarios": "Opening hours",
+    "secHorariosDesc": "They open from a button on your page. With no blocks added, the button doesn't show.",
+    "sinHorarios": "No hours added yet. Add one block for each thing that has its own schedule.",
+    "agregarBloque": "Add block",
+    "quitarBloque": "Remove block",
+    "maximoBloques": "You've reached {n} blocks.",
+    "bloqueTitulo": "Block name",
+    "bloqueTituloPlaceholder": "Kitchen",
+    "bloqueHorarios": "Days and hours",
+    "bloqueHorariosHint": "One line per day or range. If you separate the day from the hours with two spaces, they line up in two columns on your page; otherwise the line shows as written.",
+    "iconoBloqueElegido": "Shows next to the block name.",
+    "iconoBloqueVacio": "With none picked, the block shows just its name.",
+    "notaPanel": "Note",
+    "notaPanelHint": "Shows at the bottom of the panel, in small text. Optional.",
+    "hoursNotePlaceholder": "Hours may differ on public holidays.",
+    "secWifi": "Wi-Fi",
+    "secWifiDesc": "So guests connect without having to ask. With no network added, the button doesn't show.",
+    "wifiSsid": "Network name",
+    "wifiSsidPlaceholder": "MyVenue_Guests",
+    "wifiPassword": "Password",
+    "wifiPasswordPlaceholder": "the network key",
+    "wifiPasswordHint": "Leave it empty if the network is open. Keep in mind anyone who scans can see it.",
+    "wifiNotePlaceholder": "Available throughout the venue."
   },
   "Archivos": {
     "quitar": "Remove",
@@ -542,7 +584,10 @@
       "comer": "To eat",
       "postres": "Desserts",
       "bebidas": "Drinks",
-      "generales": "General"
+      "generales": "General",
+      "servicios": "Services",
+      "comercio": "Retail",
+      "local": "At the venue"
     },
     "hamburguesa": "Burger",
     "pizza": "Pizza",
@@ -570,7 +615,33 @@
     "agua": "Water",
     "cubiertos": "Cutlery",
     "olla": "Kitchen",
-    "picada": "To share"
+    "picada": "To share",
+    "peluqueria": "Hair salon",
+    "belleza": "Beauty",
+    "gimnasio": "Gym",
+    "salud": "Health",
+    "mascotas": "Pets",
+    "taller": "Workshop",
+    "auto": "Car",
+    "limpieza": "Cleaning",
+    "tienda": "Shop",
+    "ropa": "Clothing",
+    "calzado": "Footwear",
+    "joyas": "Jewellery",
+    "libros": "Books",
+    "flores": "Flowers",
+    "regalos": "Gifts",
+    "tecnologia": "Tech",
+    "horarios": "Opening hours",
+    "wifi": "Wi-Fi",
+    "ubicacion": "Location",
+    "estacionamiento": "Parking",
+    "terraza": "Terrace",
+    "musica": "Music",
+    "evento": "Events",
+    "entrada": "Tickets",
+    "pago": "Payments",
+    "info": "Information"
   },
   "Campos": {
     "nombre": "The name",
@@ -593,7 +664,11 @@
     "fotoCierre": "The closing photo",
     "cartaPdf": "The catalogue PDF",
     "fotoPlato": "The item photo",
-    "imagenCarta": "The catalogue image"
+    "imagenCarta": "The catalogue image",
+    "notaHorarios": "The opening hours note",
+    "redWifi": "The Wi-Fi network name",
+    "claveWifi": "The Wi-Fi password",
+    "notaWifi": "The Wi-Fi note"
   },
   "Errores": {
     "campoVacio": "{campo} cannot be empty.",

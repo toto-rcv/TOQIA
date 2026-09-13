@@ -11,6 +11,10 @@ import {
   getLocationForAccount,
 } from "@/db/queries/locations";
 import { getWaiterForAccount } from "@/db/queries/waiters";
+import {
+  MAX_BLOQUES_HORARIO,
+  normalizarBloquesDeHorario,
+} from "@/lib/horarios";
 import { normalizeMenuIcon } from "@/lib/menu-icons";
 import {
   ErrorDeArchivo,
@@ -221,6 +225,26 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
   const menuButtonIcon = normalizeMenuIcon(readString(formData.get("menuButtonIcon")));
   const currency = readString(formData.get("currency")) || "€";
 
+  const hoursNote = readString(formData.get("hoursNote"));
+  const wifiSsid = readString(formData.get("wifiSsid"));
+  const wifiPassword = readString(formData.get("wifiPassword"));
+  const wifiNote = readString(formData.get("wifiNote"));
+
+  /* Los bloques de horarios llegan con el índice en el nombre del campo
+     (`horarioTitulo0`, `horarioIcono0`, `horarioTexto0`…) y no como un JSON
+     en un input oculto. Son campos de formulario normales: el navegador no
+     tiene que serializar nada y acá no hay que parsear una cadena que mandó
+     el cliente. `normalizarBloquesDeHorario` se queda con lo que sirve —
+     descarta los vacíos, valida cada ícono contra el catálogo y recorta los
+     textos largos—, así que lo que llegue de más no importa. */
+  const bloquesDeHorario = normalizarBloquesDeHorario(
+    Array.from({ length: MAX_BLOQUES_HORARIO }, (_, indice) => ({
+      icon: readString(formData.get(`horarioIcono${indice}`)),
+      title: readString(formData.get(`horarioTitulo${indice}`)),
+      text: readString(formData.get(`horarioTexto${indice}`)),
+    }))
+  );
+
   // Qué carta se muestra. Cualquier cosa que no sea "pdf" cae en "toqia":
   // es el valor seguro, el que no depende de un archivo que puede faltar.
   const menuMode = readString(formData.get("menuMode")) === "pdf" ? "pdf" : "toqia";
@@ -290,6 +314,10 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
     [welcomeTitle, "tituloResena", 200],
     [closingMessage, "mensajeCierre", 200],
     [menuButtonLabel, "textoBotonCarta", 40],
+    [hoursNote, "notaHorarios", 300],
+    [wifiSsid, "redWifi", 100],
+    [wifiPassword, "claveWifi", 100],
+    [wifiNote, "notaWifi", 160],
   ];
 
   for (const [valor, campo, tope] of TOPES) {
@@ -372,6 +400,14 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
         menuMode,
         menuButtonLabel: vacioANull(menuButtonLabel),
         menuButtonIcon,
+        // Sin bloques va null y no un array vacío: `[]` en la columna JSON
+        // haría que un local que borró todos sus horarios se lea distinto de
+        // uno que nunca cargó ninguno, y para la página son lo mismo.
+        hoursBlocks: bloquesDeHorario.length > 0 ? bloquesDeHorario : null,
+        hoursNote: vacioANull(hoursNote),
+        wifiSsid: vacioANull(wifiSsid),
+        wifiPassword: vacioANull(wifiPassword),
+        wifiNote: vacioANull(wifiNote),
         googleReviewUrl: porClave.googleReviewUrl,
         instagramUrl: porClave.instagramUrl,
         websiteUrl: porClave.websiteUrl,
@@ -392,6 +428,8 @@ export async function updateLanding(formData: FormData): Promise<ActionResult> {
       welcomeTitle: vacioANull(welcomeTitle),
       closingMessage: vacioANull(closingMessage),
       menuButtonLabel: vacioANull(menuButtonLabel),
+      hoursNote: vacioANull(hoursNote),
+      wifiNote: vacioANull(wifiNote),
     });
 
     // El caché de la landing guarda estos datos: hay que invalidar todas las

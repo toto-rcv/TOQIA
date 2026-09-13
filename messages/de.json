@@ -8,7 +8,8 @@
     "sinEnlace": "Dieser Betrieb hat seinen Bewertungslink noch nicht eingerichtet.",
     "descubrirMas": "Mehr entdecken",
     "cierre": "Danke, dass Sie Teil unseres Erlebnisses sind",
-    "descripcion": "Sagen Sie uns, wie es Ihnen bei {nombre} gefallen hat."
+    "descripcion": "Sagen Sie uns, wie es Ihnen bei {nombre} gefallen hat.",
+    "cerrar": "Schließen"
   },
   "Accesos": {
     "menu": "Speisekarte",
@@ -25,7 +26,25 @@
     "reservarSub": "Jetzt reservieren",
     "sitioWeb": "Webseite",
     "sitioWebSub": "Über uns",
-    "mensajeReserva": "Hallo, ich möchte gerne eine Reservierung machen"
+    "mensajeReserva": "Hallo, ich möchte gerne eine Reservierung machen",
+    "horarios": "Öffnungszeiten",
+    "horariosSub": "Wann wir öffnen",
+    "wifi": "WLAN",
+    "wifiSub": "Verbinden"
+  },
+  "Horarios": {
+    "titulo": "Öffnungszeiten",
+    "subtitulo": "Wann wir für dich da sind"
+  },
+  "Wifi": {
+    "titulo": "WLAN vor Ort",
+    "subtitulo": "Verbinde dich und genieße deinen Besuch",
+    "red": "Netzwerk",
+    "clave": "Passwort",
+    "copiar": "Kopieren",
+    "copiarClave": "Passwort kopieren",
+    "copiado": "Kopiert!",
+    "sinClave": "Offenes Netzwerk — kein Passwort nötig."
   },
   "Carta": {
     "titulo": "Speisekarte",
@@ -145,7 +164,7 @@
   "Nav": {
     "resumen": "Übersicht",
     "panel": "Dashboard",
-    "pulseras": "Armbänder",
+    "pulseras": "Geräte",
     "catalogo": "Katalog",
     "escaneos": "Scans",
     "empleados": "Mitarbeiter",
@@ -502,7 +521,30 @@
     "addressPlaceholder": "Hauptstraße 742, Berlin",
     "verMenuDefecto": "Menü ansehen",
     "avisoSinPlatos": "Du hast noch keinen Artikel angelegt: bis dahin erscheint der Button „{boton}“ nicht auf deiner Seite.",
-    "avisoSinPdf": "Lade die Datei unten hoch, sonst erscheint der Button „{boton}“ nicht."
+    "avisoSinPdf": "Lade die Datei unten hoch, sonst erscheint der Button „{boton}“ nicht.",
+    "secHorarios": "Öffnungszeiten",
+    "secHorariosDesc": "Sie öffnen sich über einen Button auf deiner Seite. Ohne Blöcke erscheint der Button nicht.",
+    "sinHorarios": "Noch keine Zeiten eingetragen. Lege pro Bereich mit eigener Zeit einen Block an.",
+    "agregarBloque": "Block hinzufügen",
+    "quitarBloque": "Block entfernen",
+    "maximoBloques": "Du hast {n} Blöcke erreicht.",
+    "bloqueTitulo": "Name des Blocks",
+    "bloqueTituloPlaceholder": "Küche",
+    "bloqueHorarios": "Tage und Zeiten",
+    "bloqueHorariosHint": "Eine Zeile pro Tag oder Zeitraum. Trennst du Tag und Uhrzeit mit zwei Leerzeichen, stehen sie auf der Seite in zwei Spalten; sonst erscheint die Zeile am Stück.",
+    "iconoBloqueElegido": "Erscheint neben dem Namen des Blocks.",
+    "iconoBloqueVacio": "Ohne Auswahl zeigt der Block nur seinen Namen.",
+    "notaPanel": "Hinweis",
+    "notaPanelHint": "Erscheint klein am Ende des Panels. Optional.",
+    "hoursNotePlaceholder": "An Feiertagen können die Zeiten abweichen.",
+    "secWifi": "WLAN",
+    "secWifiDesc": "Damit Gäste sich verbinden, ohne zu fragen. Ohne Netzwerk erscheint der Button nicht.",
+    "wifiSsid": "Name des Netzwerks",
+    "wifiSsidPlaceholder": "MeinLokal_Gaeste",
+    "wifiPassword": "Passwort",
+    "wifiPasswordPlaceholder": "der Netzwerkschlüssel",
+    "wifiPasswordHint": "Bei offenem Netz leer lassen. Achtung: Wer scannt, sieht es.",
+    "wifiNotePlaceholder": "Im ganzen Lokal verfügbar."
   },
   "Archivos": {
     "quitar": "Entfernen",
@@ -542,7 +584,10 @@
       "comer": "Zum Essen",
       "postres": "Desserts",
       "bebidas": "Getränke",
-      "generales": "Allgemein"
+      "generales": "Allgemein",
+      "servicios": "Dienstleistungen",
+      "comercio": "Handel",
+      "local": "Vor Ort"
     },
     "hamburguesa": "Burger",
     "pizza": "Pizza",
@@ -570,7 +615,33 @@
     "agua": "Wasser",
     "cubiertos": "Besteck",
     "olla": "Küche",
-    "picada": "Zum Teilen"
+    "picada": "Zum Teilen",
+    "peluqueria": "Friseur",
+    "belleza": "Beauty",
+    "gimnasio": "Fitness",
+    "salud": "Gesundheit",
+    "mascotas": "Haustiere",
+    "taller": "Werkstatt",
+    "auto": "Auto",
+    "limpieza": "Reinigung",
+    "tienda": "Geschäft",
+    "ropa": "Kleidung",
+    "calzado": "Schuhe",
+    "joyas": "Schmuck",
+    "libros": "Bücher",
+    "flores": "Blumen",
+    "regalos": "Geschenke",
+    "tecnologia": "Technik",
+    "horarios": "Öffnungszeiten",
+    "wifi": "WLAN",
+    "ubicacion": "Standort",
+    "estacionamiento": "Parkplatz",
+    "terraza": "Terrasse",
+    "musica": "Musik",
+    "evento": "Events",
+    "entrada": "Tickets",
+    "pago": "Zahlungen",
+    "info": "Information"
   },
   "Campos": {
     "nombre": "Der Name",
@@ -593,7 +664,11 @@
     "fotoCierre": "Das Abschlussfoto",
     "cartaPdf": "Der Katalog als PDF",
     "fotoPlato": "Das Foto des Artikels",
-    "imagenCarta": "Das Bild des Katalogs"
+    "imagenCarta": "Das Bild des Katalogs",
+    "notaHorarios": "Der Hinweis zu den Öffnungszeiten",
+    "redWifi": "Der Name des WLAN-Netzwerks",
+    "claveWifi": "Das WLAN-Passwort",
+    "notaWifi": "Der WLAN-Hinweis"
   },
   "Errores": {
     "campoVacio": "{campo} darf nicht leer sein.",

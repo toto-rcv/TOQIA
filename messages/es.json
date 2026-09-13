@@ -8,7 +8,8 @@
     "sinEnlace": "Este local todavía no configuró su enlace de reseñas.",
     "descubrirMas": "Descubrí más",
     "cierre": "Gracias por ser parte de nuestra experiencia",
-    "descripcion": "Dejanos tu opinión sobre {nombre}."
+    "descripcion": "Dejanos tu opinión sobre {nombre}.",
+    "cerrar": "Cerrar"
   },
   "Accesos": {
     "menu": "Ver menú",
@@ -25,7 +26,25 @@
     "reservarSub": "Hacé tu reserva",
     "sitioWeb": "Sitio web",
     "sitioWebSub": "Conocenos",
-    "mensajeReserva": "Hola, quisiera hacer una reserva"
+    "mensajeReserva": "Hola, quisiera hacer una reserva",
+    "horarios": "Horarios",
+    "horariosSub": "Cuándo abrimos",
+    "wifi": "Wi-Fi",
+    "wifiSub": "Conectate"
+  },
+  "Horarios": {
+    "titulo": "Horarios",
+    "subtitulo": "Cuándo te esperamos"
+  },
+  "Wifi": {
+    "titulo": "Wi-Fi del local",
+    "subtitulo": "Conectate y seguí disfrutando",
+    "red": "Red",
+    "clave": "Contraseña",
+    "copiar": "Copiar",
+    "copiarClave": "Copiar contraseña",
+    "copiado": "¡Copiado!",
+    "sinClave": "Es una red abierta: no hace falta contraseña."
   },
   "Carta": {
     "titulo": "Carta",
@@ -145,7 +164,7 @@
   "Nav": {
     "resumen": "Resumen",
     "panel": "Panel",
-    "pulseras": "Pulseras",
+    "pulseras": "Dispositivos",
     "catalogo": "Catálogo",
     "escaneos": "Escaneos",
     "empleados": "Empleados",
@@ -502,7 +521,30 @@
     "addressPlaceholder": "Av. Siempre Viva 742, CABA",
     "verMenuDefecto": "Ver menú",
     "avisoSinPlatos": "Todavía no cargaste ningún producto: hasta que lo hagas, el botón “{boton}” no aparece en tu página.",
-    "avisoSinPdf": "Subí el archivo acá abajo, o el botón “{boton}” no va a aparecer."
+    "avisoSinPdf": "Subí el archivo acá abajo, o el botón “{boton}” no va a aparecer.",
+    "secHorarios": "Horarios",
+    "secHorariosDesc": "Se abren desde un botón de tu página. Sin ningún bloque cargado, el botón no aparece.",
+    "sinHorarios": "Todavía no cargaste horarios. Agregá un bloque por cada cosa que tenga su propio horario.",
+    "agregarBloque": "Agregar bloque",
+    "quitarBloque": "Quitar bloque",
+    "maximoBloques": "Llegaste a los {n} bloques.",
+    "bloqueTitulo": "Nombre del bloque",
+    "bloqueTituloPlaceholder": "Cocina",
+    "bloqueHorarios": "Días y horarios",
+    "bloqueHorariosHint": "Un renglón por cada día o rango. Si separás el día del horario con dos espacios, en la página quedan en dos columnas; si no, el renglón se muestra entero.",
+    "iconoBloqueElegido": "Se muestra al lado del nombre del bloque.",
+    "iconoBloqueVacio": "Sin elegir, el bloque va solo con su nombre.",
+    "notaPanel": "Aclaración",
+    "notaPanelHint": "Aparece al pie del panel, en letra chica. Es opcional.",
+    "hoursNotePlaceholder": "Los feriados pueden tener otro horario.",
+    "secWifi": "Wi-Fi",
+    "secWifiDesc": "Para que el cliente se conecte sin tener que preguntar. Sin red cargada, el botón no aparece.",
+    "wifiSsid": "Nombre de la red",
+    "wifiSsidPlaceholder": "MiLocal_Invitados",
+    "wifiPassword": "Contraseña",
+    "wifiPasswordPlaceholder": "la clave de la red",
+    "wifiPasswordHint": "Si la red es abierta, dejala vacía. Ojo: la ve cualquiera que escanee.",
+    "wifiNotePlaceholder": "Disponible en todo el local."
   },
   "Archivos": {
     "quitar": "Quitar",
@@ -542,7 +584,10 @@
       "comer": "Para comer",
       "postres": "Postres",
       "bebidas": "Bebidas",
-      "generales": "Generales"
+      "generales": "Generales",
+      "servicios": "Servicios",
+      "comercio": "Comercio",
+      "local": "En el local"
     },
     "hamburguesa": "Hamburguesa",
     "pizza": "Pizza",
@@ -570,7 +615,33 @@
     "agua": "Agua",
     "cubiertos": "Cubiertos",
     "olla": "Cocina",
-    "picada": "Para compartir"
+    "picada": "Para compartir",
+    "peluqueria": "Peluquería",
+    "belleza": "Belleza",
+    "gimnasio": "Gimnasio",
+    "salud": "Salud",
+    "mascotas": "Mascotas",
+    "taller": "Taller",
+    "auto": "Auto",
+    "limpieza": "Limpieza",
+    "tienda": "Tienda",
+    "ropa": "Ropa",
+    "calzado": "Calzado",
+    "joyas": "Joyería",
+    "libros": "Librería",
+    "flores": "Flores",
+    "regalos": "Regalos",
+    "tecnologia": "Tecnología",
+    "horarios": "Horarios",
+    "wifi": "Wi-Fi",
+    "ubicacion": "Ubicación",
+    "estacionamiento": "Estacionamiento",
+    "terraza": "Terraza",
+    "musica": "Música",
+    "evento": "Eventos",
+    "entrada": "Entradas",
+    "pago": "Pagos",
+    "info": "Información"
   },
   "Campos": {
     "nombre": "El nombre",
@@ -593,7 +664,11 @@
     "fotoCierre": "La foto de cierre",
     "cartaPdf": "El catálogo en PDF",
     "fotoPlato": "La foto del producto",
-    "imagenCarta": "La imagen del catálogo"
+    "imagenCarta": "La imagen del catálogo",
+    "notaHorarios": "La aclaración de los horarios",
+    "redWifi": "El nombre de la red Wi-Fi",
+    "claveWifi": "La contraseña del Wi-Fi",
+    "notaWifi": "La aclaración del Wi-Fi"
   },
   "Errores": {
     "campoVacio": "{campo} no puede estar vacío.",

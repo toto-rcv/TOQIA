@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { CalendarDays, Globe, MapPin, Phone, Star } from "lucide-react";
+import {
+  CalendarDays,
+  Clock,
+  Globe,
+  Info,
+  Lock,
+  MapPin,
+  Phone,
+  Star,
+  Wifi,
+} from "lucide-react";
 
 import { MenuIcon } from "./menu-icons";
 import { ReviewButton } from "./review-button";
@@ -11,7 +21,13 @@ import {
   telUrl,
   whatsappUrl,
 } from "@/lib/url";
+import {
+  normalizarBloquesDeHorario,
+  renglonesDelBloque,
+  type BloqueDeHorario,
+} from "@/lib/horarios";
 import { InstagramIcon, WhatsAppIcon } from "./brand-icons";
+import { AccesoConPanel, BotonCopiar, CabeceraDePanel } from "./panel-de-acceso";
 import { SelectorIdioma } from "./selector-idioma";
 
 // Los textos por defecto en castellano, para poder reconocerlos. Ver
@@ -45,6 +61,14 @@ export type LandingData = {
   menuButtonLabel: string | null;
   /** Id del catálogo de íconos (`lib/menu-icons.ts`). Nulo = cubiertos cruzados. */
   menuButtonIcon: string | null;
+  /** Bloques de horarios. Sin ninguno, el botón de horarios no aparece. */
+  hoursBlocks: BloqueDeHorario[] | null;
+  /** La aclaración al pie del panel de horarios ("pueden variar en feriados"). */
+  hoursNote: string | null;
+  /** Sin red cargada, el botón de Wi-Fi no aparece. */
+  wifiSsid: string | null;
+  wifiPassword: string | null;
+  wifiNote: string | null;
 };
 
 /**
@@ -79,6 +103,12 @@ type Acceso = {
   title: string;
   sub: string;
   icon: React.ReactNode;
+  /**
+   * Lo que se abre al tocarlo, para los accesos que no llevan a ningún lado
+   * (horarios, Wi-Fi). Nulo cuando el local no cargó nada: entonces el acceso
+   * se descarta igual que uno sin `href`.
+   */
+  panel?: React.ReactNode;
 };
 
 /**
@@ -115,10 +145,12 @@ export async function LandingView({
   hasMenu?: boolean;
   volverA?: string;
 }) {
-  const [idioma, t, ta] = await Promise.all([
+  const [idioma, t, ta, th, tw] = await Promise.all([
     getLocale(),
     getTranslations("Landing"),
     getTranslations("Accesos"),
+    getTranslations("Horarios"),
+    getTranslations("Wifi"),
   ]);
 
   const nombre = landing.displayName?.trim() || landing.name;
@@ -134,6 +166,43 @@ export async function LandingView({
     : hasMenu && code
       ? `/r/${encodeURIComponent(code)}/carta`
       : null;
+
+  // Los dos accesos que abren un panel en vez de navegar. Se arman acá y no
+  // dentro del array para que quede a la vista la única regla que los
+  // gobierna: sin datos cargados no hay panel, y sin panel no hay botón.
+  const bloques = normalizarBloquesDeHorario(landing.hoursBlocks);
+  const hoursNote = landing.hoursNote?.trim() || null;
+
+  const panelDeHorarios =
+    bloques.length > 0 ? (
+      <PanelDeHorarios
+        bloques={bloques}
+        nota={hoursNote}
+        titulo={th("titulo")}
+        sub={th("subtitulo")}
+      />
+    ) : null;
+
+  const wifiSsid = landing.wifiSsid?.trim() || null;
+  const wifiPassword = landing.wifiPassword?.trim() || null;
+
+  const panelDeWifi = wifiSsid ? (
+    <PanelDeWifi
+      ssid={wifiSsid}
+      clave={wifiPassword}
+      nota={landing.wifiNote?.trim() || null}
+      textos={{
+        titulo: tw("titulo"),
+        sub: tw("subtitulo"),
+        red: tw("red"),
+        clave: tw("clave"),
+        copiar: tw("copiar"),
+        copiarClave: tw("copiarClave"),
+        copiado: tw("copiado"),
+        sinClave: tw("sinClave"),
+      }}
+    />
+  ) : null;
 
   // El orden es deliberado: primero lo que el cliente busca sentado a la mesa
   // (carta), después lo de llegar y contactar, y al final lo opcional.
@@ -159,6 +228,25 @@ export async function LandingView({
           className="size-6 text-tq-ink"
         />
       ),
+    },
+    {
+      // Horarios y Wi-Fi van pegados a la carta y antes que los contactos: son
+      // lo que se pregunta estando adentro del local, y los demás accesos son
+      // para irse a otro lado.
+      href: null,
+      interno: false,
+      title: ta("horarios"),
+      sub: ta("horariosSub"),
+      icon: <Clock className="size-6 text-tq-ink" aria-hidden />,
+      panel: panelDeHorarios,
+    },
+    {
+      href: null,
+      interno: false,
+      title: ta("wifi"),
+      sub: ta("wifiSub"),
+      icon: <Wifi className="size-6 text-tq-ink" aria-hidden />,
+      panel: panelDeWifi,
     },
     {
       href: mapsUrlFor(landing.mapsUrl, landing.address),
@@ -208,7 +296,7 @@ export async function LandingView({
       sub: ta("sitioWebSub"),
       icon: <Globe className="size-6 text-tq-ink" aria-hidden />,
     },
-  ].filter((acceso) => Boolean(acceso.href));
+  ].filter((acceso) => Boolean(acceso.href) || Boolean(acceso.panel));
 
   return (
     /* `lang` va acá y no en el <html> del layout raíz: ese layout lo comparten
@@ -275,8 +363,18 @@ export async function LandingView({
               <p className="tq-rule my-7">{t("descubrirMas")}</p>
 
               <nav className="grid grid-cols-3 gap-3">
-                {accesos.map(({ href, interno, title, sub, icon }) =>
-                  interno ? (
+                {accesos.map(({ href, interno, title, sub, icon, panel }) =>
+                  panel ? (
+                    <AccesoConPanel
+                      key={title}
+                      titulo={title}
+                      sub={sub}
+                      icono={icon}
+                      cerrar={t("cerrar")}
+                    >
+                      {panel}
+                    </AccesoConPanel>
+                  ) : interno ? (
                     <Link key={title} href={href!} className="tq-tile">
                       {icon}
                       <span className="tq-tile-title">{title}</span>
@@ -318,6 +416,208 @@ export async function LandingView({
         </div>
       </div>
     </main>
+  );
+}
+
+/* ── Horarios ─────────────────────────────────────────────────────────────── */
+
+/**
+ * Lo que se ve al tocar "Horarios".
+ *
+ * Recibe los textos ya traducidos en vez de pedirlos por su cuenta. No es
+ * capricho: un componente hoja de esta página que se vuelve `async` para
+ * buscar sus propias traducciones tiró el servidor entero en producción, y el
+ * build local no lo detectaba. Las hojas se quedan sincrónicas.
+ */
+function PanelDeHorarios({
+  bloques,
+  nota,
+  titulo,
+  sub,
+}: {
+  bloques: BloqueDeHorario[];
+  nota: string | null;
+  titulo: string;
+  sub: string;
+}) {
+  return (
+    <>
+      <CabeceraDePanel
+        icono={<Clock className="size-8 text-tq-ink" aria-hidden />}
+        titulo={titulo}
+        sub={sub}
+      />
+
+      <div className="space-y-3 px-5">
+        {bloques.map((bloque, indice) => {
+          const renglones = renglonesDelBloque(bloque.text);
+
+          return (
+            <section
+              key={indice}
+              className="rounded-2xl bg-tq-cream-alt px-4 py-4"
+            >
+              {bloque.title ? (
+                <div className="flex items-center gap-2.5">
+                  {bloque.icon ? (
+                    <MenuIcon
+                      name={bloque.icon}
+                      className="size-[22px] shrink-0 text-tq-ink"
+                    />
+                  ) : null}
+                  <h3 className="font-serif text-[17px] font-semibold text-tq-ink">
+                    {bloque.title}
+                  </h3>
+                </div>
+              ) : null}
+
+              {renglones.length > 0 ? (
+                <ul className={bloque.title ? "mt-2.5" : ""}>
+                  {renglones.map((renglon, fila) => (
+                    <li
+                      key={fila}
+                      /* `flex-wrap` y no una grilla de dos columnas: un día
+                         largo con dos turnos no entra en 460px y, forzado,
+                         partiría el horario en el medio. Así baja entero. */
+                      className="flex flex-wrap items-baseline justify-between gap-x-4
+                                 border-b border-tq-cream-border/60 py-2
+                                 last:border-0 last:pb-0"
+                    >
+                      <span className="text-[14px] text-tq-ink-soft">
+                        {renglon.izquierda}
+                      </span>
+                      {renglon.derecha ? (
+                        <span className="text-[14px] font-semibold tabular-nums text-tq-ink">
+                          {renglon.derecha}
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          );
+        })}
+
+        {nota ? <Aclaracion texto={nota} /> : null}
+      </div>
+    </>
+  );
+}
+
+/* ── Wi-Fi ────────────────────────────────────────────────────────────────── */
+
+function PanelDeWifi({
+  ssid,
+  clave,
+  nota,
+  textos,
+}: {
+  ssid: string;
+  clave: string | null;
+  nota: string | null;
+  textos: {
+    titulo: string;
+    sub: string;
+    red: string;
+    clave: string;
+    copiar: string;
+    copiarClave: string;
+    copiado: string;
+    sinClave: string;
+  };
+}) {
+  return (
+    <>
+      <CabeceraDePanel
+        icono={<Wifi className="size-8 text-tq-ink" aria-hidden />}
+        titulo={textos.titulo}
+        sub={textos.sub}
+      />
+
+      <div className="space-y-3 px-5">
+        <div className="rounded-2xl bg-tq-cream-alt px-4">
+          <FilaDeWifi
+            icono={<Wifi className="size-[18px] text-tq-muted" aria-hidden />}
+            etiqueta={textos.red}
+            valor={ssid}
+            copiar={textos.copiar}
+            copiado={textos.copiado}
+          />
+
+          {clave ? (
+            <FilaDeWifi
+              icono={<Lock className="size-[18px] text-tq-muted" aria-hidden />}
+              etiqueta={textos.clave}
+              valor={clave}
+              copiar={textos.copiar}
+              copiado={textos.copiado}
+            />
+          ) : null}
+        </div>
+
+        {/* El botón ancho repite lo que ya hace el ícono de la fila, y está
+            bien que lo repita: es el gesto que viene a hacer el 90% de la
+            gente que abre esto, y buscarlo en un ícono de 18px con el celular
+            en una mano no es lo mismo que tenerlo servido. */}
+        {clave ? (
+          <BotonCopiar
+            valor={clave}
+            etiqueta={textos.copiarClave}
+            copiado={textos.copiado}
+            ancho
+          />
+        ) : (
+          <Aclaracion texto={textos.sinClave} />
+        )}
+
+        {nota ? <Aclaracion texto={nota} /> : null}
+      </div>
+    </>
+  );
+}
+
+function FilaDeWifi({
+  icono,
+  etiqueta,
+  valor,
+  copiar,
+  copiado,
+}: {
+  icono: React.ReactNode;
+  etiqueta: string;
+  valor: string;
+  copiar: string;
+  copiado: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 border-b border-tq-cream-border/60 py-3 last:border-0">
+      {icono}
+
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] uppercase tracking-[0.08em] text-tq-muted">
+          {etiqueta}
+        </p>
+        {/* `break-all` y monoespaciada: una clave de Wi-Fi se copia con el ojo
+            cuando el botón no funciona, y ahí la diferencia entre l, 1 e I
+            decide si la persona entra o no. */}
+        <p className="break-all font-mono text-[15px] font-semibold text-tq-ink">
+          {valor}
+        </p>
+      </div>
+
+      <BotonCopiar valor={valor} etiqueta={copiar} copiado={copiado} />
+    </div>
+  );
+}
+
+/** La nota al pie de un panel, con su ícono. */
+function Aclaracion({ texto }: { texto: string }) {
+  return (
+    <p className="flex gap-2.5 rounded-2xl bg-tq-cream-alt/60 px-4 py-3.5 text-[12.5px] leading-relaxed text-tq-ink-soft">
+      <Info className="mt-0.5 size-4 shrink-0 text-tq-muted" aria-hidden />
+      {texto}
+    </p>
   );
 }
 

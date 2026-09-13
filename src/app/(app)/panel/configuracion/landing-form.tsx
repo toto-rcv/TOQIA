@@ -1,13 +1,20 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { FileField } from "@/components/ui/file-field";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Textarea } from "@/components/ui/input";
 import { SelectorDeIcono } from "@/components/landing/icon-selector";
+import {
+  MAX_BLOQUES_HORARIO,
+  MAX_TEXTO_BLOQUE,
+  MAX_TITULO_BLOQUE,
+  normalizarBloquesDeHorario,
+  type BloqueDeHorario,
+} from "@/lib/horarios";
 import { updateLanding } from "../actions";
 
 type Location = {
@@ -34,6 +41,11 @@ type Location = {
   menuButtonLabel: string | null;
   menuButtonIcon: string | null;
   currency: string;
+  hoursBlocks: BloqueDeHorario[] | null;
+  hoursNote: string | null;
+  wifiSsid: string | null;
+  wifiPassword: string | null;
+  wifiNote: string | null;
 };
 
 /**
@@ -219,6 +231,39 @@ export function LandingForm({
         tieneCartaToqia={tieneCartaToqia}
       />
 
+      <SeccionDeHorarios
+        inicial={normalizarBloquesDeHorario(location.hoursBlocks)}
+        nota={location.hoursNote ?? ""}
+      />
+
+      <Seccion titulo={t("secWifi")} descripcion={t("secWifiDesc")}>
+        <Campo
+          id="wifiSsid"
+          name="wifiSsid"
+          label={t("wifiSsid")}
+          defaultValue={location.wifiSsid ?? ""}
+          placeholder={t("wifiSsidPlaceholder")}
+          mono
+        />
+        <Campo
+          id="wifiPassword"
+          name="wifiPassword"
+          label={t("wifiPassword")}
+          defaultValue={location.wifiPassword ?? ""}
+          placeholder={t("wifiPasswordPlaceholder")}
+          mono
+          hint={t("wifiPasswordHint")}
+        />
+        <Campo
+          id="wifiNote"
+          name="wifiNote"
+          label={t("notaPanel")}
+          defaultValue={location.wifiNote ?? ""}
+          placeholder={t("wifiNotePlaceholder")}
+          hint={t("notaPanelHint")}
+        />
+      </Seccion>
+
       <Seccion titulo={t("secUbicacion")} descripcion={t("secUbicacionDesc")}>
         <Campo
           id="address"
@@ -298,6 +343,177 @@ function Seccion({
       </div>
       <div className="grid gap-4 px-4 py-4 sm:grid-cols-2 sm:px-5">{children}</div>
     </section>
+  );
+}
+
+/**
+ * Los horarios que el cliente ve al tocar el botón de su página.
+ *
+ * Cada bloque es un título, un ícono y renglones libres. No hay un armador de
+ * días y turnos a propósito: ver `lib/horarios.ts` para por qué.
+ *
+ * Los campos van sin estado y con el índice en el nombre (`horarioTitulo0`,
+ * `horarioTitulo1`…). Lo único que vive en React es qué bloques existen; lo
+ * que cada uno dice lo guarda el propio input. Por eso la `key` es un id
+ * estable y no el índice: al borrar el primero de tres, con el índice como
+ * key React reusaría los nodos corridos y el texto de cada bloque terminaría
+ * en el de arriba.
+ */
+function SeccionDeHorarios({
+  inicial,
+  nota,
+}: {
+  inicial: BloqueDeHorario[];
+  nota: string;
+}) {
+  const t = useTranslations("Configuracion");
+  const [bloques, setBloques] = React.useState(() =>
+    inicial.map((bloque, indice) => ({ uid: `guardado-${indice}`, ...bloque }))
+  );
+  const proximo = React.useRef(0);
+
+  const completo = bloques.length >= MAX_BLOQUES_HORARIO;
+
+  return (
+    <section className="rounded-card border border-ex-border bg-ex-surface shadow-card">
+      <div className="border-b border-ex-border-subtle px-4 py-3.5 sm:px-5">
+        <h3 className="text-[15px] font-semibold tracking-tight text-ex-text">
+          {t("secHorarios")}
+        </h3>
+        <p className="mt-0.5 text-[12.5px] text-ex-text-muted">
+          {t("secHorariosDesc")}
+        </p>
+      </div>
+
+      <div className="space-y-3 px-4 py-4 sm:px-5">
+        {bloques.length === 0 ? (
+          <p className="rounded-control border border-dashed border-ex-border px-4 py-6 text-center text-[12.5px] text-ex-text-muted">
+            {t("sinHorarios")}
+          </p>
+        ) : (
+          bloques.map((bloque, indice) => (
+            <BloqueDeHorarios
+              key={bloque.uid}
+              bloque={bloque}
+              indice={indice}
+              onQuitar={() =>
+                setBloques((actuales) =>
+                  actuales.filter((item) => item.uid !== bloque.uid)
+                )
+              }
+            />
+          ))
+        )}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={completo}
+            onClick={() =>
+              setBloques((actuales) => [
+                ...actuales,
+                {
+                  uid: `nuevo-${proximo.current++}`,
+                  icon: null,
+                  title: "",
+                  text: "",
+                },
+              ])
+            }
+          >
+            <Plus />
+            {t("agregarBloque")}
+          </Button>
+
+          {completo ? (
+            <span className="text-[11px] text-ex-text-muted">
+              {t("maximoBloques", { n: MAX_BLOQUES_HORARIO })}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="space-y-1.5 pt-1">
+          <Label htmlFor="hoursNote">{t("notaPanel")}</Label>
+          <Input
+            id="hoursNote"
+            name="hoursNote"
+            defaultValue={nota}
+            maxLength={300}
+            placeholder={t("hoursNotePlaceholder")}
+          />
+          <p className="text-[11px] text-ex-text-muted">{t("notaPanelHint")}</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BloqueDeHorarios({
+  bloque,
+  indice,
+  onQuitar,
+}: {
+  bloque: BloqueDeHorario;
+  indice: number;
+  onQuitar: () => void;
+}) {
+  const t = useTranslations("Configuracion");
+
+  return (
+    <div className="space-y-3 rounded-control border border-ex-border p-3">
+      <div className="flex items-end gap-2">
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <Label htmlFor={`horarioTitulo${indice}`}>{t("bloqueTitulo")}</Label>
+          <Input
+            id={`horarioTitulo${indice}`}
+            name={`horarioTitulo${indice}`}
+            defaultValue={bloque.title}
+            maxLength={MAX_TITULO_BLOQUE}
+            placeholder={t("bloqueTituloPlaceholder")}
+            autoComplete="off"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={onQuitar}
+          title={t("quitarBloque")}
+          aria-label={t("quitarBloque")}
+          className="mb-0.5 grid size-10 shrink-0 place-items-center rounded-control
+                     border border-ex-border text-ex-text-muted transition-colors
+                     hover:border-ex-danger/40 hover:text-ex-danger"
+        >
+          <Trash2 className="size-4" />
+        </button>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor={`horarioTexto${indice}`}>{t("bloqueHorarios")}</Label>
+        <Textarea
+          id={`horarioTexto${indice}`}
+          name={`horarioTexto${indice}`}
+          rows={4}
+          defaultValue={bloque.text}
+          maxLength={MAX_TEXTO_BLOQUE}
+          // El placeholder trae los dos espacios de la convención adentro: es
+          // más rápido de entender copiando el ejemplo que leyendo la ayuda.
+          placeholder={"Lunes a jueves    13:00 – 16:00\nViernes y sábado    13:00 – 16:30"}
+          className="font-mono text-xs"
+        />
+        <p className="text-[11px] leading-relaxed text-ex-text-muted">
+          {t("bloqueHorariosHint")}
+        </p>
+      </div>
+
+      <SelectorDeIcono
+        name={`horarioIcono${indice}`}
+        inicial={bloque.icon}
+        ayudaElegido={t("iconoBloqueElegido")}
+        ayudaVacio={t("iconoBloqueVacio")}
+      />
+    </div>
   );
 }
 

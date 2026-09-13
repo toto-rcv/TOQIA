@@ -8,7 +8,8 @@
     "sinEnlace": "Questo locale non ha ancora configurato il link alle recensioni.",
     "descubrirMas": "Scopri di più",
     "cierre": "Grazie per aver fatto parte della nostra esperienza",
-    "descripcion": "Raccontaci com'è andata da {nombre}."
+    "descripcion": "Raccontaci com'è andata da {nombre}.",
+    "cerrar": "Chiudi"
   },
   "Accesos": {
     "menu": "Menu",
@@ -25,7 +26,25 @@
     "reservarSub": "Fai la tua prenotazione",
     "sitioWeb": "Sito web",
     "sitioWebSub": "Chi siamo",
-    "mensajeReserva": "Ciao, vorrei fare una prenotazione"
+    "mensajeReserva": "Ciao, vorrei fare una prenotazione",
+    "horarios": "Orari",
+    "horariosSub": "Quando apriamo",
+    "wifi": "Wi-Fi",
+    "wifiSub": "Connettiti"
+  },
+  "Horarios": {
+    "titulo": "Orari",
+    "subtitulo": "Quando ti aspettiamo"
+  },
+  "Wifi": {
+    "titulo": "Wi-Fi del locale",
+    "subtitulo": "Connettiti e goditi la visita",
+    "red": "Rete",
+    "clave": "Password",
+    "copiar": "Copia",
+    "copiarClave": "Copia la password",
+    "copiado": "Copiato!",
+    "sinClave": "È una rete aperta: non serve la password."
   },
   "Carta": {
     "titulo": "Menu",
@@ -145,7 +164,7 @@
   "Nav": {
     "resumen": "Riepilogo",
     "panel": "Dashboard",
-    "pulseras": "Braccialetti",
+    "pulseras": "Dispositivi",
     "catalogo": "Catalogo",
     "escaneos": "Scansioni",
     "empleados": "Dipendenti",
@@ -502,7 +521,30 @@
     "addressPlaceholder": "Via Roma 742, Milano",
     "verMenuDefecto": "Vedi il menù",
     "avisoSinPlatos": "Non hai ancora inserito nessun piatto: finché non lo fai, il pulsante “{boton}” non appare sulla tua pagina.",
-    "avisoSinPdf": "Carica il file qui sotto, o il pulsante “{boton}” non apparirà."
+    "avisoSinPdf": "Carica il file qui sotto, o il pulsante “{boton}” non apparirà.",
+    "secHorarios": "Orari",
+    "secHorariosDesc": "Si aprono da un pulsante della tua pagina. Senza blocchi, il pulsante non compare.",
+    "sinHorarios": "Non hai ancora inserito orari. Aggiungi un blocco per ogni cosa con orario proprio.",
+    "agregarBloque": "Aggiungi blocco",
+    "quitarBloque": "Rimuovi blocco",
+    "maximoBloques": "Hai raggiunto {n} blocchi.",
+    "bloqueTitulo": "Nome del blocco",
+    "bloqueTituloPlaceholder": "Cucina",
+    "bloqueHorarios": "Giorni e orari",
+    "bloqueHorariosHint": "Una riga per ogni giorno o intervallo. Se separi il giorno dall'orario con due spazi, nella pagina finiscono su due colonne; altrimenti la riga si mostra intera.",
+    "iconoBloqueElegido": "Compare accanto al nome del blocco.",
+    "iconoBloqueVacio": "Senza icona, il blocco mostra solo il nome.",
+    "notaPanel": "Nota",
+    "notaPanelHint": "Compare in fondo al pannello, in piccolo. Facoltativa.",
+    "hoursNotePlaceholder": "Nei giorni festivi gli orari possono cambiare.",
+    "secWifi": "Wi-Fi",
+    "secWifiDesc": "Così il cliente si connette senza chiedere. Senza rete, il pulsante non compare.",
+    "wifiSsid": "Nome della rete",
+    "wifiSsidPlaceholder": "MioLocale_Ospiti",
+    "wifiPassword": "Password",
+    "wifiPasswordPlaceholder": "la chiave della rete",
+    "wifiPasswordHint": "Se la rete è aperta, lasciala vuota. Attenzione: la vede chiunque scansioni.",
+    "wifiNotePlaceholder": "Disponibile in tutto il locale."
   },
   "Archivos": {
     "quitar": "Rimuovi",
@@ -542,7 +584,10 @@
       "comer": "Da mangiare",
       "postres": "Dolci",
       "bebidas": "Bevande",
-      "generales": "Generali"
+      "generales": "Generali",
+      "servicios": "Servizi",
+      "comercio": "Commercio",
+      "local": "In sede"
     },
     "hamburguesa": "Hamburger",
     "pizza": "Pizza",
@@ -570,7 +615,33 @@
     "agua": "Acqua",
     "cubiertos": "Posate",
     "olla": "Cucina",
-    "picada": "Da condividere"
+    "picada": "Da condividere",
+    "peluqueria": "Parrucchiere",
+    "belleza": "Bellezza",
+    "gimnasio": "Palestra",
+    "salud": "Salute",
+    "mascotas": "Animali",
+    "taller": "Officina",
+    "auto": "Auto",
+    "limpieza": "Pulizia",
+    "tienda": "Negozio",
+    "ropa": "Abbigliamento",
+    "calzado": "Calzature",
+    "joyas": "Gioielli",
+    "libros": "Libri",
+    "flores": "Fiori",
+    "regalos": "Regali",
+    "tecnologia": "Tecnologia",
+    "horarios": "Orari",
+    "wifi": "Wi-Fi",
+    "ubicacion": "Posizione",
+    "estacionamiento": "Parcheggio",
+    "terraza": "Terrazza",
+    "musica": "Musica",
+    "evento": "Eventi",
+    "entrada": "Biglietti",
+    "pago": "Pagamenti",
+    "info": "Informazioni"
   },
   "Campos": {
     "nombre": "Il nome",
@@ -593,7 +664,11 @@
     "fotoCierre": "La foto di chiusura",
     "cartaPdf": "Il catalogo in PDF",
     "fotoPlato": "La foto del prodotto",
-    "imagenCarta": "L'immagine del catalogo"
+    "imagenCarta": "L'immagine del catalogo",
+    "notaHorarios": "La nota degli orari",
+    "redWifi": "Il nome della rete Wi-Fi",
+    "claveWifi": "La password del Wi-Fi",
+    "notaWifi": "La nota del Wi-Fi"
   },
   "Errores": {
     "campoVacio": "{campo} non può essere vuoto.",

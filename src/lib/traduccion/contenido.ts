@@ -52,6 +52,12 @@ export const CAMPOS_TRADUCIBLES = {
     "welcomeTitle",
     "closingMessage",
     "menuButtonLabel",
+    // Las aclaraciones de los paneles: frases sueltas, como el mensaje de
+    // cierre. Los bloques de horarios en sí quedan afuera — viven dentro de
+    // una columna JSON y este mecanismo superpone campos de texto sueltos,
+    // no estructuras.
+    "hoursNote",
+    "wifiNote",
   ],
 } as const satisfies Record<Entidad, readonly string[]>;
 

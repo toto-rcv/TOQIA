@@ -48,13 +48,43 @@ function revalidar() {
   revalidatePath("/panel/carta");
 }
 
-/** Devuelve una clave de `Errores` en `error`, no la frase ya escrita. */
+/**
+ * Lee el precio tal como lo escribió una persona y lo deja listo para MySQL.
+ *
+ * Devuelve una clave de `Errores` en `error`, no la frase ya escrita.
+ *
+ * Antes esto era `Number(texto.replace(",", "."))`, y ahí estaba el problema
+ * que reportaban los locales: "18.500" en una carta argentina son dieciocho
+ * mil quinientos, pero `Number("18.500")` es 18,5. El plato se guardaba a
+ * 18,50 y en la carta salía un precio que no era el que habían cargado. Y un
+ * "1.234,56" de España ni siquiera llegaba a guardarse: quedaba en NaN y el
+ * formulario contestaba un "no se pudo" que no explicaba nada.
+ *
+ * Lo que desempata es el último separador, que es la regla que de hecho
+ * siguen las dos convenciones: lo que va detrás del último punto o coma son
+ * centavos si son uno o dos dígitos, y un grupo de miles si son tres.
+ * Cualquier separador anterior es de miles y se descarta.
+ *
+ *   "12,50"    → 12.50     "18.500"   → 18500.00
+ *   "1.234,56" → 1234.56   "1,234.56" → 1234.56
+ *   "1.850"    → 1850.00   "12.5"     → 12.50
+ */
 function limpiarPrecio(valor: string): { precio: string | null; error?: string } {
   const texto = valor.trim();
   if (texto === "") return { precio: null };
 
-  // Se acepta coma o punto: en España y Argentina la gente escribe "12,50".
-  const numero = Number(texto.replace(",", "."));
+  // Un "€" o un espacio de más pegados al número no tienen por qué costarle
+  // un error a quien lo escribió.
+  const limpio = texto.replace(/[^\d.,]/g, "");
+  if (!/\d/.test(limpio)) return { precio: null, error: "precioNoPositivo" };
+
+  const corte = Math.max(limpio.lastIndexOf(","), limpio.lastIndexOf("."));
+  const decimales = corte === -1 ? "" : limpio.slice(corte + 1);
+  const esDecimal = decimales.length === 1 || decimales.length === 2;
+
+  const enteros = (esDecimal ? limpio.slice(0, corte) : limpio).replace(/[.,]/g, "");
+  const numero = Number(esDecimal ? `${enteros || "0"}.${decimales}` : enteros);
+
   if (!Number.isFinite(numero) || numero < 0) {
     return { precio: null, error: "precioNoPositivo" };
   }

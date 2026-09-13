@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 
 import { accounts, bracelets, db, locations } from "@/db";
+import type { BloqueDeHorario } from "@/lib/horarios";
 
 /**
  * Todo lo que hace falta para resolver un escaneo y armar la landing, en una
@@ -42,6 +43,11 @@ export type ResolvedBracelet = {
     menuMode: string;
     menuButtonLabel: string | null;
     menuButtonIcon: string | null;
+    hoursBlocks: BloqueDeHorario[] | null;
+    hoursNote: string | null;
+    wifiSsid: string | null;
+    wifiPassword: string | null;
+    wifiNote: string | null;
   };
 };
 
@@ -84,6 +90,11 @@ export async function resolveBraceletByCode(
       menuMode: locations.menuMode,
       menuButtonLabel: locations.menuButtonLabel,
       menuButtonIcon: locations.menuButtonIcon,
+      hoursBlocks: locations.hoursBlocks,
+      hoursNote: locations.hoursNote,
+      wifiSsid: locations.wifiSsid,
+      wifiPassword: locations.wifiPassword,
+      wifiNote: locations.wifiNote,
     })
     .from(bracelets)
     .innerJoin(locations, eq(bracelets.locationId, locations.id))
@@ -127,6 +138,11 @@ export async function resolveBraceletByCode(
       menuMode: row.menuMode,
       menuButtonLabel: row.menuButtonLabel,
       menuButtonIcon: row.menuButtonIcon,
+      hoursBlocks: row.hoursBlocks,
+      hoursNote: row.hoursNote,
+      wifiSsid: row.wifiSsid,
+      wifiPassword: row.wifiPassword,
+      wifiNote: row.wifiNote,
     },
   };
 }
